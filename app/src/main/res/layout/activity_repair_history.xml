@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/JStyle.Page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/j_space_8"
+    tools:theme="@style/Theme.Zds">
+
+    <LinearLayout
+        style="@style/JStyle.Card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/j_space_12">
+
+        <TextView
+            android:id="@+id/tvReport"
+            style="@style/JText.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="不良上报" />
+
+        <TextView
+            android:id="@+id/tvRepair"
+            style="@style/JText.Secondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_12"
+            tools:text="维修记录" />
+
+        <TextView
+            android:id="@+id/tvFiles"
+            style="@style/JText.Secondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_12"
+            tools:text="维修照片" />
+
+        <HorizontalScrollView
+            android:id="@+id/scrollPhotoList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_8"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <LinearLayout
+                android:id="@+id/layoutPhotoList"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+        </HorizontalScrollView>
+    </LinearLayout>
+</ScrollView>

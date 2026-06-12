@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/JStyle.Page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/j_space_8"
+    tools:theme="@style/Theme.Zds">
+
+    <LinearLayout
+        style="@style/JStyle.Card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/j_space_8">
+
+        <com.jj.ui.input.JInputLayout
+            android:id="@+id/inputQrCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:jInputClearEnabled="true"
+            app:jInputCompact="true"
+            app:jInputHint="请扫描二维码"
+            app:jInputMode="scan"
+            app:jInputSelectAllOnFocus="true"
+            app:jInputTitle="二维码" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvResult"
+        style="@style/JText.Body"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:layout_weight="1"
+        android:background="@drawable/zds_bg_tree_child"
+        android:lineSpacingExtra="4dp"
+        android:padding="@dimen/j_space_12"
+        android:text="等待扫码解析"
+        android:textColor="@color/j_color_text_primary"
+        tools:text="解析成功&#10;&#10;ID：1001&#10;类型：material&#10;物料编码：M-001" />
+</LinearLayout>

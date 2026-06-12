@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/JStyle.Page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    tools:theme="@style/Theme.Zds">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/j_space_16">
+
+        <TextView
+            android:id="@+id/tvVersion"
+            style="@style/JText.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/btnCheckUpdate"
+            style="@style/JStyle.Button.Primary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_16"
+            android:text="Check Update" />
+
+        <ProgressBar
+            android:id="@+id/progressDownload"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_16"
+            android:max="100"
+            android:progress="0" />
+
+        <TextView
+            android:id="@+id/tvStatus"
+            style="@style/JText.Secondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_12"
+            android:lineSpacingExtra="4dp" />
+
+        <Button
+            android:id="@+id/btnInstall"
+            style="@style/JStyle.Button.Secondary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_16"
+            android:text="Install downloaded APK" />
+    </LinearLayout>
+</ScrollView>

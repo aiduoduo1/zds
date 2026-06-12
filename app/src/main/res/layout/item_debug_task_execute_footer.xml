@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/JStyle.Card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/j_space_10">
+
+    <TextView
+        android:id="@+id/tvSubmitHint"
+        style="@style/JText.Caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="@color/j_color_info"
+        android:textStyle="bold" />
+
+    <Button
+        android:id="@+id/btnSubmit"
+        style="@style/JStyle.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:text="提交检查" />
+</LinearLayout>

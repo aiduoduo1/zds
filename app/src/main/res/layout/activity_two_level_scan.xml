@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/JStyle.Page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/j_space_8"
+    tools:theme="@style/Theme.Zds">
+
+    <LinearLayout
+        style="@style/JStyle.Card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/j_space_8">
+
+        <com.jj.ui.input.JInputLayout
+            android:id="@+id/inputScan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:jInputCompact="true"
+            app:jInputClearEnabled="true"
+            app:jInputHint="扫描 A-001 / B-001 / C-001"
+            app:jInputMode="scan"
+            app:jInputSelectAllOnFocus="true"
+            app:jInputTitle="分类扫码" />
+
+        <TextView
+            android:id="@+id/tvScanHint"
+            style="@style/JText.Caption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_4"
+            android:text="按扫码前缀归入父分类，子项支持编辑 / 刷新 / 删除"
+            android:textColor="@color/j_color_info"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerTree"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        tools:itemCount="9"
+        tools:listitem="@layout/item_two_level_parent" />
+</LinearLayout>

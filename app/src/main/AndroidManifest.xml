@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        android:usesPermissionFlags="neverForLocation"
+        tools:targetApi="s" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <application
+        android:name=".app.ZdsApplication"
+        android:allowBackup="false"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Zds"
+        android:usesCleartextTraffic="true">
+        <activity
+            android:name=".feature.login.ui.LoginActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".feature.main.ui.MainActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.pda.PdaMainActivity"
+            android:exported="false" />
+        <activity
+            android:windowSoftInputMode="stateHidden|stateUnchanged"
+            android:name=".feature.debugplan.ui.DebugPlanListActivity"
+            android:exported="false" />
+        <activity
+            android:windowSoftInputMode="stateHidden|stateUnchanged"
+            android:name=".feature.debugplan.ui.DebugPlanBatchActivity"
+            android:exported="false" />
+        <activity
+            android:name=".feature.debugplan.ui.DebugPlanCreateBatchActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.debugplan.ui.DebugTaskExecuteActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+        <activity
+            android:windowSoftInputMode="stateHidden|stateUnchanged"
+            android:name=".feature.debugplan.ui.CurrentBatchDebugRecordActivity"
+            android:exported="false" />
+        <activity
+            android:windowSoftInputMode="stateHidden|stateUnchanged"
+            android:name=".feature.singledebug.ui.SingleDebugActivity"
+            android:exported="false"
+            />
+        <activity
+            android:name=".feature.repair.ui.RepairActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+        <activity
+            android:name=".feature.repair.ui.RepairHistoryActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.twolevelscan.ui.TwoLevelScanDemoActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.qrcode.ui.QrCodeDecodeActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
+        <activity
+            android:windowSoftInputMode="stateHidden|stateUnchanged"
+            android:name=".feature.update.ui.ZdsUpdateActivity"
+            android:exported="false" />
+        <activity
+            android:windowSoftInputMode="stateHidden|stateUnchanged"
+            android:name=".feature.permission.ui.PermissionAccessDemoActivity"
+            android:exported="false" />
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.jiang.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/jiang_file_paths" />
+        </provider>
+        <service
+            android:name=".feature.message.ZdsMessageSseService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+    </application>
+
+</manifest>

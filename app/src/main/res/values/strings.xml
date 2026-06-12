@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">zds</string>
+    <string name="menu_pic">菜单图标</string>
+    <string name="main_title">zds</string>
+    <string name="main_subtitle">JiangCore business project is ready.</string>
+    <string name="login_title">ZDS 登录</string>
+    <string name="login_subtitle">请输入账号和密码</string>
+    <string name="login_account">账号</string>
+    <string name="login_account_hint">请输入账号</string>
+    <string name="login_password">密码</string>
+    <string name="login_password_hint">请输入密码</string>
+    <string name="login_button">登录</string>
+</resources>

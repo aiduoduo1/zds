@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/JStyle.Card"
+    android:layout_width="match_parent"
+    android:layout_height="140dp"
+    android:layout_margin="@dimen/j_space_6"
+    android:padding="@dimen/j_space_8">
+
+    <ImageView
+        android:id="@+id/ivMenu"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="@dimen/j_space_12"
+        android:contentDescription="@string/menu_pic"
+        android:scaleType="centerInside"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/zds_ic_notification" />
+
+    <TextView
+        android:id="@+id/tvMenuText"
+        style="@style/JText.SectionTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/j_space_8"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:layout_marginEnd="@dimen/j_space_8"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textColor="@color/j_color_text_primary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/ivMenu"
+        tools:text="调试计划" />
+
+    <TextView
+        android:id="@+id/tvTaskCount"
+        android:layout_width="wrap_content"
+        android:layout_height="30dp"
+        android:background="@drawable/zds_bg_menu_badge"
+        android:gravity="center"
+        android:minWidth="30dp"
+        android:paddingStart="@dimen/j_space_8"
+        android:paddingEnd="@dimen/j_space_8"
+        android:textColor="@color/j_color_text_white"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="12"
+        tools:visibility="visible" />
+</androidx.constraintlayout.widget.ConstraintLayout>

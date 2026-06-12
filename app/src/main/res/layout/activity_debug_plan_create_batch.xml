@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/JStyle.Page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/j_space_8"
+    tools:theme="@style/Theme.Zds">
+
+    <LinearLayout
+        style="@style/JStyle.Card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/j_space_8">
+
+        <com.jj.ui.input.JInputLayout
+            android:id="@+id/inputBoxScan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:jInputClearEnabled="true"
+            app:jInputCompact="true"
+            app:jInputHint="请扫描箱单二维码"
+            app:jInputMode="scan"
+            app:jInputSelectAllOnFocus="true"
+            app:jInputTitle="箱单扫码" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/JText.SectionTitle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="待提交料箱" />
+
+        <TextView
+            style="@style/JText.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="箱" />
+
+        <TextView
+            android:id="@+id/tvBoxCount"
+            style="@style/JText.SectionTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/j_space_4"
+            tools:text="2" />
+
+        <TextView
+            style="@style/JText.Caption"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/j_space_12"
+            android:text="数量" />
+
+        <TextView
+            android:id="@+id/tvQtyCount"
+            style="@style/JText.SectionTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/j_space_4"
+            tools:text="40" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/j_space_4"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerBoxes"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            tools:itemCount="4"
+            tools:listitem="@layout/item_debug_plan_create_box" />
+
+        <com.jj.ui.widget.JEmptyView
+            android:id="@+id/emptyView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:jDescription="扫描箱单二维码，校验通过后会加入待提交列表"
+            app:jTitle="暂无箱单" />
+    </FrameLayout>
+
+    <Button
+        android:id="@+id/btnSubmitBatch"
+        style="@style/JStyle.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/j_button_height"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:text="提交创建批次" />
+</LinearLayout>

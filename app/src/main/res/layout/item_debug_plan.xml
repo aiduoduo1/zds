@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/JStyle.Card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvPlanNo"
+                style="@style/JText.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content" />
+
+            <TextView
+                android:id="@+id/tvMaterial"
+                style="@style/JText.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_4"
+                android:maxLines="2" />
+        </LinearLayout>
+
+        <com.jj.ui.widget.JStatusTagView
+            android:id="@+id/tagStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/j_space_8" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvMaterialCode"
+        style="@style/JText.Secondary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_8" />
+
+    <TextView
+        android:id="@+id/tvCustomer"
+        style="@style/JText.Secondary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_4" />
+
+    <TextView
+        android:id="@+id/tvBatch"
+        style="@style/JText.Secondary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_4"
+        android:maxLines="2" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_12"
+        android:orientation="horizontal">
+
+        <TextView
+            style="@style/JText.Secondary"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="计划数量" />
+
+        <TextView
+            android:id="@+id/tvPlanQty"
+            style="@style/JText.SectionTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/j_space_8" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tagPhoto"
+            android:layout_width="88dp"
+            android:layout_height="@dimen/j_small_button_height"
+            android:background="@drawable/j_bg_button_danger"
+            android:gravity="center"
+            android:text="完工留痕"
+            android:textColor="@color/j_color_text_white"
+            android:textSize="@dimen/j_text_size_sm"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvSample"
+        style="@style/JText.Secondary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_8" />
+
+    <TextView
+        android:id="@+id/tvNg"
+        style="@style/JText.Secondary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_4" />
+
+    <TextView
+        android:id="@+id/tvEnter"
+        style="@style/JText.Secondary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:gravity="end" />
+</LinearLayout>

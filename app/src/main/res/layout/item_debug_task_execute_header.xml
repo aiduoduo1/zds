@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/JStyle.Card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/j_space_8">
+
+    <TextView
+        android:id="@+id/tvFormName"
+        style="@style/JText.Caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxLines="1"
+        android:textColor="@color/j_color_primary"
+        android:textStyle="bold"
+        tools:text="等待扫描 SN" />
+</LinearLayout>

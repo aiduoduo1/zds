@@ -1,0 +1,12 @@
+<resources>
+    <style name="Theme.Zds" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/j_color_primary</item>
+        <item name="colorPrimaryVariant">@color/j_color_primary_dark</item>
+        <item name="colorOnPrimary">@color/j_color_text_white</item>
+        <item name="colorSecondary">@color/j_color_success</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@color/j_color_bg_page</item>
+        <item name="android:navigationBarColor">@color/j_color_bg_page</item>
+    </style>
+</resources>

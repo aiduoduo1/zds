@@ -1,0 +1,314 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/JStyle.Page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/j_space_8"
+    tools:context=".feature.repair.ui.RepairActivity"
+    tools:theme="@style/Theme.Zds">
+
+    <LinearLayout
+        style="@style/JStyle.Card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/j_space_8">
+
+        <com.jj.ui.input.JInputLayout
+            android:id="@+id/inputSn"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:jInputClearEnabled="true"
+            app:jInputCompact="true"
+            app:jInputHint=""
+            app:jInputMode="scan"
+            app:jInputSelectAllOnFocus="true"
+            app:jInputTitle="请扫描不良品SN码" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/scrollContent"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="@dimen/j_space_12">
+
+            <TextView
+                android:id="@+id/tvEmpty"
+                style="@style/JText.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:minHeight="180dp"
+                />
+
+            <LinearLayout
+                android:id="@+id/layoutContent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    style="@style/JStyle.Card"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/j_space_10">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvSource"
+                                style="@style/JText.Caption"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/j_color_primary"
+                                android:textStyle="bold"
+                                tools:text="不良来源" />
+
+                            <TextView
+                                android:id="@+id/tvSourceNo"
+                                style="@style/JText.Body"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/j_space_4"
+                                android:maxLines="2"
+                                tools:text="IQC20260529002 / IQC20260529002-02" />
+                        </LinearLayout>
+
+                        <com.jj.ui.widget.JStatusTagView
+                            android:id="@+id/tagStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/j_space_8" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvSn"
+                        style="@style/JText.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_8"
+                        tools:text="SN：SN080" />
+
+                    <TextView
+                        android:id="@+id/tvMaterial"
+                        style="@style/JText.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_4"
+                        tools:text="物料：010201-482 / 交换机面板组件*2（G516E)" />
+
+                    <TextView
+                        android:id="@+id/tvNgPhenomena"
+                        style="@style/JText.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_4"
+                        tools:text="不良现象：调光功能失效" />
+
+                    <TextView
+                        android:id="@+id/tvNgRemark"
+                        style="@style/JText.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_4"
+                        tools:text="说明：变压器二次对地绝缘【10 ~ 50】,实际数值:60" />
+
+                    <Button
+                        android:id="@+id/btnHistory"
+                        style="@style/JStyle.Button.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/j_space_10"
+                        android:text="处理记录" />
+                </LinearLayout>
+
+                <LinearLayout
+                    style="@style/JStyle.Card"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/j_space_8"
+                    android:orientation="vertical"
+                    android:padding="@dimen/j_space_10">
+
+                    <TextView
+                        android:id="@+id/tvLockNote"
+                        style="@style/JText.Caption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/j_color_info"
+                        android:textStyle="bold"
+                        tools:text="当前不良可维修，保存后状态为维修中。" />
+
+                    <TextView
+                        style="@style/JText.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_10"
+                        android:text="维修结果" />
+
+                    <TextView
+                        android:id="@+id/tvRepairResult"
+                        style="@style/JStyle.EditText.Normal"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/j_space_4"
+                        android:gravity="center_vertical"
+                        android:text="请选择维修结果" />
+
+                    <TextView
+                        style="@style/JText.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_10"
+                        android:text="不良原因" />
+
+                    <TextView
+                        android:id="@+id/tvNgReason"
+                        style="@style/JStyle.EditText.Normal"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/j_space_4"
+                        android:gravity="center_vertical"
+                        android:text="请选择不良原因" />
+
+                    <TextView
+                        style="@style/JText.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_10"
+                        android:text="维修人" />
+
+                    <EditText
+                        android:id="@+id/editRepairBy"
+                        style="@style/JStyle.EditText.Normal"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/j_space_4"
+                        android:hint="请输入维修人"
+                        android:singleLine="true" />
+
+                    <TextView
+                        style="@style/JText.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_10"
+                        android:text="维修说明" />
+
+                    <EditText
+                        android:id="@+id/editRepairDesc"
+                        style="@style/JStyle.EditText.Normal"
+                        android:layout_width="match_parent"
+                        android:layout_height="96dp"
+                        android:layout_marginTop="@dimen/j_space_4"
+                        android:gravity="start|top"
+                        android:hint="记录维修动作、替换物料、异常原因或处理说明"
+                        android:inputType="textMultiLine"
+                        android:paddingTop="@dimen/j_space_8"
+                        android:singleLine="false" />
+
+                    <TextView
+                        android:id="@+id/tvPhoto"
+                        style="@style/JText.Secondary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_8"
+                        tools:text="维修照片：0 张" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_8"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btnTakePhoto"
+                            style="@style/JStyle.Button.Secondary"
+                            android:layout_width="0dp"
+                            android:layout_marginEnd="@dimen/j_space_8"
+                            android:layout_weight="1"
+                            android:text="拍照上传" />
+
+                        <RadioGroup
+                            android:id="@+id/groupRepairPhotoUploadMode"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkedButton="@id/rbRepairPhotoCompressed"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/rbRepairPhotoCompressed"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="压缩图" />
+
+                            <RadioButton
+                                android:id="@+id/rbRepairPhotoOriginal"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="原图" />
+                        </RadioGroup>
+                    </LinearLayout>
+
+                    <HorizontalScrollView
+                        android:id="@+id/scrollPhotoList"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_6"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <LinearLayout
+                            android:id="@+id/layoutPhotoList"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal" />
+                    </HorizontalScrollView>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_10"
+                        android:orientation="horizontal">
+
+                        <Button
+                            android:id="@+id/btnSave"
+                            style="@style/JStyle.Button.Secondary"
+                            android:layout_width="0dp"
+                            android:layout_marginEnd="@dimen/j_space_6"
+                            android:layout_weight="1"
+                            android:text="保存" />
+
+                        <Button
+                            android:id="@+id/btnSubmit"
+                            style="@style/JStyle.Button.Primary"
+                            android:layout_width="0dp"
+                            android:layout_marginStart="@dimen/j_space_6"
+                            android:layout_weight="1"
+                            android:text="提交" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

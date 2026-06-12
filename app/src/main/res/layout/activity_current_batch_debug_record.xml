@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/JStyle.Page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/j_space_12">
+
+    <com.jj.ui.widget.JEmptyView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:jDescription="接口未接入，当前页面先预留"
+        app:jTitle="暂无调试记录" />
+</FrameLayout>

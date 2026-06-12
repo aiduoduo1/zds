@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/JStyle.Card"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/j_space_8">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <View
+            android:id="@+id/viewStatus"
+            android:layout_width="5dp"
+            android:layout_height="match_parent"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/j_space_6"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tvTitle"
+                style="@style/JText.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="2"
+                android:textSize="@dimen/j_text_size_sm"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvDescription"
+                style="@style/JText.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_2"
+                android:singleLine="false" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/btnPhoto"
+            style="@style/JStyle.Button.Text"
+            android:layout_width="0dp"
+            android:layout_height="@dimen/j_small_button_height"
+            android:layout_marginEnd="@dimen/j_space_8"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/groupPhotoUploadMode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checkedButton="@id/rbPhotoCompressed"
+            android:orientation="horizontal">
+
+            <RadioButton
+                android:id="@+id/rbPhotoCompressed"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="压缩图" />
+
+            <RadioButton
+                android:id="@+id/rbPhotoOriginal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="原图" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/tvPhotoState"
+            style="@style/JText.Caption"
+            android:layout_width="42dp"
+            android:layout_height="wrap_content"
+            android:gravity="end"
+            android:textColor="@color/j_color_primary"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <HorizontalScrollView
+        android:id="@+id/scrollPhotoList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_6"
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <LinearLayout
+            android:id="@+id/layoutPhotoList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" />
+    </HorizontalScrollView>
+</LinearLayout>
