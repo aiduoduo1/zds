@@ -93,7 +93,7 @@ fun registerZdsApkCopyTask(
         from(layout.buildDirectory.dir("outputs/apk/$buildType"))
         include("*.apk")
         into(file(zdsApkOutputDir).resolve(buildType))
-        rename { "zds-v$versionName-$buildType.apk" }
+        rename { "dzs-v$versionName-$buildType.apk" }
 
         doLast {
             println("zds $buildType APK output: ${file(zdsApkOutputDir).resolve(buildType).absolutePath}")
@@ -119,6 +119,7 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity)
     implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.android.material)
     debugImplementation(libs.chucker.library)
     releaseImplementation(libs.chucker.library.no.op)

@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    tools:context=".feature.debugplan.ui.DebugPlanBatchActivity"
     android:padding="@dimen/j_space_12"
     tools:theme="@style/Theme.Zds">
 
@@ -112,26 +113,7 @@
                     android:text="不良/上限" />
             </LinearLayout>
 
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tvBatchCount"
-                    style="@style/JText.SectionTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    tools:text="3" />
-
-                <TextView
-                    style="@style/JText.Caption"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="批次数" />
-            </LinearLayout>
         </LinearLayout>
     </LinearLayout>
 

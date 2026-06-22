@@ -1,17 +1,24 @@
 package com.jj.zds.feature.pda
 
+import android.content.Intent
+import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.core.content.ContextCompat
+import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import com.jj.storage.JiangStorage
 import com.jj.ui.base.JStatusBar
+import com.jj.ui.toolbar.JiangToolbarMenuItem
 import com.jj.zds.R
 import com.jj.zds.data.local.ZdsStorageKeys
 import com.jj.zds.databinding.ActivityPdaMainBinding
 import com.jj.zds.feature.debugplan.ui.DebugPlanListFragment
+import com.jj.zds.feature.login.ui.LoginActivity
+import com.jj.zds.feature.message.ZdsMessageSseService
+import com.jj.zds.feature.update.ui.ZdsUpdateActivity
 
 class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
 
@@ -28,6 +35,14 @@ class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
         binding = ActivityPdaMainBinding.inflate(LayoutInflater.from(this))
         setContentView(binding.root)
         binding.toolbar.setBackVisible(false)
+        binding.toolbar.setMenuItems(
+            listOf(
+                JiangToolbarMenuItem(MENU_UPDATE, "版本更新"),
+                JiangToolbarMenuItem(MENU_LOGOUT, "退出登录"),
+            ),
+        ) { item ->
+            onToolbarMenuClick(item)
+        }
         bindTabs()
         switchTab(PdaTab.HOME)
     }
@@ -68,26 +83,52 @@ class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
         binding.toolbar.setSubtitleText(subTitle)
     }
 
-    private fun renderTabs(selected: PdaTab) {
-        binding.tabHome.renderTab(selected == PdaTab.HOME)
-        binding.tabDebug.renderTab(selected == PdaTab.DEBUG)
-        binding.tabProduce.renderTab(selected == PdaTab.PRODUCE)
+    private fun onToolbarMenuClick(item: JiangToolbarMenuItem) {
+        when (item.id) {
+            MENU_UPDATE -> startActivity(Intent(this, ZdsUpdateActivity::class.java))
+            MENU_LOGOUT -> logout()
+        }
     }
 
-    private fun TextView.renderTab(selected: Boolean) {
+    private fun logout() {
+        ZdsMessageSseService.stop(this)
+        JiangStorage.kv.remove(ZdsStorageKeys.MES_UP_TOKEN)
+        JiangStorage.kv.remove(ZdsStorageKeys.USER_ID)
+        JiangStorage.kv.remove(ZdsStorageKeys.USER_NAME)
+        JiangStorage.kv.remove(ZdsStorageKeys.USER_SKILLS)
+        startActivity(
+            Intent(this, LoginActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK),
+        )
+        finish()
+    }
+
+    private fun renderTabs(selected: PdaTab) {
+        binding.tabHome.renderTab(selected == PdaTab.HOME, R.drawable.pda_ic_tab_home)
+        binding.tabDebug.renderTab(selected == PdaTab.DEBUG, R.drawable.pda_ic_tab_debug)
+        binding.tabProduce.renderTab(selected == PdaTab.PRODUCE, R.drawable.pda_ic_tab_produce)
+    }
+
+    private fun TextView.renderTab(selected: Boolean, iconRes: Int) {
+        val color = ContextCompat.getColor(
+            this@PdaMainActivity,
+            if (selected) com.jj.ui.R.color.j_color_primary else com.jj.ui.R.color.j_color_text_hint,
+        )
         setBackgroundResource(
             if (selected) {
-                R.drawable.pda_bg_tab_selected
+                R.drawable.pda_bg_bottom_tab_selected
             } else {
-                R.drawable.pda_bg_tab_unselected
+                R.drawable.pda_bg_bottom_tab_unselected
             },
         )
-        setTextColor(
-            ContextCompat.getColor(
-                this@PdaMainActivity,
-                if (selected) com.jj.ui.R.color.j_color_text_white else com.jj.ui.R.color.j_color_primary,
-            ),
-        )
+        setTextColor(color)
+        setCompoundDrawablesWithIntrinsicBounds(0, iconRes, 0, 0)
+        compoundDrawablePadding = dp(2)
+        TextViewCompat.setCompoundDrawableTintList(this, ColorStateList.valueOf(color))
+    }
+
+    private fun dp(value: Int): Int {
+        return (value * resources.displayMetrics.density + 0.5f).toInt()
     }
 
     private fun PdaTab.fragment(): Fragment {
@@ -102,5 +143,10 @@ class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
         HOME,
         DEBUG,
         PRODUCE,
+    }
+
+    private companion object {
+        const val MENU_UPDATE = 1
+        const val MENU_LOGOUT = 2
     }
 }

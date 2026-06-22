@@ -8,6 +8,7 @@ import com.jj.network.call.JiangApiCaller
 import com.jj.storage.JiangStorage
 import com.jj.zds.data.api.ZdsApi
 import com.jj.zds.data.dto.common.CurUserDto
+import com.jj.zds.data.dto.common.UserSkillRequest
 import com.jj.zds.data.dto.common.ZdsBaseResult
 import com.jj.zds.data.dto.common.toJiangResult
 import com.jj.zds.data.dto.debugplan.DebugBoxBindRequest
@@ -32,7 +33,22 @@ import com.jj.zds.data.dto.debugplan.SingleDebugCheckRequest
 import com.jj.zds.data.dto.debugplan.DebugTaskItemInfoDto
 import com.jj.zds.data.dto.login.LoginRequest
 import com.jj.zds.data.dto.menu.ZdsMenuDto
+import com.jj.zds.data.dto.productionplan.LineDto
+import com.jj.zds.data.dto.productionplan.PlanRequest
+import com.jj.zds.data.dto.productionplan.ProductionEndSwitchRequest
+import com.jj.zds.data.dto.productionplan.ProductionEquipmentCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionMaterialCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionPersonCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionPlanDto
+import com.jj.zds.data.dto.productionplan.ProductionPlanListRequest
+import com.jj.zds.data.dto.productionplan.ProductionPlanStatus
+import com.jj.zds.data.dto.productionplan.ProductionSoftCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionSwitchBeginRequest
+import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailDto
+import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailRequest
 import com.jj.zds.data.dto.qrcode.QrCodeDto
+import com.jj.zds.data.dto.recheck.RecheckScanValidRequest
+import com.jj.zds.data.dto.recheck.RecheckSubmitRequest
 import com.jj.zds.data.dto.repair.REPAIR_DICT_MAINTAIN_RESULT
 import com.jj.zds.data.dto.repair.REPAIR_DICT_NG_REASON
 import com.jj.zds.data.dto.repair.RepairLogDto
@@ -93,6 +109,32 @@ class ZdsRepository(
      * 登录页的组合流程：先保存 token，再用 token 初始化当前用户。
      * 调试登录问题时优先看 login() 是否成功，再看 initUser() 是否返回用户信息。
      */
+    suspend fun initUserByAccount(
+        account: String,
+        status: Int = 1,
+        distinct: Boolean = true,
+    ): JiangResult<CurUserDto> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.initUserByAccount(
+                    UserSkillRequest(
+                        account = account,
+                        status = status,
+                        distinct = distinct,
+                    ),
+                )
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "User is empty.",
+            )
+
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
     suspend fun loginAndInitUser(request: LoginRequest): JiangResult<CurUserDto> {
         return when (val loginResult = login(request)) {
             is JiangResult.Success -> initUser()
@@ -203,6 +245,161 @@ class ZdsRepository(
                 emptyMessage = "Debug plan list is empty.",
             )
 
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun getProductionPlanList(
+        keyword: String = "",
+        lineId: String? = null,
+    ): JiangResult<List<ProductionPlanDto>> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.getProductionPlanList(
+                    ProductionPlanListRequest(
+                        keyword = keyword,
+                        lineId = lineId?.trim()?.takeIf { it.isNotBlank() },
+                    ),
+                )
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Production plan list is empty.",
+            )
+
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun getProductionLineCount(
+        planStatusList: ArrayList<Int> = ProductionPlanStatus.defaultLineCountStatuses(),
+        partId: String? = null,
+        lineId: String? = null,
+    ): JiangResult<List<LineDto>> {
+        return getProductionLineCount(
+            PlanRequest(
+                planStatusList = planStatusList,
+                partId = partId,
+                lineId = lineId,
+            ),
+        )
+    }
+
+    suspend fun getProductionLineCount(request: PlanRequest): JiangResult<List<LineDto>> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.getProductionLineCount(request)
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Production line count list is empty.",
+            )
+
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun beginProductionSwitch(planId: String): JiangResult<Int> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.beginProductionSwitch(ProductionSwitchBeginRequest(planId = planId))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Production switch id is empty.",
+            )
+
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun getProductionSwitchDetail(planId: String): JiangResult<ProductionSwitchDetailDto> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.getProductionSwitchDetail(ProductionSwitchDetailRequest(planId = planId))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Production switch detail is empty.",
+            )
+
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun confirmProductionSoftCheck(lineSwiId: String): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.confirmProductionSoftCheck(ProductionSoftCheckRequest(lineSwiId = lineSwiId))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun confirmProductionMaterialCheck(lineSwiId: String): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.confirmProductionMaterialCheck(ProductionMaterialCheckRequest(lineSwiId = lineSwiId))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun confirmProductionPersonCheck(
+        requests: List<ProductionPersonCheckRequest>,
+    ): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.confirmProductionPersonCheck(requests)
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun confirmProductionEquipmentCheck(
+        requests: List<ProductionEquipmentCheckRequest>,
+    ): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.confirmProductionEquipmentCheck(requests)
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun endProductionSwitch(planId: String): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.endProductionSwitch(ProductionEndSwitchRequest(planId = planId))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -375,6 +572,45 @@ class ZdsRepository(
             val result = JiangApiCaller.safeApiCall {
                 api.submitSingleDebugCheck(
                     SingleDebugCheckRequest(
+                        qrCode = qrCode,
+                        ngPhenomena = ngPhenomena,
+                        checkGroupDto = checkGroupDto,
+                    ),
+                )
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun scanValidRecheckSn(qrCode: String): JiangResult<DebugSnScanValidDto> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.scanValidRecheckSn(RecheckScanValidRequest(qrCode = qrCode))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Recheck scan data is empty.",
+            )
+
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun submitRecheck(
+        qrCode: String,
+        ngPhenomena: String?,
+        checkGroupDto: DebugCheckGroupDto,
+    ): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.submitRecheck(
+                    RecheckSubmitRequest(
                         qrCode = qrCode,
                         ngPhenomena = ngPhenomena,
                         checkGroupDto = checkGroupDto,

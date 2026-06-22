@@ -1,13 +1,122 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     style="@style/JStyle.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:paddingStart="@dimen/j_space_12"
+    android:paddingTop="@dimen/j_space_10"
+    android:paddingEnd="@dimen/j_space_12"
+    android:paddingBottom="@dimen/j_space_10">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvPlanNo"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/j_color_text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:text="DBG20260618001" />
+
+        <TextView
+            android:id="@+id/tagPhoto"
+            android:layout_width="wrap_content"
+            android:layout_height="24dp"
+            android:layout_marginStart="@dimen/j_space_8"
+            android:background="@drawable/j_bg_status_danger"
+            android:gravity="center"
+            android:minWidth="54dp"
+            android:paddingStart="@dimen/j_space_8"
+            android:paddingEnd="@dimen/j_space_8"
+            android:text="留痕"
+            android:textColor="@color/j_color_danger"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <com.jj.ui.widget.JStatusTagView
+            android:id="@+id/tagStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/j_space_8" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvMaterial"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_6"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/j_color_text_primary"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        tools:text="调光器主板" />
+
+    <TextView
+        android:id="@+id/tvMaterialCode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_2"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/j_color_text_secondary"
+        android:textSize="12sp"
+        tools:text="物料号：010903-016 / 规格：A1" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_6"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvCustomer"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/j_color_text_secondary"
+            android:textSize="12sp"
+            tools:text="供应商：宗益电子" />
+
+        <TextView
+            android:id="@+id/tvPlanQty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/j_space_8"
+            android:textColor="@color/j_color_text_primary"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="120" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvBatch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_2"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/j_color_text_secondary"
+        android:textSize="12sp"
+        tools:text="执行批次：B20260618001" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_8"
         android:gravity="center_vertical"
         android:orientation="horizontal">
 
@@ -18,104 +127,37 @@
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/tvPlanNo"
-                style="@style/JText.Secondary"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/tvMaterial"
-                style="@style/JText.Body"
+                android:id="@+id/tvSample"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/j_space_4"
-                android:maxLines="2" />
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/j_color_text_hint"
+                android:textSize="12sp"
+                tools:text="累计已检 / 应检：10 / ≥20" />
+
+            <TextView
+                android:id="@+id/tvNg"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_2"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/j_color_text_hint"
+                android:textSize="12sp"
+                tools:text="累计不良 / 上限：1 / ≤3" />
         </LinearLayout>
 
-        <com.jj.ui.widget.JStatusTagView
-            android:id="@+id/tagStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/j_space_8" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/tvMaterialCode"
-        style="@style/JText.Secondary"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/j_space_8" />
-
-    <TextView
-        android:id="@+id/tvCustomer"
-        style="@style/JText.Secondary"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/j_space_4" />
-
-    <TextView
-        android:id="@+id/tvBatch"
-        style="@style/JText.Secondary"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/j_space_4"
-        android:maxLines="2" />
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/j_space_12"
-        android:orientation="horizontal">
-
         <TextView
-            style="@style/JText.Secondary"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="计划数量" />
-
-        <TextView
-            android:id="@+id/tvPlanQty"
-            style="@style/JText.SectionTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="@dimen/j_space_8" />
-
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="1dp"
-            android:layout_weight="1" />
-
-        <TextView
-            android:id="@+id/tagPhoto"
-            android:layout_width="88dp"
-            android:layout_height="@dimen/j_small_button_height"
-            android:background="@drawable/j_bg_button_danger"
+            android:id="@+id/tvEnter"
+            android:layout_width="72dp"
+            android:layout_height="30dp"
+            android:layout_marginStart="@dimen/j_space_8"
+            android:background="@drawable/pda_bg_button_primary"
             android:gravity="center"
-            android:text="完工留痕"
             android:textColor="@color/j_color_text_white"
-            android:textSize="@dimen/j_text_size_sm"
-            android:textStyle="bold" />
+            android:textSize="12sp"
+            android:textStyle="bold"
+            tools:text="进入执行" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/tvSample"
-        style="@style/JText.Secondary"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/j_space_8" />
-
-    <TextView
-        android:id="@+id/tvNg"
-        style="@style/JText.Secondary"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/j_space_4" />
-
-    <TextView
-        android:id="@+id/tvEnter"
-        style="@style/JText.Secondary"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/j_space_8"
-        android:gravity="end" />
 </LinearLayout>

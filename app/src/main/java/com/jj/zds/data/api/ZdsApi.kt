@@ -1,6 +1,7 @@
 package com.jj.zds.data.api
 
 import com.jj.zds.data.dto.common.CurUserDto
+import com.jj.zds.data.dto.common.UserSkillRequest
 import com.jj.zds.data.dto.common.ZdsBaseResult
 import com.jj.zds.data.dto.debugplan.DebugBoxBindRequest
 import com.jj.zds.data.dto.debugplan.DebugBoxQrCodeDto
@@ -23,7 +24,21 @@ import com.jj.zds.data.dto.debugplan.SingleDebugCheckRequest
 import com.jj.zds.data.dto.debugplan.DebugTaskItemInfoDto
 import com.jj.zds.data.dto.login.LoginRequest
 import com.jj.zds.data.dto.menu.ZdsMenuDto
+import com.jj.zds.data.dto.productionplan.LineDto
+import com.jj.zds.data.dto.productionplan.PlanRequest
+import com.jj.zds.data.dto.productionplan.ProductionEndSwitchRequest
+import com.jj.zds.data.dto.productionplan.ProductionEquipmentCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionMaterialCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionPersonCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionPlanDto
+import com.jj.zds.data.dto.productionplan.ProductionPlanListRequest
+import com.jj.zds.data.dto.productionplan.ProductionSoftCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionSwitchBeginRequest
+import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailDto
+import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailRequest
 import com.jj.zds.data.dto.qrcode.QrCodeDto
+import com.jj.zds.data.dto.recheck.RecheckScanValidRequest
+import com.jj.zds.data.dto.recheck.RecheckSubmitRequest
 import com.jj.zds.data.dto.repair.RepairLogDto
 import com.jj.zds.data.dto.repair.RepairLogListRequest
 import com.jj.zds.data.dto.repair.RepairSnScanValidDto
@@ -54,6 +69,11 @@ interface ZdsApi {
      */
     @POST("/s/sysUser/me")
     suspend fun initUser(): ZdsBaseResult<CurUserDto>
+
+    @POST("/s/sysUser/one")
+    suspend fun initUserByAccount(
+        @Body request: UserSkillRequest,
+    ): ZdsBaseResult<CurUserDto>
 
     /**
      * 获取当前用户菜单。
@@ -101,6 +121,51 @@ interface ZdsApi {
     suspend fun getDebugPlanList(
         @Body request: DebugPlanListRequest,
     ): ZdsBaseResult<List<DebugPlanDto>>
+
+    @POST("/pla/pla/pdaPlanList")
+    suspend fun getProductionPlanList(
+        @Body request: ProductionPlanListRequest,
+    ): ZdsBaseResult<List<ProductionPlanDto>>
+
+    @POST("/pla/pla/lineCount")
+    suspend fun getProductionLineCount(
+        @Body request: PlanRequest,
+    ): ZdsBaseResult<List<LineDto>>
+
+    @POST("/pro/proLineSwi/beginSwitch")
+    suspend fun beginProductionSwitch(
+        @Body request: ProductionSwitchBeginRequest,
+    ): ZdsBaseResult<Int>
+
+    @POST("/pro/proLineSwi/pdaSwitchDetail")
+    suspend fun getProductionSwitchDetail(
+        @Body request: ProductionSwitchDetailRequest,
+    ): ZdsBaseResult<ProductionSwitchDetailDto>
+
+    @POST("/pro/proLineSwiSof/confirmSoftCheck")
+    suspend fun confirmProductionSoftCheck(
+        @Body request: ProductionSoftCheckRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/proLineSwiCat/confirmMatCheck")
+    suspend fun confirmProductionMaterialCheck(
+        @Body request: ProductionMaterialCheckRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/proLineSwiUser/confirmUserCheck")
+    suspend fun confirmProductionPersonCheck(
+        @Body request: List<ProductionPersonCheckRequest>,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/proLineSwiEqu/confirmEquCheck")
+    suspend fun confirmProductionEquipmentCheck(
+        @Body request: List<ProductionEquipmentCheckRequest>,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/proLineSwi/endSwitch")
+    suspend fun endProductionSwitch(
+        @Body request: ProductionEndSwitchRequest,
+    ): ZdsBaseResult<Any>
 
     /**
      * 调试计划明细，包含计划基础信息、批次列表和已绑定箱单。
@@ -158,6 +223,16 @@ interface ZdsApi {
     @POST("/m/iqcToSn/singleCheck")
     suspend fun submitSingleDebugCheck(
         @Body request: SingleDebugCheckRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/m/iqcToSn/recheckValid")
+    suspend fun scanValidRecheckSn(
+        @Body request: RecheckScanValidRequest,
+    ): ZdsBaseResult<DebugSnScanValidDto>
+
+    @POST("/m/iqcToSn/recheck")
+    suspend fun submitRecheck(
+        @Body request: RecheckSubmitRequest,
     ): ZdsBaseResult<Any>
 
     /**

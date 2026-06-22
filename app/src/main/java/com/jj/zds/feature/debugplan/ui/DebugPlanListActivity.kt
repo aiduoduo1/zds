@@ -3,7 +3,9 @@ package com.jj.zds.feature.debugplan.ui
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import com.jj.ui.base.JiangToolbarStateVmActivity
 import com.jj.ui.recycler.adapter.JBindingAdapter
 import com.jj.ui.recycler.ext.addDefaultDivider
@@ -12,6 +14,7 @@ import com.jj.ui.recycler.page.JRecyclerPageHelper
 import com.jj.ui.state.JiangErrorMode
 import com.jj.ui.toolbar.JiangToolbarMenuItem
 import com.jj.ui.widget.JStatusType
+import com.jj.zds.R
 import com.jj.zds.data.dto.debugplan.DebugPlanDto
 import com.jj.zds.data.dto.debugplan.DebugPlanStatisticsDto
 import com.jj.zds.data.dto.debugplan.DebugPlanStatus
@@ -39,6 +42,7 @@ class DebugPlanListActivity : JiangToolbarStateVmActivity<ActivityDebugPlanListB
     override fun initView(savedInstanceState: Bundle?) {
         binding.recyclerPlans.setupLinear(adapter)
         binding.recyclerPlans.addDefaultDivider()
+        hideSearchTitleRow()
         pageHelper = JRecyclerPageHelper(
             recyclerView = binding.recyclerPlans,
             adapter = adapter,
@@ -75,6 +79,16 @@ class DebugPlanListActivity : JiangToolbarStateVmActivity<ActivityDebugPlanListB
         binding.btnFilterDoing.setOnClickListener { changeFilter(PlanFilter.DOING) }
 
         refreshPlans()
+    }
+
+    private fun hideSearchTitleRow() {
+        binding.inputSearch.getChildAt(0)?.visibility = View.GONE
+        val inputRow = binding.inputSearch.getChildAt(1)
+        val params = inputRow?.layoutParams as? LinearLayout.LayoutParams
+        params?.let {
+            it.topMargin = 0
+            inputRow.layoutParams = it
+        }
     }
 
     override fun onResume() {
@@ -138,7 +152,7 @@ class DebugPlanListActivity : JiangToolbarStateVmActivity<ActivityDebugPlanListB
         }
         itemBinding.tvCustomer.text = "供应商：${item.customer.ifBlank { "-" }}"
         itemBinding.tvBatch.text = "执行批次：${item.batchText}"
-        itemBinding.tvPlanQty.text = item.planQty.toString()
+        itemBinding.tvPlanQty.text = "计划数量 ${item.planQty}"
         itemBinding.tvSample.text = "累计已检 / 应检：${item.submittedBatchCount} / ≥${item.requiredSamples}"
         itemBinding.tvNg.text = "累计不良 / 上限：${item.ngCount} / ≤${item.ngLimit}"
         itemBinding.tvEnter.text = "进入执行"
@@ -188,9 +202,9 @@ class DebugPlanListActivity : JiangToolbarStateVmActivity<ActivityDebugPlanListB
     }
 
     private fun renderFilterButtons() {
-        binding.btnFilterAll.setSelectedFilter(currentFilter == PlanFilter.ALL)
-        binding.btnFilterTodo.setSelectedFilter(currentFilter == PlanFilter.TODO)
-        binding.btnFilterDoing.setSelectedFilter(currentFilter == PlanFilter.DOING)
+        binding.btnFilterAll.setSelectedFilter(PlanFilter.ALL, currentFilter == PlanFilter.ALL)
+        binding.btnFilterTodo.setSelectedFilter(PlanFilter.TODO, currentFilter == PlanFilter.TODO)
+        binding.btnFilterDoing.setSelectedFilter(PlanFilter.DOING, currentFilter == PlanFilter.DOING)
     }
 
     /**
@@ -203,30 +217,37 @@ class DebugPlanListActivity : JiangToolbarStateVmActivity<ActivityDebugPlanListB
         viewModel.loadDebugPlans(status = currentFilter.status)
     }
 
-    private fun TextView.setSelectedFilter(selected: Boolean) {
+    private fun TextView.setSelectedFilter(filter: PlanFilter, selected: Boolean) {
         isSelected = selected
         setTextColor(
-            getColor(
-                if (selected) {
-                    com.jj.ui.R.color.j_color_text_white
-                } else {
-                    com.jj.ui.R.color.j_color_primary
-                },
+            ContextCompat.getColor(
+                this@DebugPlanListActivity,
+                if (selected) filter.selectedTextColor() else com.jj.ui.R.color.j_color_text_primary,
             ),
         )
-        setBackgroundResource(
-            if (selected) {
-                com.jj.ui.R.drawable.j_bg_button_primary
-            } else {
-                com.jj.ui.R.drawable.j_bg_button_secondary
-            },
-        )
+        setBackgroundResource(if (selected) filter.selectedBackground() else R.drawable.pda_bg_filter_unselected)
+    }
+
+    private fun PlanFilter.selectedBackground(): Int {
+        return when (this) {
+            PlanFilter.ALL -> R.drawable.pda_bg_filter_all_selected
+            PlanFilter.TODO -> R.drawable.pda_bg_filter_todo_selected
+            PlanFilter.DOING -> R.drawable.pda_bg_filter_doing_selected
+        }
+    }
+
+    private fun PlanFilter.selectedTextColor(): Int {
+        return when (this) {
+            PlanFilter.ALL -> com.jj.ui.R.color.j_color_primary
+            PlanFilter.TODO -> com.jj.ui.R.color.j_color_warning
+            PlanFilter.DOING -> com.jj.ui.R.color.j_color_success
+        }
     }
 
     private fun DebugPlanStatus.toTagType(): JStatusType {
         return when (this) {
             DebugPlanStatus.TODO -> JStatusType.WARNING
-            DebugPlanStatus.DOING -> JStatusType.INFO
+            DebugPlanStatus.DOING -> JStatusType.SUCCESS
             DebugPlanStatus.DONE -> JStatusType.SUCCESS
         }
     }

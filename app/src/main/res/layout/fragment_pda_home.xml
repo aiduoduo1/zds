@@ -17,7 +17,7 @@
             android:id="@+id/cardCurrentProduction"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/pda_bg_card"
+            android:background="@drawable/pda_bg_home_workbench"
             android:elevation="4dp"
             android:orientation="vertical"
             android:padding="@dimen/j_space_12">
@@ -28,176 +28,29 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <LinearLayout
+                <TextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="当前生产中"
-                        android:textColor="@color/j_color_text_secondary"
-                        android:textSize="@dimen/j_text_size_sm"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:id="@+id/tvCurrentPlan"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/j_space_4"
-                        android:text="WO20260611001"
-                        android:textColor="@color/j_color_text_primary"
-                        android:textSize="@dimen/j_text_size_xl"
-                        android:textStyle="bold" />
-                </LinearLayout>
-
-                <TextView
-                    android:id="@+id/tvCurrentStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="32dp"
-                    android:background="@drawable/pda_bg_status_success"
-                    android:gravity="center"
-                    android:minWidth="78dp"
-                    android:paddingStart="@dimen/j_space_10"
-                    android:paddingEnd="@dimen/j_space_10"
-                    android:text="生产中"
-                    android:textColor="@color/j_color_success"
+                    android:text="当前线体作业"
+                    android:textColor="@color/j_color_text_primary"
+                    android:textSize="16sp"
                     android:textStyle="bold" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/tvCurrentProduct"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/j_space_10"
-                android:text="产品：调光器主板"
-                android:textColor="@color/j_color_text_primary"
-                android:textSize="@dimen/j_text_size_md"
-                android:textStyle="bold" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/j_space_10"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="64dp"
-                    android:layout_weight="1"
-                    android:background="@drawable/pda_bg_metric"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tvCurrentLine"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="DIP-01"
-                        android:textColor="@color/j_color_primary"
-                        android:textSize="@dimen/j_text_size_lg"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="线体"
-                        android:textColor="@color/j_color_text_secondary"
-                        android:textSize="@dimen/j_text_size_xs" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="64dp"
-                    android:layout_marginStart="@dimen/j_space_8"
-                    android:layout_weight="1"
-                    android:background="@drawable/pda_bg_metric"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tvCurrentPlanQty"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="120"
-                        android:textColor="@color/j_color_text_primary"
-                        android:textSize="@dimen/j_text_size_lg"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="计划"
-                        android:textColor="@color/j_color_text_secondary"
-                        android:textSize="@dimen/j_text_size_xs" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="64dp"
-                    android:layout_marginStart="@dimen/j_space_8"
-                    android:layout_weight="1"
-                    android:background="@drawable/pda_bg_metric_success"
-                    android:gravity="center"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tvCurrentDoneQty"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="36"
-                        android:textColor="@color/j_color_success"
-                        android:textSize="@dimen/j_text_size_lg"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="已完成"
-                        android:textColor="@color/j_color_success"
-                        android:textSize="@dimen/j_text_size_xs" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="@dimen/j_space_12"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ProgressBar
-                    android:id="@+id/progressCurrent"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="0dp"
-                    android:layout_height="8dp"
-                    android:layout_weight="1"
-                    android:max="100"
-                    android:progress="30"
-                    android:progressTint="@color/j_color_success" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="@dimen/j_space_10"
-                    android:text="30%"
-                    android:textColor="@color/j_color_success"
-                    android:textStyle="bold" />
+                    android:text="最多显示 3 条"
+                    android:textColor="@color/j_color_text_hint"
+                    android:textSize="12sp" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/btnContinueProduction"
+            <LinearLayout
+                android:id="@+id/layoutCurrentLines"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:layout_marginTop="@dimen/j_space_12"
-                android:background="@drawable/pda_bg_button_primary"
-                android:gravity="center"
-                android:text="继续作业"
-                android:textColor="@color/j_color_text_white"
-                android:textSize="@dimen/j_text_size_md"
-                android:textStyle="bold" />
+                android:layout_height="222dp"
+                android:layout_marginTop="@dimen/j_space_8"
+                android:orientation="vertical" />
         </LinearLayout>
 
         <LinearLayout
@@ -229,7 +82,7 @@
             <TextView
                 android:id="@+id/btnViewProducePlan"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
+                android:layout_height="44dp"
                 android:layout_marginTop="@dimen/j_space_12"
                 android:background="@drawable/pda_bg_button_primary"
                 android:gravity="center"

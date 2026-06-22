@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -33,6 +37,8 @@
         android:name=".app.ZdsApplication"
         android:allowBackup="false"
         android:label="@string/app_name"
+        android:icon="@mipmap/ic_logo"
+        android:roundIcon="@mipmap/ic_logo"
         android:supportsRtl="true"
         android:theme="@style/Theme.Zds"
         android:usesCleartextTraffic="true">
@@ -50,7 +56,28 @@
             android:exported="false" />
         <activity
             android:name=".feature.pda.PdaMainActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+        <activity
+            android:name=".feature.production.ui.ProductionSwitchDetailActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.production.ui.ProductionEquipmentCheckActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.production.ui.ProductionMaterialCheckActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.production.ui.ProductionSoftCheckActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.production.ui.ProductionPersonCheckActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
         <activity
             android:windowSoftInputMode="stateHidden|stateUnchanged"
             android:name=".feature.debugplan.ui.DebugPlanListActivity"
@@ -76,6 +103,10 @@
             android:name=".feature.singledebug.ui.SingleDebugActivity"
             android:exported="false"
             />
+        <activity
+            android:name=".feature.recheck.ui.RecheckActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
         <activity
             android:name=".feature.repair.ui.RepairActivity"
             android:exported="false"

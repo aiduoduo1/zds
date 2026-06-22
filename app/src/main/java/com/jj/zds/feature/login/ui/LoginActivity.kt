@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.text.InputType
 import android.view.LayoutInflater
+import android.view.WindowManager
 import androidx.activity.result.contract.ActivityResultContracts
 import com.jj.core.permission.hasJiangPermission
 import com.jj.ui.base.JiangToolbarStateVmActivity
@@ -13,6 +14,7 @@ import com.jj.ui.dialog.JConfirmDialog
 import com.jj.zds.feature.main.ui.MainActivity
 import com.jj.zds.databinding.ActivityLoginBinding
 import com.jj.zds.feature.message.ZdsMessageSseService
+import com.jj.zds.feature.pda.PdaMainActivity
 import com.jj.zds.viewmodel.ZdsViewModel
 
 class LoginActivity : JiangToolbarStateVmActivity<ActivityLoginBinding, ZdsViewModel>() {
@@ -35,6 +37,16 @@ class LoginActivity : JiangToolbarStateVmActivity<ActivityLoginBinding, ZdsViewM
 
     override fun createViewBinding(inflater: LayoutInflater): ActivityLoginBinding {
         return ActivityLoginBinding.inflate(inflater)
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        hideStatusBar()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        hideStatusBar()
     }
 
     override fun initView(savedInstanceState: Bundle?) {
@@ -66,7 +78,14 @@ class LoginActivity : JiangToolbarStateVmActivity<ActivityLoginBinding, ZdsViewM
         }
     }
 
+    override fun showToolbar(): Boolean = false
+
     override fun showBackButton(): Boolean = false
+
+    override fun onDestroy() {
+        window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
+        super.onDestroy()
+    }
 
     override fun onUiError(code: Int, message: String, throwable: Throwable?) {
         ZdsMessageSseService.stop(this)
@@ -135,7 +154,14 @@ class LoginActivity : JiangToolbarStateVmActivity<ActivityLoginBinding, ZdsViewM
 
     private fun startMessageServiceAndOpenMain() {
         ZdsMessageSseService.start(this)
-        startActivity(Intent(this, MainActivity::class.java))
+        startActivity(Intent(this, PdaMainActivity::class.java))
         finish()
+    }
+
+    private fun hideStatusBar() {
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+            WindowManager.LayoutParams.FLAG_FULLSCREEN,
+        )
     }
 }

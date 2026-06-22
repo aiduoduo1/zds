@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/pda_bg_page"
+    android:orientation="vertical"
+    android:padding="@dimen/j_space_12">
+
+    <LinearLayout
+        android:id="@+id/panelScan"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/pda_bg_equipment_panel"
+        android:elevation="4dp"
+        android:orientation="vertical"
+        android:padding="@dimen/j_space_10">
+
+        <com.jj.ui.input.JInputLayout
+            android:id="@+id/inputEquipment"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:jInputClearEnabled="true"
+            app:jInputCompact="true"
+            app:jInputHint="请扫描治工具二维码"
+            app:jInputMode="scan"
+            app:jInputSelectAllOnFocus="true"
+            app:jInputTitle="请扫描治工具二维码" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/j_space_10"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/layoutStations"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+</LinearLayout>

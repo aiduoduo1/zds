@@ -123,6 +123,7 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
     }
 
     override fun initPageObserver() {
+
         viewModel.repairSnScanValidResult.observe(this) { result ->
             scanInProgress = false
             renderRepair(RepairUiState.from(result))

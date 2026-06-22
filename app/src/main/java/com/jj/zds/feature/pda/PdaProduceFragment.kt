@@ -1,24 +1,35 @@
 package com.jj.zds.feature.pda
 
+import android.graphics.Typeface
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.core.content.ContextCompat
-import com.jj.arch.base.JiangFragment
+import com.jj.arch.base.JiangVmFragment
+import com.jj.arch.event.JiangUiEvent
+import com.jj.arch.state.JiangUiState
 import com.jj.ui.recycler.adapter.JBindingAdapter
 import com.jj.ui.recycler.ext.setupLinear
 import com.jj.ui.toast.JToast
 import com.jj.zds.R
+import com.jj.zds.data.dto.productionplan.LineDto
+import com.jj.zds.data.dto.productionplan.ProductionPlanDto
+import com.jj.zds.data.dto.productionplan.ProductionPlanStatus
 import com.jj.zds.databinding.FragmentPdaProduceBinding
 import com.jj.zds.databinding.ItemPdaProducePlanBinding
+import com.jj.zds.feature.production.ui.ProductionSwitchDetailActivity
+import com.jj.zds.viewmodel.ZdsViewModel
 
-class PdaProduceFragment : JiangFragment<FragmentPdaProduceBinding>() {
+class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewModel>() {
 
-    private val plans = listOf(
-        ProducePlan("WO20260611001", "调光器主板", "DIP-01", 120, 36, "生产中"),
-        ProducePlan("WO20260611002", "灯架控制板", "DIP-02", 100, 0, "待开工"),
-        ProducePlan("WO20260611003", "顺闪控制器", "DIP-03", 60, 12, "已暂停"),
-    )
+    private var allPlans = emptyList<ProductionPlanDto>()
+    private var lineTabs = emptyList<LineTab>()
+    private var selectedLineId: String? = null
+    private var refreshOnResume = false
 
     private val adapter = JBindingAdapter(
         inflate = ItemPdaProducePlanBinding::inflate,
@@ -34,52 +45,351 @@ class PdaProduceFragment : JiangFragment<FragmentPdaProduceBinding>() {
 
     override fun initView(savedInstanceState: Bundle?) {
         binding.recyclerProducePlans.setupLinear(adapter)
-        binding.inputSearch.onInputDone { keyword -> filterPlans(keyword) }
-        binding.inputSearch.onTextChanged { keyword -> filterPlans(keyword) }
-        adapter.setList(plans)
+        hideSearchTitleRow()
+        binding.inputSearch.onInputDone {
+            refreshPlans()
+        }
+        binding.inputSearch.onTextDebounce(delayMillis = 300L) {
+            refreshPlans()
+        }
+        binding.btnRefreshProduce.setOnClickListener {
+            setRefreshing(true)
+            refreshData()
+        }
+        binding.refreshLayout.setOnRefreshListener {
+            refreshCurrentLinePlans()
+        }
+        renderLineTabs()
+    }
+
+    private fun hideSearchTitleRow() {
+        binding.inputSearch.getChildAt(0)?.visibility = View.GONE
+        val inputRow = binding.inputSearch.getChildAt(1)
+        val params = inputRow?.layoutParams as? LinearLayout.LayoutParams
+        params?.let {
+            it.topMargin = 0
+            inputRow.layoutParams = it
+        }
+    }
+
+    override fun initObserver() {
+        viewModel.productionLineCounts.observe(viewLifecycleOwner) { lines ->
+            lineTabs = buildLineTabs(lines)
+            selectedLineId = if (lineTabs.none { it.lineId == selectedLineId }) {
+                lineTabs.firstOrNull()?.lineId
+            } else {
+                selectedLineId
+            }
+            renderLineTabs()
+            renderPlans()
+        }
+        viewModel.productionPlans.observe(viewLifecycleOwner) { plans ->
+            setRefreshing(false)
+            allPlans = plans
+            renderPlans()
+        }
+        viewModel.productionSwitchBeginResult.observe(viewLifecycleOwner) { result ->
+            refreshOnResume = true
+            ProductionSwitchDetailActivity.start(
+                context = requireContext(),
+                planId = result.planId,
+                switchId = result.switchId,
+            )
+            refreshData()
+        }
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            if (state is JiangUiState.Error) {
+                setRefreshing(false)
+                JToast.show(state.message)
+            }
+        }
+        viewModel.uiEvent.observe(viewLifecycleOwner) { event ->
+            val content = event.getContentIfNotHandled()
+            if (content is JiangUiEvent.Toast) {
+                JToast.show(content.message)
+            }
+        }
+    }
+
+    override fun initData() {
+        refreshData()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (refreshOnResume) {
+            refreshOnResume = false
+            refreshData()
+        }
+    }
+
+    private fun refreshData() {
+        viewModel.loadProductionLineCounts()
+        refreshPlans()
+    }
+
+    private fun refreshPlans() {
+        viewModel.loadProductionPlans(binding.inputSearch.text().trim())
+    }
+
+    private fun refreshCurrentLinePlans() {
+        viewModel.loadProductionPlans(
+            keyword = binding.inputSearch.text().trim(),
+            lineId = selectedLineId,
+        )
+    }
+
+    private fun setRefreshing(refreshing: Boolean) {
+        binding.refreshLayout.isRefreshing = refreshing
+        binding.btnRefreshProduce.isEnabled = !refreshing
+        binding.btnRefreshProduce.alpha = if (refreshing) 0.72f else 1f
     }
 
     private fun bindPlan(
         itemBinding: ItemPdaProducePlanBinding,
-        item: ProducePlan,
+        item: ProductionPlanDto,
         position: Int,
     ) {
-        itemBinding.tvPlanNo.text = item.planNo
-        itemBinding.tvProduct.text = "产品：${item.product}"
-        itemBinding.tvMeta.text = "线体：${item.line}    计划：${item.planQty}    已完成：${item.doneQty}"
-        itemBinding.tvStatus.text = item.status
-        val running = item.status == "生产中"
-        itemBinding.tvStatus.setBackgroundResource(
-            if (running) R.drawable.pda_bg_status_success else R.drawable.pda_bg_status_warning,
-        )
-        itemBinding.tvStatus.setTextColor(
-            ContextCompat.getColor(
-                itemBinding.root.context,
-                if (running) com.jj.ui.R.color.j_color_success else com.jj.ui.R.color.j_color_warning,
-            ),
-        )
-        itemBinding.btnEnter.setOnClickListener {
-            JToast.show("进入生产计划：${item.planNo}")
+        val planNo = item.orderCode?.takeIf { it.isNotBlank() } ?: item.id.orEmpty()
+        val planId = item.id.orEmpty()
+        itemBinding.tvPlanNo.text = planNo.ifBlank { "-" }
+        itemBinding.tvProduct.text = item.partName.orDash()
+        itemBinding.tvPartCode.text = "产品号：${item.partCode.orDash()}"
+        itemBinding.tvLine.text = "线体：${item.lineName.orDash()}"
+        itemBinding.tvQuantity.text = buildString {
+            append("计划数量 ").append(item.quantity)
+            item.unitStr?.takeIf { it.isNotBlank() }?.let { append(it) }
+        }
+        itemBinding.tvBatch.text = "批次：${item.lot.orDash()}"
+        itemBinding.tvPlanDate.setTextOrGone("业务日期：", item.planDate)
+        itemBinding.tvStartTime.setTextOrGone("计划开始时间：", item.planStartTime)
+        itemBinding.tvActualStartTime.setTextOrGone("实际开始生产时间：", item.actualStartTime)
+        itemBinding.tvStatus.text = item.displayStatus()
+        itemBinding.tvStatus.setStatusStyle(item.planStatus)
+        itemBinding.viewStatusStrip.setBackgroundColor(item.planStatus.statusColor())
+        bindActionButtons(itemBinding, item.planStatus, planId, planNo)
+    }
+
+    private fun bindActionButtons(
+        itemBinding: ItemPdaProducePlanBinding,
+        status: Int,
+        planId: String,
+        planNo: String,
+    ) {
+        itemBinding.btnStartSwitch.visibility = if (
+            status == ProductionPlanStatus.WAIT_SWITCH ||
+            status == ProductionPlanStatus.SWITCHING
+        ) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+        itemBinding.btnStartSwitch.text = if (status == ProductionPlanStatus.SWITCHING) {
+            "进入核对"
+        } else {
+            "开始切换"
+        }
+        itemBinding.btnStartPlan.visibility = if (status == ProductionPlanStatus.WAIT_PRODUCT) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+        itemBinding.btnPause.visibility = if (status == ProductionPlanStatus.PRODUCT_ING) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+        itemBinding.btnFinishPlan.visibility = if (
+            status == ProductionPlanStatus.PRODUCT_ING ||
+            status == ProductionPlanStatus.PAUSE
+        ) {
+            View.VISIBLE
+        } else {
+            View.GONE
+        }
+
+        itemBinding.btnStartPlan.setOnClickListener {
+            JToast.show("开始生产：${planNo.ifBlank { "-" }}")
+        }
+        itemBinding.btnStartSwitch.setOnClickListener {
+            if (status == ProductionPlanStatus.SWITCHING) {
+                refreshOnResume = true
+                ProductionSwitchDetailActivity.start(
+                    context = requireContext(),
+                    planId = planId,
+                    switchId = 0,
+                )
+            } else {
+                viewModel.beginProductionSwitch(planId)
+            }
+        }
+        itemBinding.btnPause.setOnClickListener {
+            JToast.show("暂停生产：${planNo.ifBlank { "-" }}")
+        }
+        itemBinding.btnFinishPlan.setOnClickListener {
+            JToast.show("生产完成：${planNo.ifBlank { "-" }}")
         }
     }
 
-    private fun filterPlans(keyword: String) {
-        val text = keyword.trim()
-        adapter.setList(
-            if (text.isBlank()) {
-                plans
+    private fun TextView.setTextOrGone(prefix: String, value: String?) {
+        visibility = if (value.isNullOrBlank()) {
+            View.GONE
+        } else {
+            text = "$prefix$value"
+            View.VISIBLE
+        }
+    }
+
+    private fun TextView.setStatusStyle(status: Int) {
+        val isRunning = status == ProductionPlanStatus.PRODUCT_ING
+        setBackgroundResource(
+            if (isRunning) {
+                com.jj.ui.R.drawable.j_bg_status_success
             } else {
-                plans.filter { it.planNo.contains(text, ignoreCase = true) || it.product.contains(text) }
+                com.jj.ui.R.drawable.j_bg_status_warning
             },
+        )
+        setTextColor(
+            ContextCompat.getColor(
+                context,
+                if (isRunning) com.jj.ui.R.color.j_color_success else com.jj.ui.R.color.j_color_warning,
+            ),
         )
     }
 
-    private data class ProducePlan(
-        val planNo: String,
-        val product: String,
-        val line: String,
-        val planQty: Int,
-        val doneQty: Int,
-        val status: String,
+    private fun Int.statusColor(): Int {
+        val colorRes = when (this) {
+            ProductionPlanStatus.PRODUCT_ING -> com.jj.ui.R.color.j_color_success
+            ProductionPlanStatus.PAUSE -> com.jj.ui.R.color.j_color_warning
+            ProductionPlanStatus.WAIT_SWITCH,
+            ProductionPlanStatus.SWITCHING,
+            ProductionPlanStatus.WAIT_PRODUCT,
+            -> com.jj.ui.R.color.j_color_primary
+            else -> com.jj.ui.R.color.j_color_neutral
+        }
+        return ContextCompat.getColor(requireContext(), colorRes)
+    }
+
+    private fun renderPlans() {
+        val visiblePlans = allPlans.filter { plan ->
+            selectedLineId.isNullOrBlank() || plan.lineId == selectedLineId
+        }
+        binding.tvProduceEmpty.visibility = if (visiblePlans.isEmpty()) View.VISIBLE else View.GONE
+        binding.recyclerProducePlans.visibility = if (visiblePlans.isEmpty()) View.GONE else View.VISIBLE
+        adapter.setList(visiblePlans)
+    }
+
+    private fun buildLineTabs(lines: List<LineDto>): List<LineTab> {
+        return lines
+            .filter { !it.lineId.isNullOrBlank() }
+            .map { line ->
+                LineTab(
+                    lineId = line.lineId,
+                    title = line.lineName.ifBlank { "未命名线体" },
+                    count = line.activeCount(),
+                )
+            }
+    }
+
+    private fun renderLineTabs() {
+        binding.scrollLineTabs.visibility = if (lineTabs.isEmpty()) View.GONE else View.VISIBLE
+        binding.layoutLineTabs.removeAllViews()
+        lineTabs.forEach { tab ->
+            binding.layoutLineTabs.addView(createLineTabView(tab))
+        }
+    }
+
+    private fun createLineTabView(tab: LineTab): View {
+        val selected = tab.lineId == selectedLineId
+        return LinearLayout(requireContext()).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            minimumHeight = dp(36)
+            setPadding(dp(10), 0, dp(8), 0)
+            setBackgroundResource(
+                if (selected) R.drawable.pda_bg_line_tab_selected else R.drawable.pda_bg_line_tab_unselected,
+            )
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                dp(36),
+            ).apply {
+                marginEnd = dp(6)
+            }
+
+            addView(createLineNameView(tab.title, selected))
+            addView(createLineCountView(tab.count, selected))
+            setOnClickListener {
+                if (selectedLineId == tab.lineId) return@setOnClickListener
+                selectedLineId = tab.lineId
+                renderLineTabs()
+                renderPlans()
+            }
+        }
+    }
+
+    private fun createLineNameView(title: String, selected: Boolean): TextView {
+        return TextView(requireContext()).apply {
+            text = title
+            gravity = Gravity.CENTER
+            textSize = 15f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    if (selected) com.jj.ui.R.color.j_color_text_primary else com.jj.ui.R.color.j_color_text_secondary,
+                ),
+            )
+        }
+    }
+
+    private fun createLineCountView(count: Int, selected: Boolean): TextView {
+        return TextView(requireContext()).apply {
+            text = count.toString()
+            gravity = Gravity.CENTER
+            textSize = 13f
+            typeface = Typeface.DEFAULT_BOLD
+            setPadding(dp(4), 0, 0, 0)
+            setTextColor(
+                ContextCompat.getColor(
+                    requireContext(),
+                    if (selected) com.jj.ui.R.color.j_color_primary else com.jj.ui.R.color.j_color_text_hint,
+                ),
+            )
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+            ).apply {
+                marginStart = dp(8)
+            }
+        }
+    }
+
+    private fun dp(value: Int): Int {
+        return (value * resources.displayMetrics.density + 0.5f).toInt()
+    }
+
+    private fun LineDto.activeCount(): Int {
+        return toSwitch + inSwitch + toProduce + inProduce + stop
+    }
+
+    private fun ProductionPlanDto.displayStatus(): String {
+        return planStatusName?.takeIf { it.isNotBlank() } ?: when (planStatus) {
+            ProductionPlanStatus.WAIT_SWITCH -> "待切换"
+            ProductionPlanStatus.SWITCHING -> "切换中"
+            ProductionPlanStatus.WAIT_PRODUCT -> "待生产"
+            ProductionPlanStatus.PRODUCT_ING -> "生产中"
+            ProductionPlanStatus.PAUSE -> "暂停"
+            else -> "-"
+        }
+    }
+
+    private fun String?.orDash(): String {
+        return this?.takeIf { it.isNotBlank() } ?: "-"
+    }
+
+    private data class LineTab(
+        val lineId: String?,
+        val title: String,
+        val count: Int,
     )
 }

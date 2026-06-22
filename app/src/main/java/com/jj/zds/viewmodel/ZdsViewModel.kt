@@ -18,6 +18,12 @@ import com.jj.zds.data.dto.debugplan.DebugSnScanValidDto
 import com.jj.zds.data.dto.debugplan.DebugTaskItemInfoDto
 import com.jj.zds.data.dto.login.LoginRequest
 import com.jj.zds.data.dto.menu.ZdsMenuDto
+import com.jj.zds.data.dto.productionplan.LineDto
+import com.jj.zds.data.dto.productionplan.ProductionEquipmentCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionPlanDto
+import com.jj.zds.data.dto.productionplan.ProductionPlanStatus
+import com.jj.zds.data.dto.productionplan.ProductionPersonCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailDto
 import com.jj.zds.data.dto.qrcode.QrCodeDto
 import com.jj.zds.data.dto.repair.RepairAction
 import com.jj.zds.data.dto.repair.RepairLogDto
@@ -32,12 +38,20 @@ data class DebugTaskCheckPhotoUploadResult(
     val fileId: Long,
 )
 
+data class ProductionSwitchBeginResult(
+    val planId: String,
+    val switchId: Int,
+)
+
 class ZdsViewModel : JiangViewModel() {
 
     private val repository by lazy { ZdsRepository() }
 
     private val _loginSuccess = MutableLiveData<CurUserDto>()
     val loginSuccess: LiveData<CurUserDto> = _loginSuccess
+
+    private val _userByAccount = MutableLiveData<CurUserDto>()
+    val userByAccount: LiveData<CurUserDto> = _userByAccount
 
     private val _menus = MutableLiveData<List<ZdsMenuDto>>()
     val menus: LiveData<List<ZdsMenuDto>> = _menus
@@ -78,6 +92,24 @@ class ZdsViewModel : JiangViewModel() {
     private val _debugPlans = MutableLiveData<List<DebugPlanDto>>()
     val debugPlans: LiveData<List<DebugPlanDto>> = _debugPlans
 
+    private val _productionPlans = MutableLiveData<List<ProductionPlanDto>>()
+    val productionPlans: LiveData<List<ProductionPlanDto>> = _productionPlans
+
+    private val _productionLineCounts = MutableLiveData<List<LineDto>>()
+    val productionLineCounts: LiveData<List<LineDto>> = _productionLineCounts
+
+    private val _productionSwitchBeginResult = MutableLiveData<ProductionSwitchBeginResult>()
+    val productionSwitchBeginResult: LiveData<ProductionSwitchBeginResult> = _productionSwitchBeginResult
+
+    private val _productionSwitchDetail = MutableLiveData<ProductionSwitchDetailDto>()
+    val productionSwitchDetail: LiveData<ProductionSwitchDetailDto> = _productionSwitchDetail
+
+    private val _productionCheckDone = MutableLiveData<Unit>()
+    val productionCheckDone: LiveData<Unit> = _productionCheckDone
+
+    private val _productionSwitchEnded = MutableLiveData<Unit>()
+    val productionSwitchEnded: LiveData<Unit> = _productionSwitchEnded
+
     private val _debugPlanDetail = MutableLiveData<DebugPlanDetailDto>()
     val debugPlanDetail: LiveData<DebugPlanDetailDto> = _debugPlanDetail
 
@@ -92,6 +124,9 @@ class ZdsViewModel : JiangViewModel() {
 
     private val _singleDebugSnScanValidResult = MutableLiveData<DebugSnScanValidDto>()
     val singleDebugSnScanValidResult: LiveData<DebugSnScanValidDto> = _singleDebugSnScanValidResult
+
+    private val _recheckSnScanValidResult = MutableLiveData<DebugSnScanValidDto>()
+    val recheckSnScanValidResult: LiveData<DebugSnScanValidDto> = _recheckSnScanValidResult
 
     private val _debugTaskItemInfo = MutableLiveData<DebugTaskItemInfoDto>()
     val debugTaskItemInfo: LiveData<DebugTaskItemInfoDto> = _debugTaskItemInfo
@@ -354,6 +389,187 @@ class ZdsViewModel : JiangViewModel() {
         )
     }
 
+    fun loadProductionPlans(
+        keyword: String = "",
+        lineId: String? = null,
+    ) {
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = {
+                repository.getProductionPlanList(
+                    keyword = keyword.trim(),
+                    lineId = lineId,
+                )
+            },
+            onSuccess = { plans ->
+                _productionPlans.value = plans
+            },
+        )
+    }
+
+    fun loadProductionLineCounts(
+        planStatusList: ArrayList<Int> = ProductionPlanStatus.defaultLineCountStatuses(),
+        partId: String? = null,
+        lineId: String? = null,
+    ) {
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = {
+                repository.getProductionLineCount(
+                    planStatusList = planStatusList,
+                    partId = partId?.trim()?.takeIf { it.isNotBlank() },
+                    lineId = lineId?.trim()?.takeIf { it.isNotBlank() },
+                )
+            },
+            onSuccess = { lineCounts ->
+                _productionLineCounts.value = lineCounts
+            },
+        )
+    }
+
+    fun beginProductionSwitch(planId: String) {
+        val trimmedPlanId = planId.trim()
+        if (trimmedPlanId.isBlank()) {
+            showToast("生产计划ID为空")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.DIALOG,
+            block = { repository.beginProductionSwitch(trimmedPlanId) },
+            onSuccess = { switchId ->
+                _productionSwitchBeginResult.value = ProductionSwitchBeginResult(
+                    planId = trimmedPlanId,
+                    switchId = switchId,
+                )
+            },
+        )
+    }
+
+    fun loadProductionSwitchDetail(planId: String) {
+        val trimmedPlanId = planId.trim()
+        if (trimmedPlanId.isBlank()) {
+            showToast("生产计划ID为空")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.DIALOG,
+            loadingMessage = "生产前核对加载中...",
+            block = { repository.getProductionSwitchDetail(trimmedPlanId) },
+            onSuccess = { detail ->
+                _productionSwitchDetail.value = detail
+            },
+        )
+    }
+
+    fun confirmProductionSoftCheck(lineSwiId: String) {
+        val trimmedLineSwiId = lineSwiId.trim()
+        if (trimmedLineSwiId.isBlank()) {
+            showToast("计划切换ID为空")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.DIALOG,
+            loadingMessage = "软件版本核对提交中...",
+            block = { repository.confirmProductionSoftCheck(trimmedLineSwiId) },
+            onSuccess = {
+                _productionCheckDone.value = Unit
+            },
+        )
+    }
+
+    fun confirmProductionMaterialCheck(lineSwiId: String) {
+        val trimmedLineSwiId = lineSwiId.trim()
+        if (trimmedLineSwiId.isBlank()) {
+            showToast("计划切换ID为空")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.DIALOG,
+            loadingMessage = "物料核对提交中...",
+            block = { repository.confirmProductionMaterialCheck(trimmedLineSwiId) },
+            onSuccess = {
+                _productionCheckDone.value = Unit
+            },
+        )
+    }
+
+    fun confirmProductionPersonCheck(requests: List<ProductionPersonCheckRequest>) {
+        if (requests.isEmpty()) {
+            showToast("人员资质核对项为空")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = { repository.confirmProductionPersonCheck(requests) },
+            onSuccess = {
+                _productionCheckDone.value = Unit
+            },
+        )
+    }
+
+    fun confirmProductionEquipmentCheck(requests: List<ProductionEquipmentCheckRequest>) {
+        if (requests.isEmpty()) {
+            showToast("设备核对项为空")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = { repository.confirmProductionEquipmentCheck(requests) },
+            onSuccess = {
+                _productionCheckDone.value = Unit
+            },
+        )
+    }
+
+    fun endProductionSwitch(planId: String) {
+        val trimmedPlanId = planId.trim()
+        if (trimmedPlanId.isBlank()) {
+            showToast("生产计划ID为空")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.DIALOG,
+            loadingMessage = "切换完成提交中...",
+            block = { repository.endProductionSwitch(trimmedPlanId) },
+            onSuccess = {
+                _productionSwitchEnded.value = Unit
+            },
+        )
+    }
+
+    fun initUserByAccount(
+        account: String,
+        status: Int = 1,
+        distinct: Boolean = true,
+    ) {
+        val trimmedAccount = account.trim()
+        if (trimmedAccount.isBlank()) {
+            showToast("人员账号为空")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = {
+                repository.initUserByAccount(
+                    account = trimmedAccount,
+                    status = status,
+                    distinct = distinct,
+                )
+            },
+            onSuccess = { user ->
+                _userByAccount.value = user
+            },
+        )
+    }
+
     fun loadDebugPlanDetail(taskId: String) {
         val trimmedTaskId = taskId.trim()
         if (trimmedTaskId.isBlank()) {
@@ -512,6 +728,48 @@ class ZdsViewModel : JiangViewModel() {
             loadingMode = JiangLoadingMode.NONE,
             block = {
                 repository.submitSingleDebugCheck(
+                    qrCode = trimmedCode,
+                    ngPhenomena = ngPhenomena,
+                    checkGroupDto = checkGroupDto,
+                )
+            },
+            onSuccess = {
+                _debugOperationDone.value = Unit
+            },
+        )
+    }
+
+    fun scanValidRecheckSn(qrCode: String) {
+        val trimmedCode = qrCode.trim()
+        if (trimmedCode.isBlank()) {
+            showToast("请先扫码")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = { repository.scanValidRecheckSn(trimmedCode) },
+            onSuccess = { result ->
+                _recheckSnScanValidResult.value = result
+            },
+        )
+    }
+
+    fun submitRecheck(
+        qrCode: String,
+        ngPhenomena: String?,
+        checkGroupDto: DebugCheckGroupDto,
+    ) {
+        val trimmedCode = qrCode.trim()
+        if (trimmedCode.isBlank()) {
+            showToast("请先扫码")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = {
+                repository.submitRecheck(
                     qrCode = trimmedCode,
                     ngPhenomena = ngPhenomena,
                     checkGroupDto = checkGroupDto,

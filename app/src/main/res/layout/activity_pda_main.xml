@@ -21,45 +21,46 @@
     <LinearLayout
         android:id="@+id/layoutTabs"
         android:layout_width="match_parent"
-        android:layout_height="64dp"
-        android:background="@color/j_color_bg_card"
+        android:layout_height="62dp"
+        android:background="@drawable/pda_bg_bottom_nav"
+        android:elevation="8dp"
         android:gravity="center"
         android:orientation="horizontal"
-        android:padding="@dimen/j_space_8">
+        android:paddingStart="@dimen/j_space_8"
+        android:paddingTop="@dimen/j_space_6"
+        android:paddingEnd="@dimen/j_space_8"
+        android:paddingBottom="@dimen/j_space_6">
 
         <TextView
             android:id="@+id/tabHome"
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
             android:gravity="center"
             android:text="首页"
-            android:textColor="@color/j_color_primary"
-            android:textSize="@dimen/j_text_size_md"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tabDebug"
             android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="@dimen/j_space_8"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/j_space_4"
             android:layout_weight="1"
             android:gravity="center"
             android:text="调试"
-            android:textColor="@color/j_color_primary"
-            android:textSize="@dimen/j_text_size_md"
+            android:textSize="12sp"
             android:textStyle="bold" />
 
         <TextView
             android:id="@+id/tabProduce"
             android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="@dimen/j_space_8"
+            android:layout_height="match_parent"
+            android:layout_marginStart="@dimen/j_space_4"
             android:layout_weight="1"
             android:gravity="center"
             android:text="生产"
-            android:textColor="@color/j_color_primary"
-            android:textSize="@dimen/j_text_size_md"
+            android:textSize="12sp"
             android:textStyle="bold" />
     </LinearLayout>
 </LinearLayout>

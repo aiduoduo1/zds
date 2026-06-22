@@ -225,7 +225,6 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
         binding.tvBatchProgress.text = "${detail.finishCount.coerceAtLeast(0)} / ${detail.count.coerceAtLeast(0)}"
         binding.tvSampleProgress.text = "${detail.checkQty.coerceAtLeast(0)} / ${detail.sampleQty.coerceAtLeast(0)}"
         binding.tvNgProgress.text = "${detail.ngCount.coerceAtLeast(0)} / ${detail.rejectionQty.coerceAtLeast(0)}"
-        binding.tvBatchCount.text = detail.list.size.toString()
         binding.progressBatch.progress = detail.progressPercent()
         pageHelper.showData(detail.list)
         renderFooter()
