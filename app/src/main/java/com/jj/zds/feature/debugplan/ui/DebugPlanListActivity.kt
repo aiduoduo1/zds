@@ -65,6 +65,7 @@ class DebugPlanListActivity : JiangToolbarStateVmActivity<ActivityDebugPlanListB
                 context = this,
                 taskId = item.id,
                 requireSubmitPhoto = item.requireSubmitPhoto,
+                planMaterialCode = item.materialCode,
             )
         }
 

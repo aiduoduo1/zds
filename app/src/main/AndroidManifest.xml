@@ -63,6 +63,14 @@
             android:exported="false"
             android:windowSoftInputMode="stateHidden|stateUnchanged" />
         <activity
+            android:name=".feature.production.ui.ProductionExecuteProgressActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.production.ui.ProductionSnBindActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
+        <activity
             android:name=".feature.production.ui.ProductionEquipmentCheckActivity"
             android:exported="false"
             android:windowSoftInputMode="stateHidden|stateUnchanged" />
@@ -111,6 +119,10 @@
             android:name=".feature.repair.ui.RepairActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize|stateHidden" />
+        <activity
+            android:name=".feature.repair.ui.RepairDetailActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
         <activity
             android:name=".feature.repair.ui.RepairHistoryActivity"
             android:exported="false"

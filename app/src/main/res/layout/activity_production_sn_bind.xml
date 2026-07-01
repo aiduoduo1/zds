@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/pda_bg_page"
+    android:orientation="vertical"
+    android:padding="@dimen/j_space_12">
+
+    <LinearLayout
+        android:id="@+id/panelScan"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/pda_bg_equipment_panel"
+        android:elevation="4dp"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/j_space_10"
+        android:paddingTop="@dimen/j_space_2"
+        android:paddingEnd="@dimen/j_space_10"
+        tools:ignore="RtlSymmetry">
+
+        <com.jj.ui.input.JInputLayout
+            android:id="@+id/inputBind"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:jInputClearEnabled="true"
+            app:jInputCompact="true"
+            app:jInputHint="请扫描PRO码"
+            app:jInputMode="scan"
+            app:jInputSelectAllOnFocus="true"
+            app:jInputTitle="请扫描PRO码" />
+
+        <TextView
+            android:id="@+id/tvBindProgress"
+            style="@style/JText.Caption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_2"
+            android:gravity="end"
+            android:text="绑定进度：--/--" />
+    </LinearLayout>
+
+    <TextView
+        android:textStyle="bold"
+        android:id="@+id/tvBindInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_2"
+        android:background="@drawable/pda_bg_card"
+        android:padding="@dimen/j_space_10"
+        android:text="先扫描PRO码，加载关键部件绑定任务"
+        android:textColor="@color/j_color_text_secondary"
+        android:textSize="12sp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/j_space_2"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/layoutCategories"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+</LinearLayout>

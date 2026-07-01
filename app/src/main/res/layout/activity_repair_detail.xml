@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/JStyle.Page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:padding="@dimen/j_space_8"
+    tools:theme="@style/Theme.Zds">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingBottom="@dimen/j_space_12">
+
+        <LinearLayout
+            style="@style/JStyle.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/j_space_10">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    style="@style/JText.Title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="基本信息" />
+
+                <com.jj.ui.widget.JStatusTagView
+                    android:id="@+id/tagStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvSn"
+                style="@style/JText.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_8"
+                tools:text="SN  SN2606260005" />
+
+            <TextView
+                android:id="@+id/tvSource"
+                style="@style/JText.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_4"
+                tools:text="来源  调试计划" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/JStyle.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_8"
+            android:orientation="vertical"
+            android:padding="@dimen/j_space_10">
+
+            <TextView
+                style="@style/JText.Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="单据与物料" />
+
+            <TextView
+                android:id="@+id/tvPlan"
+                style="@style/JText.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_8"
+                tools:text="单号  IQC20260626001" />
+
+            <TextView
+                android:id="@+id/tvBatch"
+                style="@style/JText.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_4"
+                tools:text="批次  IQC20260626001-01" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="@dimen/j_space_8"
+                android:background="@color/j_color_line_light" />
+
+            <TextView
+                android:id="@+id/tvMaterial"
+                style="@style/JText.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_8"
+                tools:text="物料  Test-001" />
+
+            <TextView
+                android:id="@+id/tvTestMaterial"
+                style="@style/JText.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_4"
+                tools:text="测试物料  002" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/JStyle.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_8"
+            android:orientation="vertical"
+            android:padding="@dimen/j_space_10">
+
+            <TextView
+                style="@style/JText.Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="不良信息" />
+
+            <TextView
+                style="@style/JText.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_8"
+                android:text="不良现象"
+                android:textColor="@color/j_color_text_disabled" />
+
+            <TextView
+                android:id="@+id/tvNgPhenomena"
+                style="@style/JText.Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_4"
+                android:textColor="@color/j_color_danger"
+                tools:text="电流值异常" />
+
+            <TextView
+                style="@style/JText.Caption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_10"
+                android:text="不良说明"
+                android:textColor="@color/j_color_text_disabled" />
+
+            <TextView
+                android:id="@+id/tvNgRemark"
+                style="@style/JText.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_4"
+                android:ellipsize="end"
+                android:lineSpacingExtra="2dp"
+                android:maxLines="3"
+                tools:text="变压器二次对地绝缘【10～50】，实际数值:0；变压器一次对地绝缘【500～1000】，实际数值:0" />
+
+            <Button
+                android:id="@+id/btnToggleRemark"
+                style="@style/JStyle.Button.Text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end"
+                android:minHeight="36dp"
+                android:text="展开"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <LinearLayout
+            style="@style/JStyle.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_8"
+            android:orientation="vertical"
+            android:padding="@dimen/j_space_10">
+
+            <TextView
+                style="@style/JText.Title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="上报信息" />
+
+            <TextView
+                android:id="@+id/tvReporter"
+                style="@style/JText.Body"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_8"
+                tools:text="上报人  涂振华-测试" />
+
+            <TextView
+                android:id="@+id/tvReportTime"
+                style="@style/JText.Secondary"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_4"
+                tools:text="上报时间  2026-06-29 11:19:13" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

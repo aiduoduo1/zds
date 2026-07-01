@@ -2,16 +2,19 @@
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
+import android.text.InputFilter
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.PopupWindow
@@ -52,6 +55,8 @@ import com.jj.zds.feature.debugplan.data.DebugTaskPhotoRow
 import com.jj.zds.feature.debugplan.data.DebugTaskSwitchRow
 import com.jj.zds.feature.debugplan.data.DebugTaskTextRow
 import com.jj.zds.feature.debugplan.data.DebugTaskValueRow
+import com.jj.zds.feature.debugplan.ui.DebugTaskCollectType
+import com.jj.zds.feature.debugplan.ui.DebugTaskInputRules
 import com.jj.zds.feature.photo.PhotoUploadFileProcessor
 import com.jj.zds.feature.photo.PhotoUploadMode
 import com.jj.zds.feature.repair.data.buildRepairFileUrl
@@ -133,6 +138,7 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
     }
 
     override fun initView(savedInstanceState: Bundle?) {
+        qrCode = intent.getStringExtra(EXTRA_QR_CODE).orEmpty().trim()
         binding.inputSn.setTitle("复检")
         binding.root.isFocusableInTouchMode = true
         binding.root.requestFocus()
@@ -155,6 +161,9 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
         footerAdapter.setList(listOf(Unit))
         renderChecks()
         focusScanInput(selectAll = false)
+        if (qrCode.isNotBlank()) {
+            binding.inputSn.post { submitScanSn(binding.inputSn.text()) }
+        }
     }
 
     override fun initPageObserver() {
@@ -387,7 +396,13 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
 
     private fun showRemarkDialog(id: String) {
         val item = checks.firstOrNull { it.checkId == id } as? DebugTaskTextRow ?: return
-        JInputDialog(this, this)
+        object : JInputDialog(this, this) {
+            init {
+                (inputLayout.focusedInputView() as? EditText)?.filters = arrayOf(
+                    InputFilter.LengthFilter(DebugTaskInputRules.MAX_INPUT_LENGTH),
+                )
+            }
+        }
             .setTitle(item.title)
             .setInputTitle("调试说明")
             .setHint(item.expectedText.ifBlank { "输入提示文本内容" })
@@ -521,7 +536,9 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
     }
 
     private fun scrollToFirstPending() {
-        val position = checks.indexOfFirst { it.result == DebugTaskCheckResult.PENDING }
+        val position = checks.indexOfFirst {
+            it.result == DebugTaskCheckResult.PENDING && !it.dto.isSkipable
+        }
         if (position < 0) return
         binding.recyclerChecks.smoothScrollToPosition(position + HEADER_ITEM_COUNT)
     }
@@ -574,30 +591,30 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
         val expectedText = standardOption?.takeIf { it.isNotBlank() } ?: itemDescription
         val rowId = "$parentKey-$checkId"
         val initialText = result?.toString().orEmpty()
-        return when {
-            isValueCollectType() -> DebugTaskValueRow(
+        return when (DebugTaskInputRules.resolveType(collectType, minValue, maxValue)) {
+            DebugTaskCollectType.NUM -> DebugTaskValueRow(
                 rowId = rowId,
                 checkId = checkId,
                 typeLabel = typeLabel,
                 title = title,
                 description = itemDescription,
                 dto = this,
-                inputValue = initialText,
+                inputValue = initialText.toDraftNumberText(),
                 referenceValue = buildReferenceText(),
                 result = initialText.toInitialValueResult(minValue, maxValue),
             )
-            isTextCollectType() -> DebugTaskTextRow(
+            DebugTaskCollectType.INPUT -> DebugTaskTextRow(
                 rowId = rowId,
                 checkId = checkId,
                 typeLabel = typeLabel,
                 title = title,
                 description = itemDescription,
                 dto = this,
-                remark = initialText.ifBlank { expectedText },
+                remark = initialText,
                 expectedText = expectedText,
-                result = initialText.ifBlank { expectedText }.toTextResult(expectedText),
+                result = initialText.toTextResult(expectedText),
             )
-            isPhotoCollectType() -> DebugTaskPhotoRow(
+            DebugTaskCollectType.PHOTO -> DebugTaskPhotoRow(
                 rowId = rowId,
                 checkId = checkId,
                 typeLabel = typeLabel,
@@ -611,7 +628,7 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
                     DebugTaskCheckResult.PENDING
                 },
             )
-            else -> DebugTaskSwitchRow(
+            DebugTaskCollectType.CONFIRM -> DebugTaskSwitchRow(
                 rowId = rowId,
                 checkId = checkId,
                 typeLabel = typeLabel,
@@ -642,42 +659,20 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
 
     private fun DebugCheckItemDto.withRowResult(row: DebugTaskCheckRow?): DebugCheckItemDto {
         return when (row) {
-            is DebugTaskSwitchRow -> copy(result = row.result == DebugTaskCheckResult.PASS)
-            is DebugTaskValueRow -> copy(result = row.inputValue)
-            is DebugTaskTextRow -> copy(result = row.remark)
-            is DebugTaskPhotoRow -> copy(result = row.photos.joinToString(",") { it.fileId })
+            is DebugTaskSwitchRow -> copy(
+                result = when (row.result) {
+                    DebugTaskCheckResult.PASS -> true
+                    DebugTaskCheckResult.FAIL -> false
+                    DebugTaskCheckResult.PENDING -> null
+                },
+            )
+            is DebugTaskValueRow -> copy(result = row.inputValue.takeIf { it.isNotBlank() })
+            is DebugTaskTextRow -> copy(result = row.remark.takeIf { it.isNotBlank() })
+            is DebugTaskPhotoRow -> copy(
+                result = row.photos.joinToString(",") { it.fileId }.takeIf { it.isNotBlank() },
+            )
             null -> this
         }
-    }
-
-    private fun DebugCheckItemDto.isValueCollectType(): Boolean {
-        val type = collectType.orEmpty().lowercase()
-        return minValue != null || maxValue != null ||
-            type.contains("number") ||
-            type.contains("value") ||
-            type.contains("input") ||
-            type.contains("num") ||
-            type.contains("数值")
-    }
-
-    private fun DebugCheckItemDto.isTextCollectType(): Boolean {
-        val type = collectType.orEmpty().lowercase()
-        return type.contains("text") ||
-            type.contains("remark") ||
-            type.contains("textarea") ||
-            type.contains("文本") ||
-            type.contains("说明")
-    }
-
-    private fun DebugCheckItemDto.isPhotoCollectType(): Boolean {
-        val type = collectType.orEmpty().lowercase()
-        return type.contains("photo") ||
-            type.contains("image") ||
-            type.contains("picture") ||
-            type.contains("file") ||
-            type.contains("拍照") ||
-            type.contains("照片") ||
-            type.contains("图片")
     }
 
     private fun String.toPhotoItems(): List<DebugTaskPhotoItem> {
@@ -686,6 +681,11 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
             .filter { it.isNotBlank() }
             .map { DebugTaskPhotoItem(fileId = it) }
             .take(MAX_PHOTO_COUNT)
+    }
+
+    private fun String.toDraftNumberText(): String {
+        if (isBlank()) return this
+        return toBigDecimalOrNull()?.stripTrailingZeros()?.toPlainString() ?: this
     }
 
     private fun DebugCheckItemDto.buildReferenceText(): String {
@@ -727,8 +727,7 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
 
     private fun String.toTextResult(expectedText: String): DebugTaskCheckResult {
         if (isBlank()) return DebugTaskCheckResult.PENDING
-        if (expectedText.isBlank()) return DebugTaskCheckResult.PASS
-        return if (trim() == expectedText.trim()) {
+        return if (DebugTaskInputRules.isInputMatched(this, expectedText)) {
             DebugTaskCheckResult.PASS
         } else {
             DebugTaskCheckResult.FAIL
@@ -806,10 +805,18 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
         SUBMIT,
     }
 
-    private companion object {
-        const val HEADER_ITEM_COUNT = 1
-        const val PAYLOAD_CHECK_CHANGED = "singleDebugCheckChanged"
-        const val SUBMIT_DEBOUNCE_WINDOW = 800L
-        const val MAX_PHOTO_COUNT = 9
+    companion object {
+        private const val EXTRA_QR_CODE = "extra_qr_code"
+        private const val HEADER_ITEM_COUNT = 1
+        private const val PAYLOAD_CHECK_CHANGED = "singleDebugCheckChanged"
+        private const val SUBMIT_DEBOUNCE_WINDOW = 800L
+        private const val MAX_PHOTO_COUNT = 9
+
+        fun start(context: Context, qrCode: String) {
+            context.startActivity(
+                Intent(context, RecheckActivity::class.java)
+                    .putExtra(EXTRA_QR_CODE, qrCode.trim()),
+            )
+        }
     }
 }

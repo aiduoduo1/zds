@@ -5,15 +5,19 @@ import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.SystemClock
+import android.text.TextUtils
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
+import android.widget.HorizontalScrollView
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.PopupWindow
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
 import coil.load
@@ -35,6 +39,7 @@ import com.jj.zds.data.local.ZdsStorageKeys
 import com.jj.zds.databinding.ActivityRepairBinding
 import com.jj.zds.feature.photo.PhotoUploadFileProcessor
 import com.jj.zds.feature.photo.PhotoUploadMode
+import com.jj.zds.feature.recheck.ui.RecheckActivity
 import com.jj.zds.feature.repair.data.RepairUiState
 import com.jj.zds.feature.repair.data.buildRepairFileUrl
 import com.jj.zds.viewmodel.ZdsViewModel
@@ -58,6 +63,10 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
     private var pendingPhotoFile: File? = null
     private var repairPhotoUploadMode = PhotoUploadMode.default()
     private var clearingRepairPage = false
+    private var showingRepairForm = false
+    private var repairRemarkExpanded = false
+    private var repairRemarkCanExpand = false
+    private var moreActionView: TextView? = null
     private val repairPhotos = mutableListOf<RepairPhotoItem>()
 
     private val cameraPermissionLauncher = registerForActivityResult(
@@ -95,16 +104,25 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
     }
 
     override fun initView(savedInstanceState: Bundle?) {
-        binding.tvEmpty.text="请扫描不良品SN\n系统会检查出尚未关闭的不良上报"
-
         binding.root.isFocusableInTouchMode = true
         binding.root.requestFocus()
+        installMoreAction()
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (showingRepairForm) {
+                        showSummaryPage()
+                    } else {
+                        finish()
+                    }
+                }
+            },
+        )
         bindScanInput()
-        binding.btnHistory.setOnClickListener {
-            currentState?.report?.let { report ->
-                RepairHistoryActivity.start(this, report)
-            }
-        }
+        binding.btnStartRepair.setOnClickListener { showRepairForm() }
+        binding.btnBackToSummary.setOnClickListener { showSummaryPage() }
+        binding.btnToggleRemark.setOnClickListener { toggleRepairRemark() }
         binding.tvNgReason.setOnClickListener { showNgReasonDialog() }
         binding.tvRepairResult.setOnClickListener { showRepairResultDialog() }
         binding.btnTakePhoto.setOnClickListener { requestCameraAndTakePhoto() }
@@ -119,6 +137,7 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         binding.btnSubmit.setOnClickListener { submitRepair(RepairAction.SUBMIT) }
         viewModel.loadRepairNgReasons()
         viewModel.loadRepairResults()
+        showSummaryPage()
         focusScanInput(selectAll = false)
     }
 
@@ -133,12 +152,19 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         }
         viewModel.repairResultItems.observe(this) { items ->
             repairResults = items.filter { it.isShow }
+            renderRepairResult()
         }
         viewModel.repairOperationDone.observe(this) {
             val action = submitAction
             submitAction = null
-            JToast.show(if (action == RepairAction.DRAFT) "维修记录已保存" else "维修结果已提交")
-            clearRepairPage()
+            when {
+                RepairSubmitSuccessRules.shouldPrompt(action) -> showRepairNextStepDialog()
+                action == RepairAction.DRAFT -> {
+                    JToast.show("维修记录已保存")
+                    clearRepairPage()
+                }
+                else -> renderButtons()
+            }
         }
         viewModel.repairPhotoUploadResult.observe(this) { fileId ->
             val file = pendingPhotoFile
@@ -159,11 +185,63 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         return listOf(JiangToolbarMenuItem(MENU_SYNC, "刷新"))
     }
 
+    override fun showBackButton(): Boolean = true
+
+    override fun onToolbarBackClick() {
+        if (showingRepairForm) {
+            showSummaryPage()
+        } else {
+            finish()
+        }
+    }
+
     override fun onToolbarMenuClick(item: JiangToolbarMenuItem) {
         if (item.id == MENU_SYNC) {
-            currentState?.report?.sn?.takeIf { it.isNotBlank() }?.let { submitScanSn(it) }
+            lastSubmitCode = ""
+            submitScanSn(binding.inputSn.text())
             viewModel.loadRepairNgReasons()
             viewModel.loadRepairResults()
+        }
+    }
+
+    private fun installMoreAction() {
+        val action = TextView(this).apply {
+            gravity = Gravity.CENTER
+            text = "⋮"
+            textSize = 24f
+            setTextColor(getColor(com.jj.ui.R.color.j_color_text_white))
+            contentDescription = "更多操作"
+            setOnClickListener { showMoreMenu(this) }
+        }
+        moreActionView = action
+        toolbar.addView(
+            action,
+            LinearLayout.LayoutParams(dp(44), ViewGroup.LayoutParams.MATCH_PARENT),
+        )
+    }
+
+    private fun showMoreMenu(anchor: View) {
+        PopupMenu(this, anchor).apply {
+            menu.add(0, MENU_DETAIL, 0, "查看详情信息")
+            menu.add(0, MENU_HISTORY, 1, "查看处理记录")
+            setOnMenuItemClickListener { menuItem ->
+                when (menuItem.itemId) {
+                    MENU_DETAIL -> withCurrentReport { RepairDetailActivity.start(this@RepairActivity, it) }
+                    MENU_HISTORY -> withCurrentReport { RepairHistoryActivity.start(this@RepairActivity, it) }
+
+                }
+                true
+            }
+            show()
+        }
+    }
+
+    private inline fun withCurrentReport(action: (RepairSnScanValidDto) -> Unit) {
+        val report = currentState?.report
+        if (report == null) {
+            JToast.show("请先扫描 SN")
+        } else {
+            action(report)
         }
     }
 
@@ -231,9 +309,48 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         pendingPhotoFile = null
         repairPhotos.clear()
         binding.inputSn.clearState()
-        binding.layoutContent.visibility = View.GONE
-        binding.tvEmpty.visibility = View.VISIBLE
+        repairRemarkExpanded = false
+        repairRemarkCanExpand = false
+        binding.btnToggleRemark.visibility = View.GONE
+        showSummaryPage()
         renderButtons()
+    }
+
+    private fun showSummaryPage() {
+        showingRepairForm = false
+        binding.layoutScanCard.visibility = View.VISIBLE
+        binding.layoutRepairForm.visibility = View.GONE
+        binding.layoutSummaryPage.visibility = if (currentState == null) View.GONE else View.VISIBLE
+        binding.tvEmpty.visibility = if (currentState == null) View.VISIBLE else View.GONE
+        toolbar.setTitleText("不良维修")
+        toolbar.setSubtitleText("扫描 SN 处理未关闭不良")
+        toolbar.setMenuItemVisible(MENU_SYNC, true)
+        moreActionView?.visibility = View.VISIBLE
+        binding.scrollContent.post { binding.scrollContent.scrollTo(0, 0) }
+        if (currentState == null) {
+            focusScanInput(selectAll = false)
+        }
+    }
+
+    private fun showRepairForm() {
+        val state = currentState ?: run {
+            JToast.show("请先扫描 SN")
+            return
+        }
+        if (!state.editable) {
+            JToast.show("当前记录不可维修")
+            return
+        }
+        showingRepairForm = true
+        binding.layoutScanCard.visibility = View.GONE
+        binding.tvEmpty.visibility = View.GONE
+        binding.layoutSummaryPage.visibility = View.GONE
+        binding.layoutRepairForm.visibility = View.VISIBLE
+        toolbar.setTitleText("填写维修结果")
+        toolbar.setSubtitleText(state.report.sn.orDash())
+        toolbar.setMenuItemVisible(MENU_SYNC, false)
+        moreActionView?.visibility = View.GONE
+        binding.scrollContent.post { binding.scrollContent.scrollTo(0, 0) }
     }
 
     private fun focusScanInput(selectAll: Boolean) {
@@ -254,6 +371,24 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
             .show()
     }
 
+    private fun showRepairNextStepDialog() {
+        val handoffQrCode = RepairSubmitSuccessRules.handoffQrCode(binding.inputSn.text())
+        JConfirmDialog(this, this)
+            .setTitle("维修提交成功")
+            .setMessage("请选择下一步操作")
+            .setCancelText("继续维修")
+            .setConfirmText("去复检")
+            .setCancelable(false)
+            .setOnCancel {
+                clearRepairPage()
+            }
+            .setOnConfirm {
+                clearRepairPage()
+                RecheckActivity.start(this, handoffQrCode)
+            }
+            .show()
+    }
+
     private fun submitScanSn(rawCode: String) {
         val code = rawCode.trim()
         val now = SystemClock.elapsedRealtime()
@@ -270,25 +405,21 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
     private fun renderRepair(state: RepairUiState) {
         currentState = state
         val report = state.report
-        snCode = report.sn ?: snCode
         selectedNgReason = report.ngReason.orEmpty()
         selectedRepairResult = report.result.orEmpty()
         repairPhotos.clear()
         repairPhotos += report.fileList
-            .filter { it.isNotBlank() }
             .take(MAX_PHOTO_COUNT)
-            .map { RepairPhotoItem(fileId = it) }
-        binding.tvEmpty.visibility = View.GONE
-        binding.layoutContent.visibility = View.VISIBLE
+            .mapNotNull { file ->
+                file.fileId.takeIf { it.isNotBlank() }?.let { RepairPhotoItem(fileId = it) }
+            }
         binding.inputSn.showSuccess("已带出不良记录")
-        binding.tvSource.text = report.ngSource.orDash()
-        binding.tvSourceNo.text = "计划:${report.planNumber.orDash()}\n批次:${report.batchNumber.orDash()}"
         binding.tagStatus.setStatus(report.statusName.orStatus(), report.toTagType(state.editable))
-        binding.tvSn.text = "SN：${report.sn.orDash()}"
-        binding.tvMaterial.text = "物料：${report.categoryName.orDash()}\n${report.productName.orDash()}"
-        binding.tvNgPhenomena.text = "不良现象：${report.ngPhenomena.orDash()}"
-        binding.tvNgRemark.text = "说明：${report.ngRemark.orDash()}"
-        binding.tvRepairResult.text = selectedRepairResult.ifBlank { "请选择维修结果" }
+        binding.tvSn.text = report.sn.orDash()
+        binding.tvNgPhenomena.text = report.ngPhenomena.orDash()
+        binding.tvFormSn.text = "${report.sn.orDash()} · ${report.ngPhenomena.orDash()}"
+        renderRepairRemark(RepairRemarkDisplay.format(report.ngRemark).orDash())
+        renderRepairResult()
         binding.tvNgReason.text = selectedNgReason.ifBlank { "请选择不良原因" }
         binding.editRepairBy.setText(
             report.repairBy?.takeIf { it.isNotBlank() }
@@ -296,15 +427,40 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         )
         binding.editRepairDesc.setText(report.repairDesc.orEmpty())
         renderPhotos()
-        binding.tvLockNote.text = if (state.editable) {
-            "当前不良可维修。保存后状态为维修中，提交后进入待复调。"
-        } else {
-            "该记录当前只允许查看，不允许覆盖维修记录。"
-        }
         setEditable(state.editable)
+        showSummaryPage()
+    }
+
+    private fun renderRepairRemark(remark: String) {
+        repairRemarkExpanded = false
+        repairRemarkCanExpand = false
+        binding.tvNgRemark.maxLines = Int.MAX_VALUE
+        binding.tvNgRemark.ellipsize = null
+        binding.tvNgRemark.text = remark
+        binding.btnToggleRemark.visibility = View.GONE
+        binding.btnToggleRemark.text = "展开"
+        binding.tvNgRemark.post {
+            repairRemarkCanExpand = binding.tvNgRemark.lineCount > COLLAPSED_REMARK_LINES
+            if (repairRemarkCanExpand && !repairRemarkExpanded) {
+                binding.tvNgRemark.maxLines = COLLAPSED_REMARK_LINES
+                binding.tvNgRemark.ellipsize = TextUtils.TruncateAt.END
+                binding.btnToggleRemark.visibility = View.VISIBLE
+            }
+        }
+    }
+
+    private fun toggleRepairRemark() {
+        if (!repairRemarkCanExpand) return
+        repairRemarkExpanded = !repairRemarkExpanded
+        binding.tvNgRemark.maxLines = if (repairRemarkExpanded) Int.MAX_VALUE else COLLAPSED_REMARK_LINES
+        binding.tvNgRemark.ellipsize = if (repairRemarkExpanded) null else TextUtils.TruncateAt.END
+        binding.btnToggleRemark.text = if (repairRemarkExpanded) "收起" else "展开"
     }
 
     private fun setEditable(editable: Boolean) {
+        binding.btnStartRepair.isEnabled = editable
+        binding.btnStartRepair.alpha = if (editable) 1f else 0.6f
+        binding.btnStartRepair.text = if (editable) "填写维修结果" else "当前记录不可维修"
         binding.tvRepairResult.isEnabled = editable
         binding.tvNgReason.isEnabled = editable
         binding.editRepairBy.isEnabled = editable
@@ -373,10 +529,16 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
                     JToast.show("请选择维修结果")
                 } else {
                     selectedRepairResult = value
-                    binding.tvRepairResult.text = value
+                    renderRepairResult()
                 }
             }
             .show()
+    }
+
+    private fun renderRepairResult() {
+        binding.tvRepairResult.text = RepairResultDisplay
+            .labelFor(selectedRepairResult, repairResults)
+            .ifBlank { "请选择维修结果" }
     }
 
     private fun submitRepair(action: RepairAction) {
@@ -471,11 +633,11 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         binding.layoutPhotoList.removeAllViews()
         binding.scrollPhotoList.visibility = if (photos.isEmpty()) View.GONE else View.VISIBLE
         photos.forEachIndexed { index, photo ->
-            binding.layoutPhotoList.addView(createPhotoView(photo, index))
+            binding.layoutPhotoList.addView(createPhotoView(photo, index, allowDelete = true))
         }
     }
 
-    private fun createPhotoView(photo: RepairPhotoItem, index: Int): View {
+    private fun createPhotoView(photo: RepairPhotoItem, index: Int, allowDelete: Boolean): View {
         val container = FrameLayout(this).apply {
             layoutParams = LinearLayout.LayoutParams(dp(92), dp(92)).apply {
                 marginEnd = dp(8)
@@ -493,7 +655,7 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
             setOnClickListener { showPhotoPreview(photo) }
         }
         container.addView(imageView)
-        if (currentState?.editable == true && !uploadingRepairPhoto && submitAction == null) {
+        if (allowDelete && currentState?.editable == true && !uploadingRepairPhoto && submitAction == null) {
             val deleteView = TextView(this).apply {
                 layoutParams = FrameLayout.LayoutParams(dp(24), dp(24), Gravity.TOP or Gravity.END)
                 gravity = Gravity.CENTER
@@ -507,6 +669,69 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
             container.addView(deleteView)
         }
         return container
+    }
+
+    private fun showPhotoGallery() {
+        val photos = repairPhotos.filter { it.fileId.isNotBlank() }
+        if (photos.isEmpty()) {
+            JToast.show("暂无维修照片")
+            return
+        }
+        val popupRoot = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            gravity = Gravity.CENTER
+            setPadding(dp(16), dp(28), dp(16), dp(24))
+            setBackgroundColor(0xF0000000.toInt())
+        }
+        val header = LinearLayout(this).apply {
+            gravity = Gravity.CENTER_VERTICAL
+            orientation = LinearLayout.HORIZONTAL
+        }
+        val title = TextView(this).apply {
+            text = "维修照片  ${photos.size} 张"
+            textSize = 18f
+            setTextColor(Color.WHITE)
+        }
+        val close = TextView(this).apply {
+            gravity = Gravity.CENTER
+            text = "×"
+            textSize = 30f
+            setTextColor(Color.WHITE)
+            contentDescription = "关闭维修照片"
+        }
+        header.addView(title, LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f))
+        header.addView(close, LinearLayout.LayoutParams(dp(44), dp(44)))
+        val photoRow = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(0, dp(12), 0, dp(12))
+        }
+        photos.forEachIndexed { index, photo ->
+            photoRow.addView(createPhotoView(photo, index, allowDelete = false))
+        }
+        val scroll = HorizontalScrollView(this).apply {
+            isHorizontalScrollBarEnabled = false
+            addView(photoRow)
+        }
+        val hint = TextView(this).apply {
+            gravity = Gravity.CENTER
+            text = "点击照片查看大图"
+            textSize = 14f
+            setTextColor(0xFFCBD5E1.toInt())
+        }
+        popupRoot.addView(header, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        popupRoot.addView(scroll, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        popupRoot.addView(hint, LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
+        val popupWindow = PopupWindow(
+            popupRoot,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            true,
+        ).apply {
+            isOutsideTouchable = true
+            setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        }
+        close.setOnClickListener { popupWindow.dismiss() }
+        popupWindow.showAtLocation(binding.root, Gravity.CENTER, 0, 0)
     }
 
     private fun ImageView.loadRepairPhoto(photo: RepairPhotoItem) {
@@ -582,6 +807,7 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
 
     private fun RepairSnScanValidDto.toTagType(editable: Boolean): JStatusType {
         return when {
+            statusName.orEmpty().contains("待维修") -> JStatusType.WARNING
             !editable -> JStatusType.NEUTRAL
             status == 1 -> JStatusType.WARNING
             status == 2 -> JStatusType.INFO
@@ -595,8 +821,13 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
 
     private companion object {
         const val MENU_SYNC = 1
+        const val MENU_DETAIL = 2
+        const val MENU_HISTORY = 3
+        const val MENU_PHOTOS = 4
+        const val MENU_CLEAR = 5
         const val SUBMIT_DEBOUNCE_WINDOW = 900L
         const val MAX_PHOTO_COUNT = 9
+        const val COLLAPSED_REMARK_LINES = 3
     }
 
     private data class RepairPhotoItem(

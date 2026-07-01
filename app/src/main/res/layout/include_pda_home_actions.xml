@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="@dimen/j_space_12"
@@ -10,34 +11,70 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnSingleDebug"
-            style="@style/PdaHomeActionStyle"
             android:layout_width="0dp"
             android:layout_height="76dp"
             android:layout_weight="1"
-            android:drawableTop="@drawable/pda_ic_action_debug"
-            android:text="单个调试" />
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#FAFCFF"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="3dp"
+            app:strokeColor="#E8EEF5"
+            app:strokeWidth="1dp">
 
-        <TextView
+            <TextView
+                style="@style/PdaHomeActionStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:drawableTop="@drawable/pda_ic_action_debug"
+                android:text="单个调试" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnRepair"
-            style="@style/PdaHomeActionStyle"
             android:layout_width="0dp"
             android:layout_height="76dp"
             android:layout_marginStart="@dimen/j_space_8"
             android:layout_weight="1"
-            android:drawableTop="@drawable/pda_ic_action_repair"
-            android:text="维修" />
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#FAFCFF"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="3dp"
+            app:strokeColor="#E8EEF5"
+            app:strokeWidth="1dp">
 
-        <TextView
+            <TextView
+                style="@style/PdaHomeActionStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:drawableTop="@drawable/pda_ic_action_repair"
+                android:text="维修" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnRecheck"
-            style="@style/PdaHomeActionStyle"
             android:layout_width="0dp"
             android:layout_height="76dp"
             android:layout_marginStart="@dimen/j_space_8"
             android:layout_weight="1"
-            android:drawableTop="@drawable/pda_ic_action_check"
-            android:text="复检" />
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#FAFCFF"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="3dp"
+            app:strokeColor="#E8EEF5"
+            app:strokeWidth="1dp">
+
+            <TextView
+                style="@style/PdaHomeActionStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:drawableTop="@drawable/pda_ic_action_check"
+                android:text="复检" />
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 
     <LinearLayout
@@ -46,24 +83,48 @@
         android:layout_marginTop="@dimen/j_space_8"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnProductIn"
-            style="@style/PdaHomeActionStyle"
             android:layout_width="0dp"
             android:layout_height="76dp"
             android:layout_weight="1"
-            android:drawableTop="@drawable/pda_ic_action_stock_in"
-            android:text="成品入库" />
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#FAFCFF"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="3dp"
+            app:strokeColor="#E8EEF5"
+            app:strokeWidth="1dp">
 
-        <TextView
+            <TextView
+                style="@style/PdaHomeActionStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:drawableTop="@drawable/pda_ic_action_stock_in"
+                android:text="成品入库" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnProductOut"
-            style="@style/PdaHomeActionStyle"
             android:layout_width="0dp"
             android:layout_height="76dp"
             android:layout_marginStart="@dimen/j_space_8"
             android:layout_weight="1"
-            android:drawableTop="@drawable/pda_ic_action_stock_out"
-            android:text="成品出库" />
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#FAFCFF"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="3dp"
+            app:strokeColor="#E8EEF5"
+            app:strokeWidth="1dp">
+
+            <TextView
+                style="@style/PdaHomeActionStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:drawableTop="@drawable/pda_ic_action_stock_out"
+                android:text="成品出库" />
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 
     <LinearLayout
@@ -73,33 +134,69 @@
         android:layout_marginBottom="@dimen/j_space_8"
         android:orientation="horizontal">
 
-        <TextView
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnBind"
-            style="@style/PdaHomeActionStyle"
             android:layout_width="0dp"
             android:layout_height="76dp"
             android:layout_weight="1"
-            android:drawableTop="@drawable/pda_ic_action_link"
-            android:text="绑定" />
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#FAFCFF"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="3dp"
+            app:strokeColor="#E8EEF5"
+            app:strokeWidth="1dp">
 
-        <TextView
+            <TextView
+                style="@style/PdaHomeActionStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:drawableTop="@drawable/pda_ic_action_link"
+                android:text="绑定" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnUnbind"
-            style="@style/PdaHomeActionStyle"
             android:layout_width="0dp"
             android:layout_height="76dp"
             android:layout_marginStart="@dimen/j_space_8"
             android:layout_weight="1"
-            android:drawableTop="@drawable/pda_ic_action_link"
-            android:text="解绑" />
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#FAFCFF"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="3dp"
+            app:strokeColor="#E8EEF5"
+            app:strokeWidth="1dp">
 
-        <TextView
+            <TextView
+                style="@style/PdaHomeActionStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:drawableTop="@drawable/pda_ic_action_link"
+                android:text="解绑" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
             android:id="@+id/btnMaterialDetail"
-            style="@style/PdaHomeActionStyle"
             android:layout_width="0dp"
             android:layout_height="76dp"
             android:layout_marginStart="@dimen/j_space_8"
             android:layout_weight="1"
-            android:drawableTop="@drawable/pda_ic_action_material"
-            android:text="材料详情" />
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="#FAFCFF"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="3dp"
+            app:strokeColor="#E8EEF5"
+            app:strokeWidth="1dp">
+
+            <TextView
+                style="@style/PdaHomeActionStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:drawableTop="@drawable/pda_ic_action_material"
+                android:text="材料详情" />
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </LinearLayout>

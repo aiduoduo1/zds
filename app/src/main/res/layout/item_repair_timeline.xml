@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:layout_width="24dp"
+        android:layout_height="match_parent"
+        android:gravity="center_horizontal"
+        android:orientation="vertical">
+
+        <View
+            android:id="@+id/viewDot"
+            android:layout_width="10dp"
+            android:layout_height="10dp"
+            android:layout_marginTop="@dimen/j_space_10"
+            android:background="@drawable/repair_timeline_dot" />
+
+        <View
+            android:id="@+id/viewLine"
+            android:layout_width="2dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@color/j_color_line_normal" />
+    </LinearLayout>
+
+    <LinearLayout
+        style="@style/JStyle.Card"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/j_space_8"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:padding="@dimen/j_space_10">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/tvOperation"
+                style="@style/JText.Title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                tools:text="不良上报" />
+
+            <com.jj.ui.widget.JStatusTagView
+                android:id="@+id/tagStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/j_space_6"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/tvTime"
+            style="@style/JText.Caption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_6"
+            android:textColor="@color/j_color_text_disabled"
+            tools:text="时间：2026-06-29 11:19:13" />
+
+        <TextView
+            android:id="@+id/tvOperator"
+            style="@style/JText.Caption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_2"
+            android:textColor="@color/j_color_text_disabled"
+            tools:text="操作人：258334490227814400" />
+
+        <TextView
+            android:id="@+id/tvContent"
+            style="@style/JText.Body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_6"
+            tools:text="调试NG上报不良：电流值异常" />
+    </LinearLayout>
+</LinearLayout>

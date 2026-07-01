@@ -37,7 +37,7 @@ data class RepairSnScanValidDto(
     val productName: String? = null,
     val statusName: String? = null,
     val userName: String? = null,
-    val fileList: List<String> = emptyList(),
+    val fileList: List<RepairFileDto> = emptyList(),
     val updateBy: String? = null,
     val createByName: String? = null,
 )

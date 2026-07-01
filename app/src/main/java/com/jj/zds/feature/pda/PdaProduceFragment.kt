@@ -21,6 +21,7 @@ import com.jj.zds.data.dto.productionplan.ProductionPlanDto
 import com.jj.zds.data.dto.productionplan.ProductionPlanStatus
 import com.jj.zds.databinding.FragmentPdaProduceBinding
 import com.jj.zds.databinding.ItemPdaProducePlanBinding
+import com.jj.zds.feature.production.ui.ProductionExecuteProgressActivity
 import com.jj.zds.feature.production.ui.ProductionSwitchDetailActivity
 import com.jj.zds.viewmodel.ZdsViewModel
 
@@ -29,6 +30,7 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
     private var allPlans = emptyList<ProductionPlanDto>()
     private var lineTabs = emptyList<LineTab>()
     private var selectedLineId: String? = null
+    private var pendingSelectedLineId: String? = null
     private var refreshOnResume = false
 
     private val adapter = JBindingAdapter(
@@ -45,6 +47,21 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
 
     override fun initView(savedInstanceState: Bundle?) {
         binding.recyclerProducePlans.setupLinear(adapter)
+        adapter.setOnItemClickListener { item, _ ->
+            if (item.planStatus == ProductionPlanStatus.PRODUCT_ING) {
+                val planId = item.id.orEmpty()
+                if (planId.isBlank()) {
+                    JToast.show("生产计划ID为空")
+                    return@setOnItemClickListener
+                }
+                ProductionExecuteProgressActivity.start(
+                    context = requireContext(),
+                    planId = planId,
+                    planNo = item.orderCode.orEmpty(),
+                    partCode = item.partCode.orEmpty(),
+                )
+            }
+        }
         hideSearchTitleRow()
         binding.inputSearch.onInputDone {
             refreshPlans()
@@ -57,7 +74,8 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
             refreshData()
         }
         binding.refreshLayout.setOnRefreshListener {
-            refreshCurrentLinePlans()
+            setRefreshing(true)
+            refreshData()
         }
         renderLineTabs()
     }
@@ -75,18 +93,24 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
     override fun initObserver() {
         viewModel.productionLineCounts.observe(viewLifecycleOwner) { lines ->
             lineTabs = buildLineTabs(lines)
-            selectedLineId = if (lineTabs.none { it.lineId == selectedLineId }) {
+            val pendingLineId = pendingSelectedLineId
+            selectedLineId = if (!pendingLineId.isNullOrBlank()) {
+                pendingLineId
+            } else if (lineTabs.none { it.lineId == selectedLineId }) {
                 lineTabs.firstOrNull()?.lineId
             } else {
                 selectedLineId
             }
+            pendingSelectedLineId = null
             renderLineTabs()
             renderPlans()
         }
         viewModel.productionPlans.observe(viewLifecycleOwner) { plans ->
-            setRefreshing(false)
             allPlans = plans
             renderPlans()
+        }
+        viewModel.productionPlansLoadFinished.observe(viewLifecycleOwner) {
+            setRefreshing(false)
         }
         viewModel.productionSwitchBeginResult.observe(viewLifecycleOwner) { result ->
             refreshOnResume = true
@@ -97,9 +121,19 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
             )
             refreshData()
         }
+        viewModel.productionStartResult.observe(viewLifecycleOwner) { result ->
+            val plan = allPlans.firstOrNull { it.id == result.planId }
+            refreshOnResume = true
+            ProductionExecuteProgressActivity.start(
+                context = requireContext(),
+                planId = result.planId,
+                planNo = plan?.orderCode.orEmpty(),
+                partCode = plan?.partCode.orEmpty(),
+            )
+            refreshData()
+        }
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             if (state is JiangUiState.Error) {
-                setRefreshing(false)
                 JToast.show(state.message)
             }
         }
@@ -123,6 +157,16 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
         }
     }
 
+    fun selectLine(lineId: String?) {
+        val targetLineId = lineId?.trim()?.takeIf { it.isNotBlank() } ?: return
+        pendingSelectedLineId = targetLineId
+        selectedLineId = targetLineId
+        if (isAdded) {
+            renderLineTabs()
+            renderPlans()
+        }
+    }
+
     private fun refreshData() {
         viewModel.loadProductionLineCounts()
         refreshPlans()
@@ -130,13 +174,6 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
 
     private fun refreshPlans() {
         viewModel.loadProductionPlans(binding.inputSearch.text().trim())
-    }
-
-    private fun refreshCurrentLinePlans() {
-        viewModel.loadProductionPlans(
-            keyword = binding.inputSearch.text().trim(),
-            lineId = selectedLineId,
-        )
     }
 
     private fun setRefreshing(refreshing: Boolean) {
@@ -209,6 +246,8 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
         }
 
         itemBinding.btnStartPlan.setOnClickListener {
+            viewModel.startProduction(planId)
+            return@setOnClickListener
             JToast.show("开始生产：${planNo.ifBlank { "-" }}")
         }
         itemBinding.btnStartSwitch.setOnClickListener {

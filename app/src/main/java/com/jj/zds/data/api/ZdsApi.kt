@@ -22,17 +22,25 @@ import com.jj.zds.data.dto.debugplan.DebugSnScanValidDto
 import com.jj.zds.data.dto.debugplan.DebugSnScanValidRequest
 import com.jj.zds.data.dto.debugplan.SingleDebugCheckRequest
 import com.jj.zds.data.dto.debugplan.DebugTaskItemInfoDto
+import com.jj.zds.data.dto.debugplan.DebugTaskLogRequest
 import com.jj.zds.data.dto.login.LoginRequest
 import com.jj.zds.data.dto.menu.ZdsMenuDto
 import com.jj.zds.data.dto.productionplan.LineDto
 import com.jj.zds.data.dto.productionplan.PlanRequest
+import com.jj.zds.data.dto.productionplan.ProductionBindProgressDto
 import com.jj.zds.data.dto.productionplan.ProductionEndSwitchRequest
 import com.jj.zds.data.dto.productionplan.ProductionEquipmentCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionKeyPartBindRequest
+import com.jj.zds.data.dto.productionplan.ProductionKeyPartBindResultDto
 import com.jj.zds.data.dto.productionplan.ProductionMaterialCheckRequest
 import com.jj.zds.data.dto.productionplan.ProductionPersonCheckRequest
 import com.jj.zds.data.dto.productionplan.ProductionPlanDto
+import com.jj.zds.data.dto.productionplan.ProductionPlanExecuteRequest
 import com.jj.zds.data.dto.productionplan.ProductionPlanListRequest
+import com.jj.zds.data.dto.productionplan.ProductionSnBindInfoDto
+import com.jj.zds.data.dto.productionplan.ProductionSnBindInfoRequest
 import com.jj.zds.data.dto.productionplan.ProductionSoftCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionStationProgressDetailDto
 import com.jj.zds.data.dto.productionplan.ProductionSwitchBeginRequest
 import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailDto
 import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailRequest
@@ -132,6 +140,31 @@ interface ZdsApi {
         @Body request: PlanRequest,
     ): ZdsBaseResult<List<LineDto>>
 
+    @POST("/pro/proPlaDtl/bindProgress")
+    suspend fun getProductionBindProgress(
+        @Body request: ProductionPlanExecuteRequest,
+    ): ZdsBaseResult<ProductionBindProgressDto>
+
+    @POST("/pro/proPlaDtl/snBindInfo")
+    suspend fun getProductionSnBindInfo(
+        @Body request: ProductionSnBindInfoRequest,
+    ): ZdsBaseResult<ProductionSnBindInfoDto>
+
+    @POST("/pro/proPlaDtl/bind")
+    suspend fun bindProductionKeyPart(
+        @Body request: ProductionKeyPartBindRequest,
+    ): ZdsBaseResult<ProductionKeyPartBindResultDto>
+
+    @POST("/pro/proPlaDtl/staList")
+    suspend fun getProductionStationProgressList(
+        @Body request: ProductionPlanExecuteRequest,
+    ): ZdsBaseResult<ProductionStationProgressDetailDto>
+
+    @POST("/pro/proPlaDtl/startProduce")
+    suspend fun startProduction(
+        @Body request: ProductionPlanExecuteRequest,
+    ): ZdsBaseResult<Any>
+
     @POST("/pro/proLineSwi/beginSwitch")
     suspend fun beginProductionSwitch(
         @Body request: ProductionSwitchBeginRequest,
@@ -191,13 +224,6 @@ interface ZdsApi {
         @Body request: DebugBoxBindRequest,
     ): ZdsBaseResult<Any>
 
-    /**
-     * 料箱二维码解析，创建调试批次时解析箱号、物料、数量和 SN 范围。
-     */
-    @POST("/m/analysis/boxQrCode")
-    suspend fun analysisBoxQrCode(
-        @Body request: DebugBoxQrCodeRequest,
-    ): ZdsBaseResult<DebugBoxQrCodeDto>
 
     /**
      * SN 扫描校验，抽检前校验 SN 二维码并返回调试检查表。
@@ -213,6 +239,14 @@ interface ZdsApi {
     @POST("/m/iqcToSn/check")
     suspend fun submitDebugSnCheck(
         @Body request: DebugSnCheckRequest,
+    ): ZdsBaseResult<Any>
+
+    /**
+     * 保存调试计划操作日志。
+     */
+    @POST("/m/iqcTaskOpLog/addLog")
+    suspend fun saveDebugTaskLog(
+        @Body request: DebugTaskLogRequest,
     ): ZdsBaseResult<Any>
 
     @POST("/m/iqcToSn/singleCheckValid")

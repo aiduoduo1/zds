@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/j_space_2"
+    android:layout_marginEnd="@dimen/j_space_2"
+    android:layout_marginBottom="@dimen/j_space_10"
+    app:cardBackgroundColor="@color/j_color_bg_card"
+    app:cardCornerRadius="@dimen/j_radius_md"
+    app:cardElevation="3dp"
+    app:strokeColor="@color/j_color_line_light"
+    app:strokeWidth="1dp"
+    tools:theme="@style/Theme.Zds">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <View
+            android:id="@+id/viewStatusStrip"
+            android:layout_width="5dp"
+            android:layout_height="match_parent"
+            android:background="@color/j_color_primary" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:paddingStart="@dimen/j_space_12"
+            android:paddingTop="@dimen/j_space_10"
+            android:paddingEnd="@dimen/j_space_12"
+            android:paddingBottom="@dimen/j_space_10">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/j_color_text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    tools:text="扫码绑定" />
+
+                <TextView
+                    android:id="@+id/tvCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="26dp"
+                    android:layout_marginStart="@dimen/j_space_8"
+                    android:background="@drawable/j_bg_status_info"
+                    android:gravity="center"
+                    android:minWidth="64dp"
+                    android:paddingStart="@dimen/j_space_8"
+                    android:paddingEnd="@dimen/j_space_8"
+                    android:textColor="@color/j_color_primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="65 / 100" />
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/progressBar"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="7dp"
+                android:layout_marginTop="@dimen/j_space_10"
+                android:max="100"
+                android:progress="0"
+                android:progressBackgroundTint="@color/j_color_line_light"
+                android:progressTint="@color/j_color_primary" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_8"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvDesc"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/j_color_text_secondary"
+                    android:textSize="12sp"
+                    tools:text="已完成 65，剩余 35" />
+
+                <TextView
+                    android:id="@+id/tvPercent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/j_space_8"
+                    android:textColor="@color/j_color_primary"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    tools:text="65%" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

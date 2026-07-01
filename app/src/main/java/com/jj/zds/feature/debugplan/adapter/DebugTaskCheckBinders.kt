@@ -2,6 +2,7 @@ package com.jj.zds.feature.debugplan.adapter
 
 import android.graphics.Color
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -25,6 +26,7 @@ import com.jj.zds.feature.debugplan.data.DebugTaskPhotoRow
 import com.jj.zds.feature.debugplan.data.DebugTaskSwitchRow
 import com.jj.zds.feature.debugplan.data.DebugTaskTextRow
 import com.jj.zds.feature.debugplan.data.DebugTaskValueRow
+import com.jj.zds.feature.debugplan.ui.DebugTaskInputRules
 import com.jj.zds.feature.photo.PhotoUploadMode
 import com.jj.zds.feature.repair.data.buildRepairFileUrl
 
@@ -86,6 +88,7 @@ class DebugTaskValueBinder(
         binding.tvUnit.text = item.unit
         binding.tvReference.text = item.referenceValue.ifBlank { "参考值：-" }
         binding.tvDescription.bindDescription(item.description)
+        binding.editValue.filters = arrayOf(NUM_INPUT_FILTER)
         binding.editValue.replaceAfterTextChanged(item.inputValue) { value ->
             val result = value.toValueResult(item.dto.minValue, item.dto.maxValue)
             binding.viewStatus.bindStatus(result)
@@ -95,6 +98,12 @@ class DebugTaskValueBinder(
             if (hasFocus) onFocus(item.checkId)
         }
     }
+}
+
+private val NUM_INPUT_FILTER = InputFilter { source, start, end, dest, dstart, dend ->
+    val replacement = source.subSequence(start, end).toString()
+    val candidate = dest.toString().replaceRange(dstart, dend, replacement)
+    if (DebugTaskInputRules.isValidNumCandidate(candidate)) null else ""
 }
 
 class DebugTaskTextBinder(

@@ -11,17 +11,24 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.content.ContextCompat
-import com.jj.arch.base.JiangFragment
+import com.jj.arch.base.JiangVmFragment
+import com.jj.arch.state.JiangUiState
 import com.jj.ui.toast.JToast
 import com.jj.zds.R
+import com.jj.zds.data.dto.productionplan.LineDto
+import com.jj.zds.data.dto.productionplan.ProductionPlanDto
+import com.jj.zds.data.dto.productionplan.ProductionPlanStatus
 import com.jj.zds.databinding.FragmentPdaHomeBinding
 import com.jj.zds.feature.recheck.ui.RecheckActivity
 import com.jj.zds.feature.repair.ui.RepairActivity
 import com.jj.zds.feature.singledebug.ui.SingleDebugActivity
+import com.jj.zds.viewmodel.ZdsViewModel
 
-class PdaHomeFragment : JiangFragment<FragmentPdaHomeBinding>() {
+class PdaHomeFragment : JiangVmFragment<FragmentPdaHomeBinding, ZdsViewModel>() {
 
     private var callback: Callback? = null
+    private var homeLines = emptyList<LineDto>()
+    private var homePlans = emptyList<ProductionPlanDto>()
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -41,16 +48,45 @@ class PdaHomeFragment : JiangFragment<FragmentPdaHomeBinding>() {
     }
 
     override fun initView(savedInstanceState: Bundle?) {
-        renderCurrentProduction(mockLineWorks())
+        renderCurrentProduction(emptyList())
         binding.btnViewProducePlan.setOnClickListener {
             callback?.openProduceTab()
         }
         bindActionPlaceholders()
     }
 
+    override fun initObserver() {
+        viewModel.productionLineCounts.observe(viewLifecycleOwner) { lines ->
+            homeLines = lines
+            renderCurrentProduction(buildHomeLineWorks())
+        }
+        viewModel.productionPlans.observe(viewLifecycleOwner) { plans ->
+            homePlans = plans
+            renderCurrentProduction(buildHomeLineWorks())
+        }
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            if (state is JiangUiState.Error) {
+                JToast.show(state.message)
+            }
+        }
+    }
+
+    override fun initData() {
+        refreshCurrentProduction()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        refreshCurrentProduction()
+    }
+
+    private fun refreshCurrentProduction() {
+        viewModel.loadProductionLineCounts()
+        viewModel.loadProductionPlans()
+    }
+
     private fun renderCurrentProduction(lineWorks: List<HomeLineWork>) {
-        val visibleWorks = lineWorks.take(MAX_HOME_LINE_WORKS)
-        val hasCurrentPlan = visibleWorks.isNotEmpty()
+        val hasCurrentPlan = lineWorks.isNotEmpty()
         binding.cardCurrentProduction.visibility = if (hasCurrentPlan) {
             android.view.View.VISIBLE
         } else {
@@ -62,7 +98,7 @@ class PdaHomeFragment : JiangFragment<FragmentPdaHomeBinding>() {
             android.view.View.VISIBLE
         }
         binding.layoutCurrentLines.removeAllViews()
-        visibleWorks.forEachIndexed { index, work ->
+        lineWorks.forEachIndexed { index, work ->
             binding.layoutCurrentLines.addView(createLineWorkView(work, index))
         }
     }
@@ -124,6 +160,9 @@ class PdaHomeFragment : JiangFragment<FragmentPdaHomeBinding>() {
 
             addView(createStatusTag(work))
             addView(createLineAction(work))
+            setOnClickListener {
+                callback?.openProduceTab(work.lineId)
+            }
         }
     }
 
@@ -154,46 +193,41 @@ class PdaHomeFragment : JiangFragment<FragmentPdaHomeBinding>() {
                 marginEnd = dp(8)
             }
             setOnClickListener {
-                if (work.isIdle) {
-                    callback?.openProduceTab()
-                } else {
-                    JToast.show("前往：${work.planNo}")
-                }
+                callback?.openProduceTab(work.lineId)
             }
         }
     }
 
-    private fun mockLineWorks(): List<HomeLineWork> {
-        return listOf(
+    private fun buildHomeLineWorks(): List<HomeLineWork> {
+        val eligiblePlans = homePlans.filter { it.planStatus.homePriority() < Int.MAX_VALUE }
+        if (eligiblePlans.isEmpty()) return emptyList()
+
+        val lineNameMap = homeLines
+            .associateBy(
+                keySelector = { it.homeLineKey() },
+                valueTransform = { it.lineName },
+            )
+        val plansByLine = eligiblePlans.groupBy { it.homeLineKey() }
+        val orderedKeys = plansByLine.keys
+            .filter { it.isNotBlank() }
+            .distinct()
+
+        return orderedKeys.mapNotNull { lineKey ->
+            val plan = plansByLine[lineKey]
+                ?.sortedBy { it.planStatus.homePriority() }
+                ?.firstOrNull()
+                ?: return@mapNotNull null
+
             HomeLineWork(
-                lineName = "DIP-01",
-                statusText = "生产中",
-                planNo = "WO20260611001",
-                product = "调光器主板  36/120",
-                actionText = "前往",
-                colorRes = com.jj.ui.R.color.j_color_success,
-                statusBgRes = com.jj.ui.R.drawable.j_bg_status_success,
-            ),
-            HomeLineWork(
-                lineName = "DIP-02",
-                statusText = "切换中",
-                planNo = "WO20260611002",
-                product = "灯架控制板",
-                actionText = "前往",
-                colorRes = com.jj.ui.R.color.j_color_primary,
-                statusBgRes = com.jj.ui.R.drawable.j_bg_status_info,
-            ),
-            HomeLineWork(
-                lineName = "DIP-03",
-                statusText = "空闲",
-                planNo = "暂无进行中计划",
-                product = "从生产计划列表选择计划",
-                actionText = "前往",
-                colorRes = com.jj.ui.R.color.j_color_neutral,
-                statusBgRes = com.jj.ui.R.drawable.j_bg_status_neutral,
-                isIdle = true,
-            ),
-        )
+                lineId = plan.lineId,
+                lineName = lineNameMap[lineKey].orDash(plan.lineName, "未命名线体"),
+                statusText = plan.displayStatus(),
+                planNo = plan.orderCode.orDash(plan.id),
+                product = buildProductText(plan),
+                colorRes = plan.planStatus.statusColorRes(),
+                statusBgRes = plan.planStatus.statusBgRes(),
+            )
+        }
     }
 
     private fun bindActionPlaceholders() {
@@ -215,7 +249,7 @@ class PdaHomeFragment : JiangFragment<FragmentPdaHomeBinding>() {
     }
 
     interface Callback {
-        fun openProduceTab()
+        fun openProduceTab(lineId: String? = null)
     }
 
     private fun dp(value: Int): Int {
@@ -223,17 +257,77 @@ class PdaHomeFragment : JiangFragment<FragmentPdaHomeBinding>() {
     }
 
     private data class HomeLineWork(
+        val lineId: String?,
         val lineName: String,
         val statusText: String,
         val planNo: String,
         val product: String,
-        val actionText: String,
         val colorRes: Int,
         val statusBgRes: Int,
-        val isIdle: Boolean = false,
     )
 
-    private companion object {
-        const val MAX_HOME_LINE_WORKS = 3
+    private fun buildProductText(plan: ProductionPlanDto): String {
+        return buildString {
+            append(plan.partName.orDash(plan.partCode))
+            append("  ")
+            append(plan.quantity)
+            plan.unitStr?.takeIf { it.isNotBlank() }?.let { append(it) }
+        }
+    }
+
+    private fun ProductionPlanDto.displayStatus(): String {
+        return planStatusName?.takeIf { it.isNotBlank() } ?: when (planStatus) {
+            ProductionPlanStatus.PRODUCT_ING -> "生产中"
+            ProductionPlanStatus.PAUSE -> "暂停"
+            ProductionPlanStatus.WAIT_PRODUCT -> "待生产"
+            ProductionPlanStatus.SWITCHING -> "切换中"
+            ProductionPlanStatus.WAIT_SWITCH -> "待切换"
+            else -> "-"
+        }
+    }
+
+    private fun Int.homePriority(): Int {
+        return when (this) {
+            ProductionPlanStatus.PRODUCT_ING -> 0
+            ProductionPlanStatus.PAUSE -> 1
+            ProductionPlanStatus.WAIT_PRODUCT -> 2
+            ProductionPlanStatus.SWITCHING -> 3
+            ProductionPlanStatus.WAIT_SWITCH -> 4
+            else -> Int.MAX_VALUE
+        }
+    }
+
+    private fun Int.statusColorRes(): Int {
+        return when (this) {
+            ProductionPlanStatus.PRODUCT_ING -> com.jj.ui.R.color.j_color_success
+            ProductionPlanStatus.PAUSE -> com.jj.ui.R.color.j_color_warning
+            ProductionPlanStatus.WAIT_PRODUCT -> com.jj.ui.R.color.j_color_primary
+            ProductionPlanStatus.SWITCHING -> com.jj.ui.R.color.j_color_primary
+            ProductionPlanStatus.WAIT_SWITCH -> com.jj.ui.R.color.j_color_warning
+            else -> com.jj.ui.R.color.j_color_neutral
+        }
+    }
+
+    private fun Int.statusBgRes(): Int {
+        return when (this) {
+            ProductionPlanStatus.PRODUCT_ING -> com.jj.ui.R.drawable.j_bg_status_success
+            ProductionPlanStatus.PAUSE -> com.jj.ui.R.drawable.j_bg_status_warning
+            ProductionPlanStatus.WAIT_PRODUCT -> com.jj.ui.R.drawable.j_bg_status_info
+            ProductionPlanStatus.SWITCHING -> com.jj.ui.R.drawable.j_bg_status_info
+            ProductionPlanStatus.WAIT_SWITCH -> com.jj.ui.R.drawable.j_bg_status_warning
+            else -> com.jj.ui.R.drawable.j_bg_status_neutral
+        }
+    }
+
+    private fun LineDto.homeLineKey(): String {
+        return lineId?.takeIf { it.isNotBlank() } ?: lineName
+    }
+
+    private fun ProductionPlanDto.homeLineKey(): String {
+        return lineId?.takeIf { it.isNotBlank() } ?: lineName.orEmpty()
+    }
+
+    private fun String?.orDash(vararg fallback: String?): String {
+        return sequenceOf(this, *fallback).firstOrNull { !it.isNullOrBlank() } ?: "-"
     }
 }

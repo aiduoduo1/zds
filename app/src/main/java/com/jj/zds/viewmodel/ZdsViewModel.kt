@@ -2,6 +2,7 @@ package com.jj.zds.viewmodel
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.jj.arch.state.JiangLoadingMode
 import com.jj.arch.vm.JiangViewModel
 import com.jj.common.result.JiangResult
@@ -16,13 +17,19 @@ import com.jj.zds.data.dto.debugplan.DebugPlanListRequest
 import com.jj.zds.data.dto.debugplan.DebugPlanStatisticsDto
 import com.jj.zds.data.dto.debugplan.DebugSnScanValidDto
 import com.jj.zds.data.dto.debugplan.DebugTaskItemInfoDto
+import com.jj.zds.data.dto.debugplan.DebugTaskLogRequest
 import com.jj.zds.data.dto.login.LoginRequest
 import com.jj.zds.data.dto.menu.ZdsMenuDto
 import com.jj.zds.data.dto.productionplan.LineDto
+import com.jj.zds.data.dto.productionplan.ProductionBindProgressDto
 import com.jj.zds.data.dto.productionplan.ProductionEquipmentCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionKeyPartBindRequest
+import com.jj.zds.data.dto.productionplan.ProductionKeyPartBindResultDto
 import com.jj.zds.data.dto.productionplan.ProductionPlanDto
 import com.jj.zds.data.dto.productionplan.ProductionPlanStatus
 import com.jj.zds.data.dto.productionplan.ProductionPersonCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionSnBindInfoDto
+import com.jj.zds.data.dto.productionplan.ProductionStationProgressDto
 import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailDto
 import com.jj.zds.data.dto.qrcode.QrCodeDto
 import com.jj.zds.data.dto.repair.RepairAction
@@ -32,15 +39,32 @@ import com.jj.zds.data.dto.repair.RepairSubmitRequest
 import com.jj.zds.data.dto.update.ZdsVersionCheckResult
 import com.jj.zds.data.repository.ZdsRepository
 import java.io.File
+import kotlinx.coroutines.launch
 
 data class DebugTaskCheckPhotoUploadResult(
     val checkId: String,
     val fileId: Long,
 )
 
+data class DebugTaskLogSaveResult(
+    val request: DebugTaskLogRequest,
+    val success: Boolean,
+    val message: String = "",
+)
+
+data class DebugTaskNgLimitPlanResult(
+    val taskId: String,
+    val detail: DebugPlanDetailDto? = null,
+    val message: String = "",
+)
+
 data class ProductionSwitchBeginResult(
     val planId: String,
     val switchId: Int,
+)
+
+data class ProductionStartResult(
+    val planId: String,
 )
 
 class ZdsViewModel : JiangViewModel() {
@@ -92,14 +116,37 @@ class ZdsViewModel : JiangViewModel() {
     private val _debugPlans = MutableLiveData<List<DebugPlanDto>>()
     val debugPlans: LiveData<List<DebugPlanDto>> = _debugPlans
 
+    private val _debugPlansLoadFinished = MutableLiveData<Unit>()
+    val debugPlansLoadFinished: LiveData<Unit> = _debugPlansLoadFinished
+
     private val _productionPlans = MutableLiveData<List<ProductionPlanDto>>()
     val productionPlans: LiveData<List<ProductionPlanDto>> = _productionPlans
+
+    private val _productionPlansLoadFinished = MutableLiveData<Unit>()
+    val productionPlansLoadFinished: LiveData<Unit> = _productionPlansLoadFinished
 
     private val _productionLineCounts = MutableLiveData<List<LineDto>>()
     val productionLineCounts: LiveData<List<LineDto>> = _productionLineCounts
 
+    private val _productionStationProgressList = MutableLiveData<List<ProductionStationProgressDto>>()
+    val productionStationProgressList: LiveData<List<ProductionStationProgressDto>> =
+        _productionStationProgressList
+
+    private val _productionBindProgress = MutableLiveData<ProductionBindProgressDto>()
+    val productionBindProgress: LiveData<ProductionBindProgressDto> = _productionBindProgress
+
+    private val _productionSnBindInfo = MutableLiveData<ProductionSnBindInfoDto>()
+    val productionSnBindInfo: LiveData<ProductionSnBindInfoDto> = _productionSnBindInfo
+
+    private val _productionKeyPartBindResult = MutableLiveData<ProductionKeyPartBindResultDto>()
+    val productionKeyPartBindResult: LiveData<ProductionKeyPartBindResultDto> =
+        _productionKeyPartBindResult
+
     private val _productionSwitchBeginResult = MutableLiveData<ProductionSwitchBeginResult>()
     val productionSwitchBeginResult: LiveData<ProductionSwitchBeginResult> = _productionSwitchBeginResult
+
+    private val _productionStartResult = MutableLiveData<ProductionStartResult>()
+    val productionStartResult: LiveData<ProductionStartResult> = _productionStartResult
 
     private val _productionSwitchDetail = MutableLiveData<ProductionSwitchDetailDto>()
     val productionSwitchDetail: LiveData<ProductionSwitchDetailDto> = _productionSwitchDetail
@@ -130,6 +177,13 @@ class ZdsViewModel : JiangViewModel() {
 
     private val _debugTaskItemInfo = MutableLiveData<DebugTaskItemInfoDto>()
     val debugTaskItemInfo: LiveData<DebugTaskItemInfoDto> = _debugTaskItemInfo
+
+    private val _debugTaskLogSaveResult = MutableLiveData<DebugTaskLogSaveResult>()
+    val debugTaskLogSaveResult: LiveData<DebugTaskLogSaveResult> = _debugTaskLogSaveResult
+
+    private val _debugTaskNgLimitPlanResult = MutableLiveData<DebugTaskNgLimitPlanResult>()
+    val debugTaskNgLimitPlanResult: LiveData<DebugTaskNgLimitPlanResult> =
+        _debugTaskNgLimitPlanResult
 
     private val _debugPlanFinishResult = MutableLiveData<Map<String, String>?>()
     val debugPlanFinishResult: LiveData<Map<String, String>?> = _debugPlanFinishResult
@@ -372,39 +426,69 @@ class ZdsViewModel : JiangViewModel() {
         code: String = "",
         status: Int? = null,
     ) {
-        launchResult(
-            loadingMode = JiangLoadingMode.NONE,
-            block = {
-                repository.getDebugPlanList(
+        launch(showLoading = false) {
+            try {
+                when (
+                    val result = repository.getDebugPlanList(
                     DebugPlanListRequest(
                         categoryName = categoryName,
                         code = code,
                         status = status,
                     ),
                 )
-            },
-            onSuccess = { plans ->
-                _debugPlans.value = plans
-            },
-        )
+                ) {
+                    is JiangResult.Success -> {
+                        _debugPlans.value = result.data
+                        setSuccess(result.data)
+                    }
+                    is JiangResult.Error -> setError(
+                        code = result.exception.code,
+                        message = result.exception.message,
+                        throwable = result.exception.throwable,
+                    )
+                    JiangResult.Loading -> Unit
+                    JiangResult.Empty -> {
+                        _debugPlans.value = emptyList()
+                        setEmpty()
+                    }
+                }
+            } finally {
+                _debugPlansLoadFinished.value = Unit
+            }
+        }
     }
 
     fun loadProductionPlans(
         keyword: String = "",
         lineId: String? = null,
     ) {
-        launchResult(
-            loadingMode = JiangLoadingMode.NONE,
-            block = {
-                repository.getProductionPlanList(
-                    keyword = keyword.trim(),
-                    lineId = lineId,
-                )
-            },
-            onSuccess = { plans ->
-                _productionPlans.value = plans
-            },
-        )
+        launch(showLoading = false) {
+            try {
+                when (
+                    val result = repository.getProductionPlanList(
+                        keyword = keyword.trim(),
+                        lineId = lineId,
+                    )
+                ) {
+                    is JiangResult.Success -> {
+                        _productionPlans.value = result.data
+                        setSuccess(result.data)
+                    }
+                    is JiangResult.Error -> setError(
+                        code = result.exception.code,
+                        message = result.exception.message,
+                        throwable = result.exception.throwable,
+                    )
+                    JiangResult.Loading -> Unit
+                    JiangResult.Empty -> {
+                        _productionPlans.value = emptyList()
+                        setEmpty()
+                    }
+                }
+            } finally {
+                _productionPlansLoadFinished.value = Unit
+            }
+        }
     }
 
     fun loadProductionLineCounts(
@@ -423,6 +507,85 @@ class ZdsViewModel : JiangViewModel() {
             },
             onSuccess = { lineCounts ->
                 _productionLineCounts.value = lineCounts
+            },
+        )
+    }
+
+    fun loadProductionStationProgressList(planId: String) {
+        val trimmedPlanId = planId.trim()
+        if (trimmedPlanId.isBlank()) {
+            showToast("生产计划ID为空")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.PAGE,
+            block = { repository.getProductionStationProgressList(trimmedPlanId) },
+            onSuccess = { progressList ->
+                _productionStationProgressList.value = progressList
+            },
+        )
+    }
+
+    fun loadProductionBindProgress(planId: String) {
+        val trimmedPlanId = planId.trim()
+        if (trimmedPlanId.isBlank()) return
+
+        launch(showLoading = false) {
+            when (val result = repository.getProductionBindProgress(trimmedPlanId)) {
+                is JiangResult.Success -> _productionBindProgress.value = result.data
+                is JiangResult.Error -> showToast(result.exception.message)
+                JiangResult.Loading -> Unit
+                JiangResult.Empty -> Unit
+            }
+        }
+    }
+
+    fun loadProductionSnBindInfo(planId: String, sn: String) {
+        val trimmedPlanId = planId.trim()
+        val trimmedSn = sn.trim()
+        if (trimmedPlanId.isBlank()) {
+            showToast("生产计划ID为空")
+            return
+        }
+        if (trimmedSn.isBlank()) {
+            showToast("请先扫描PRO码")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.DIALOG,
+            loadingMessage = "绑定信息加载中...",
+            block = { repository.getProductionSnBindInfo(trimmedPlanId, trimmedSn) },
+            onSuccess = { info ->
+                _productionSnBindInfo.value = info
+            },
+        )
+    }
+
+    fun bindProductionKeyPart(request: ProductionKeyPartBindRequest) {
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = { repository.bindProductionKeyPart(request) },
+            onSuccess = { result ->
+                _productionKeyPartBindResult.value = result
+            },
+        )
+    }
+
+    fun startProduction(planId: String) {
+        val trimmedPlanId = planId.trim()
+        if (trimmedPlanId.isBlank()) {
+            showToast("生产计划ID为空")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.DIALOG,
+            loadingMessage = "开始生产中...",
+            block = { repository.startProduction(trimmedPlanId) },
+            onSuccess = {
+                _productionStartResult.value = ProductionStartResult(planId = trimmedPlanId)
             },
         )
     }
@@ -626,24 +789,6 @@ class ZdsViewModel : JiangViewModel() {
         )
     }
 
-    /**
-     * 创建批次页面扫描料箱码后先解析，拿到料箱详情后再允许加入待提交队列。
-     */
-    fun analysisBoxQrCode(qrCode: String) {
-        val trimmedCode = qrCode.trim()
-        if (trimmedCode.isBlank()) {
-            showToast("请先扫描料箱码")
-            return
-        }
-
-        launchResult(
-            loadingMode = JiangLoadingMode.NONE,
-            block = { repository.analysisBoxQrCode(trimmedCode) },
-            onSuccess = { result ->
-                _debugBoxQrCodeResult.value = result
-            },
-        )
-    }
 
     /**
      * 批次执行页扫描 SN 后校验，并取回该 SN 对应的检查项结构。
@@ -673,6 +818,7 @@ class ZdsViewModel : JiangViewModel() {
         snRecordId: String,
         ngPhenomena: String,
         checkGroupDto: DebugCheckGroupDto,
+        isDraft: Boolean,
     ) {
         val trimmedTaskItemId = taskItemId.trim()
         val trimmedSnRecordId = snRecordId.trim()
@@ -689,12 +835,84 @@ class ZdsViewModel : JiangViewModel() {
                     snRecordId = trimmedSnRecordId,
                     ngPhenomena = ngPhenomena,
                     checkGroupDto = checkGroupDto,
+                    isDraft = isDraft,
                 )
             },
             onSuccess = {
                 _debugOperationDone.value = Unit
             },
         )
+    }
+
+    /**
+     * 批次调试提交后的计划级不良数检查使用独立结果，不污染页面通用错误状态。
+     */
+    fun loadDebugTaskNgLimitPlanDetail(taskId: String) {
+        val trimmedTaskId = taskId.trim()
+        if (trimmedTaskId.isBlank()) {
+            _debugTaskNgLimitPlanResult.value = DebugTaskNgLimitPlanResult(
+                taskId = trimmedTaskId,
+                message = "调试计划ID为空",
+            )
+            return
+        }
+        viewModelScope.launch {
+            when (val result = repository.getDebugPlanDetail(trimmedTaskId)) {
+                is JiangResult.Success -> {
+                    _debugTaskNgLimitPlanResult.value = DebugTaskNgLimitPlanResult(
+                        taskId = trimmedTaskId,
+                        detail = result.data,
+                    )
+                }
+
+                is JiangResult.Error -> {
+                    _debugTaskNgLimitPlanResult.value = DebugTaskNgLimitPlanResult(
+                        taskId = trimmedTaskId,
+                        message = result.exception.message.orEmpty(),
+                    )
+                }
+
+                JiangResult.Empty -> {
+                    _debugTaskNgLimitPlanResult.value = DebugTaskNgLimitPlanResult(
+                        taskId = trimmedTaskId,
+                        message = "调试计划详情为空",
+                    )
+                }
+
+                JiangResult.Loading -> Unit
+            }
+        }
+    }
+
+    /**
+     * 日志是非阻断旁路请求，使用独立结果，避免干扰扫码和 SN 提交的共享页面状态。
+     */
+    fun saveDebugTaskLog(request: DebugTaskLogRequest) {
+        viewModelScope.launch {
+            when (val result = repository.saveDebugTaskLog(request)) {
+                is JiangResult.Success -> {
+                    _debugTaskLogSaveResult.value = DebugTaskLogSaveResult(request, success = true)
+                }
+
+                is JiangResult.Error -> {
+                    _debugTaskLogSaveResult.value = DebugTaskLogSaveResult(
+                        request = request,
+                        success = false,
+                        message = result.exception.message.orEmpty(),
+                    )
+                }
+
+                JiangResult.Empty -> {
+                    _debugTaskLogSaveResult.value = DebugTaskLogSaveResult(
+                        request = request,
+                        success = false,
+                        message = "日志保存结果为空",
+                    )
+                }
+
+                JiangResult.Loading -> Unit
+            }
+        }
     }
 
     fun scanValidSingleDebugSn(qrCode: String) {
@@ -717,6 +935,7 @@ class ZdsViewModel : JiangViewModel() {
         qrCode: String,
         ngPhenomena: String?,
         checkGroupDto: DebugCheckGroupDto,
+        isDraft: Boolean,
     ) {
         val trimmedCode = qrCode.trim()
         if (trimmedCode.isBlank()) {
@@ -731,6 +950,7 @@ class ZdsViewModel : JiangViewModel() {
                     qrCode = trimmedCode,
                     ngPhenomena = ngPhenomena,
                     checkGroupDto = checkGroupDto,
+                    isDraft = isDraft,
                 )
             },
             onSuccess = {

@@ -16,7 +16,6 @@ import com.jj.ui.dialog.JConfirmDialog
 import com.jj.ui.recycler.adapter.JBindingAdapter
 import com.jj.ui.recycler.ext.addDefaultDivider
 import com.jj.ui.recycler.ext.setupLinear
-import com.jj.ui.recycler.page.JRecyclerPageHelper
 import com.jj.ui.state.JiangErrorMode
 import com.jj.ui.toast.JToast
 import com.jj.ui.toolbar.JiangToolbarMenuItem
@@ -36,6 +35,7 @@ import java.util.Locale
 class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatchBinding, ZdsViewModel>() {
 
     private var taskId: String = ""
+    private var planMaterialCode: String = ""
     private var requireSubmitPhoto = false
     private var refreshOnResume = false
     private var finishingPlan = false
@@ -46,7 +46,7 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
     private var pendingPhotoFile: File? = null
     private var finishPhotoUploadMode = PhotoUploadMode.default()
     private val finishPhotoIds = mutableListOf<Long>()
-    private lateinit var pageHelper: JRecyclerPageHelper<DebugPlanTaskItemDto, ItemDebugPlanBatchBinding>
+    private var hasBatchItems = false
 
     private val adapter = JBindingAdapter(
         inflate = ItemDebugPlanBatchBinding::inflate,
@@ -56,7 +56,6 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
         inflate = ItemDebugPlanBatchFooterBinding::inflate,
         onBind = ::bindFooter,
     )
-
     private val childPageLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult(),
     ) {
@@ -103,6 +102,7 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
 
     override fun initView(savedInstanceState: Bundle?) {
         taskId = intent.getStringExtra(EXTRA_TASK_ID).orEmpty()
+        planMaterialCode = intent.getStringExtra(EXTRA_PLAN_MATERIAL_CODE).orEmpty()
         requireSubmitPhoto = intent.getBooleanExtra(EXTRA_REQUIRE_SUBMIT_PHOTO, false)
         if (taskId.isBlank()) {
             JToast.show("调试计划ID为空")
@@ -115,21 +115,12 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
 
         binding.recyclerBatches.setupLinear(ConcatAdapter(adapter, footerAdapter))
         binding.recyclerBatches.addDefaultDivider()
-        pageHelper = JRecyclerPageHelper(
-            recyclerView = binding.recyclerBatches,
-            adapter = adapter,
-            emptyView = binding.emptyView,
-            refreshLayout = binding.refreshLayout,
-        )
-        binding.emptyView.setAction("刷新") {
-            refreshDetail()
-        }
         binding.refreshLayout.setOnRefreshListener {
             refreshDetail()
         }
         binding.btnCreateBatch.setOnClickListener {
             refreshOnResume = true
-            childPageLauncher.launch(DebugPlanCreateBatchActivity.createIntent(this, taskId))
+            childPageLauncher.launch(DebugPlanCreateBatchActivity.createIntent(this, taskId, planMaterialCode))
         }
         adapter.setOnItemClickListener { item, _ ->
             val taskItemId = item.id
@@ -155,7 +146,7 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
 
     override fun initPageObserver() {
         viewModel.debugPlanDetail.observe(this) { detail ->
-            pageHelper.setRefreshing(false)
+            binding.refreshLayout.isRefreshing = false
             renderDetail(detail)
         }
         viewModel.debugPlanFinishResult.observe(this) { result ->
@@ -183,7 +174,7 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
     override fun errorMode(): JiangErrorMode = JiangErrorMode.TOAST
 
     override fun onUiError(code: Int, message: String, throwable: Throwable?) {
-        pageHelper.setRefreshing(false)
+        binding.refreshLayout.isRefreshing = false
         if (uploadingFinishPhoto) {
             uploadingFinishPhoto = false
             finishPhotoUploadFailed = true
@@ -207,11 +198,12 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
     }
 
     private fun refreshDetail() {
-        pageHelper.setRefreshing(true)
+        binding.refreshLayout.isRefreshing = true
         viewModel.loadDebugPlanDetail(taskId)
     }
 
     private fun renderDetail(detail: DebugPlanDetailDto) {
+        planMaterialCode = detail.categoryName.orEmpty()
         binding.tvPlanCode.text = detail.code.orDash()
         binding.tvPlanMeta.text = buildString {
             append(detail.categoryName.orDash())
@@ -226,7 +218,8 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
         binding.tvSampleProgress.text = "${detail.checkQty.coerceAtLeast(0)} / ${detail.sampleQty.coerceAtLeast(0)}"
         binding.tvNgProgress.text = "${detail.ngCount.coerceAtLeast(0)} / ${detail.rejectionQty.coerceAtLeast(0)}"
         binding.progressBatch.progress = detail.progressPercent()
-        pageHelper.showData(detail.list)
+        hasBatchItems = detail.list.isNotEmpty()
+        adapter.setList(detail.list)
         renderFooter()
     }
 
@@ -235,6 +228,7 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
         item: Unit,
         position: Int,
     ) {
+        itemBinding.tvEmptyHint.visibility = if (hasBatchItems) View.GONE else View.VISIBLE
         itemBinding.layoutFinishPhoto.visibility = if (requireSubmitPhoto) View.VISIBLE else View.GONE
         itemBinding.btnFinishPlan.setOnClickListener {
             confirmFinishPlan()
@@ -413,7 +407,6 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
             finish()
             return
         }
-
         showForceFinishConfirm(result)
     }
 
@@ -424,7 +417,7 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
             "$label：$content"
         }
         JConfirmDialog(this, this)
-            .setTitle("计划未满足完工条件")
+            .setTitle("请确认")
             .setMessage(message)
             .setCancelText("暂不完工")
             .setConfirmText("强制完工")
@@ -436,7 +429,7 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
 
     private fun showForceFinishConfirm(message: String) {
         JConfirmDialog(this, this)
-            .setTitle("计划未满足完工条件")
+            .setTitle("请确认")
             .setMessage(message.ifBlank { "当前计划未满足完工条件，是否继续完工？" })
             .setCancelText("暂不完工")
             .setConfirmText("确认完工")
@@ -492,6 +485,7 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
     companion object {
         private const val EXTRA_TASK_ID = "extra_task_id"
         private const val EXTRA_REQUIRE_SUBMIT_PHOTO = "extra_require_submit_photo"
+        private const val EXTRA_PLAN_MATERIAL_CODE = "extra_plan_material_code"
         private const val MENU_SYNC = 1
         private const val CODE_FINISH_NEED_FORCE_PASS = 10011
 
@@ -499,22 +493,25 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
             context: Context,
             taskId: String?,
             requireSubmitPhoto: Boolean = false,
+            planMaterialCode: String = "",
         ) {
             if (taskId.isNullOrBlank()) {
                 JToast.show("调试计划ID为空")
                 return
             }
-            context.startActivity(createIntent(context, taskId, requireSubmitPhoto))
+            context.startActivity(createIntent(context, taskId, requireSubmitPhoto, planMaterialCode))
         }
 
         fun createIntent(
             context: Context,
             taskId: String,
             requireSubmitPhoto: Boolean = false,
+            planMaterialCode: String = "",
         ): Intent {
             return Intent(context, DebugPlanBatchActivity::class.java)
                 .putExtra(EXTRA_TASK_ID, taskId)
                 .putExtra(EXTRA_REQUIRE_SUBMIT_PHOTO, requireSubmitPhoto)
+                .putExtra(EXTRA_PLAN_MATERIAL_CODE, planMaterialCode)
         }
     }
 }

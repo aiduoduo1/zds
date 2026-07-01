@@ -44,6 +44,24 @@ class RepairOperationDtosTest {
     }
 
     @Test
+    fun repairScanResponseParsesFileObjectList() {
+        val response = RepairSnScanValidDto(
+            id = "262316381473792000",
+            sn = "SN260625015",
+            statusName = "待维修",
+            fileList = listOf(
+                RepairFileDto(
+                    fileId = "262316644884422656",
+                    name = "avatar2.png",
+                ),
+            ),
+        )
+
+        assertEquals("262316644884422656", response.fileList.first().fileId)
+        assertEquals("avatar2.png", response.fileList.first().name)
+    }
+
+    @Test
     fun repairLogRequestAndDtoKeepOpenApiFields() {
         val request = RepairLogListRequest(infoId = 255492630060916736)
         val log = RepairLogDto(

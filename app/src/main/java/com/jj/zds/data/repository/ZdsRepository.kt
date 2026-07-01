@@ -31,18 +31,26 @@ import com.jj.zds.data.dto.debugplan.DebugSnScanValidDto
 import com.jj.zds.data.dto.debugplan.DebugSnScanValidRequest
 import com.jj.zds.data.dto.debugplan.SingleDebugCheckRequest
 import com.jj.zds.data.dto.debugplan.DebugTaskItemInfoDto
+import com.jj.zds.data.dto.debugplan.DebugTaskLogRequest
 import com.jj.zds.data.dto.login.LoginRequest
 import com.jj.zds.data.dto.menu.ZdsMenuDto
 import com.jj.zds.data.dto.productionplan.LineDto
 import com.jj.zds.data.dto.productionplan.PlanRequest
+import com.jj.zds.data.dto.productionplan.ProductionBindProgressDto
 import com.jj.zds.data.dto.productionplan.ProductionEndSwitchRequest
 import com.jj.zds.data.dto.productionplan.ProductionEquipmentCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionKeyPartBindRequest
+import com.jj.zds.data.dto.productionplan.ProductionKeyPartBindResultDto
+import com.jj.zds.data.dto.productionplan.ProductionPlanExecuteRequest
 import com.jj.zds.data.dto.productionplan.ProductionMaterialCheckRequest
 import com.jj.zds.data.dto.productionplan.ProductionPersonCheckRequest
 import com.jj.zds.data.dto.productionplan.ProductionPlanDto
 import com.jj.zds.data.dto.productionplan.ProductionPlanListRequest
 import com.jj.zds.data.dto.productionplan.ProductionPlanStatus
 import com.jj.zds.data.dto.productionplan.ProductionSoftCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionSnBindInfoDto
+import com.jj.zds.data.dto.productionplan.ProductionSnBindInfoRequest
+import com.jj.zds.data.dto.productionplan.ProductionStationProgressDto
 import com.jj.zds.data.dto.productionplan.ProductionSwitchBeginRequest
 import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailDto
 import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailRequest
@@ -265,9 +273,16 @@ class ZdsRepository(
                 )
             }
         ) {
-            is JiangResult.Success -> result.data.toJiangResult(
-                emptyMessage = "Production plan list is empty.",
-            )
+            is JiangResult.Success -> {
+                val response = result.data
+                if (response.isSuccess() && response.data == null) {
+                    JiangResult.Success(emptyList())
+                } else {
+                    response.toJiangResult(
+                        emptyMessage = "Production plan list is empty.",
+                    )
+                }
+            }
 
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
@@ -299,6 +314,103 @@ class ZdsRepository(
                 emptyMessage = "Production line count list is empty.",
             )
 
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun getProductionStationProgressList(planId: String): JiangResult<List<ProductionStationProgressDto>> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.getProductionStationProgressList(ProductionPlanExecuteRequest(planId = planId))
+            }
+        ) {
+            is JiangResult.Success -> {
+                val response = result.data
+                if (response.isSuccess()) {
+                    JiangResult.Success(response.data?.staList.orEmpty())
+                } else {
+                    JiangResult.Error(
+                        JiangException(
+                            code = response.code,
+                            message = response.message ?: response.msg ?: "Production progress request failed.",
+                        ),
+                    )
+                }
+            }
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Success(emptyList())
+        }
+    }
+
+    suspend fun getProductionBindProgress(planId: String): JiangResult<ProductionBindProgressDto> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.getProductionBindProgress(ProductionPlanExecuteRequest(planId = planId))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Production bind progress is empty.",
+            )
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun getProductionSnBindInfo(planId: String, sn: String): JiangResult<ProductionSnBindInfoDto> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.getProductionSnBindInfo(
+                    ProductionSnBindInfoRequest(
+                        planId = planId,
+                        sn = sn,
+                    ),
+                )
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Production SN bind info is empty.",
+            )
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun bindProductionKeyPart(
+        request: ProductionKeyPartBindRequest,
+    ): JiangResult<ProductionKeyPartBindResultDto> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.bindProductionKeyPart(request)
+            }
+        ) {
+            is JiangResult.Success -> {
+                val response = result.data
+                if (response.code == CODE_KEY_PART_ALREADY_BOUND && response.data != null) {
+                    JiangResult.Success(response.data)
+                } else {
+                    response.toJiangResult(
+                        emptyMessage = "Production key part bind result is empty.",
+                    )
+                }
+            }
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun startProduction(planId: String): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.startProduction(ProductionPlanExecuteRequest(planId = planId))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -473,24 +585,7 @@ class ZdsRepository(
         }
     }
 
-    /**
-     * 解析料箱二维码内容，返回料箱号、料号、批次、数量和 SN 范围等预览信息。
-     */
-    suspend fun analysisBoxQrCode(qrCode: String): JiangResult<DebugBoxQrCodeDto> {
-        return when (
-            val result = JiangApiCaller.safeApiCall {
-                api.analysisBoxQrCode(DebugBoxQrCodeRequest(qrCode = qrCode))
-            }
-        ) {
-            is JiangResult.Success -> result.data.toJiangResult(
-                emptyMessage = "Box QR code data is empty.",
-            )
 
-            is JiangResult.Error -> result
-            JiangResult.Loading -> JiangResult.Loading
-            JiangResult.Empty -> JiangResult.Empty
-        }
-    }
 
     /**
      * 扫描 SN 后向后端校验，并取回该 SN 对应的点检表单结构。
@@ -527,6 +622,7 @@ class ZdsRepository(
         snRecordId: String,
         ngPhenomena: String,
         checkGroupDto: DebugCheckGroupDto,
+        isDraft: Boolean,
     ): JiangResult<Unit> {
         return when (
             val result = JiangApiCaller.safeApiCall {
@@ -536,8 +632,22 @@ class ZdsRepository(
                         id = snRecordId,
                         ngPhenomena = ngPhenomena,
                         checkGroupDto = checkGroupDto,
+                        isDraft = isDraft,
                     ),
                 )
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun saveDebugTaskLog(request: DebugTaskLogRequest): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.saveDebugTaskLog(request)
             }
         ) {
             is JiangResult.Success -> result.data.toUnitResult()
@@ -567,6 +677,7 @@ class ZdsRepository(
         qrCode: String,
         ngPhenomena: String?,
         checkGroupDto: DebugCheckGroupDto,
+        isDraft: Boolean,
     ): JiangResult<Unit> {
         return when (
             val result = JiangApiCaller.safeApiCall {
@@ -575,6 +686,7 @@ class ZdsRepository(
                         qrCode = qrCode,
                         ngPhenomena = ngPhenomena,
                         checkGroupDto = checkGroupDto,
+                        isDraft = isDraft,
                     ),
                 )
             }
@@ -680,7 +792,7 @@ class ZdsRepository(
                 val responseText = result.data.string()
                 val response = parseBaseResponse(responseText)
                 if (response.code == ZdsBaseResult.CODE_SUCCESS) {
-                    JiangResult.Success(response.data.toFinishMessageMap())
+                    JiangResult.Success<Map<String, String>?>(null)
                 } else {
                     JiangResult.Error(
                         JiangException(
@@ -1016,5 +1128,6 @@ class ZdsRepository(
 
     private companion object {
         const val CLIENT_TYPE_ANDROID = "1"
+        const val CODE_KEY_PART_ALREADY_BOUND = 10086
     }
 }

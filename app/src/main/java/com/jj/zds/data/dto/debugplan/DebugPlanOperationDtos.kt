@@ -6,6 +6,7 @@ data class DebugBoxScanValidRequest(
 )
 
 data class DebugBoxScanValidDto(
+    val qrCode: String? = null,
     val box: String? = null,
     val categoryName: String? = null,
     val orderNo: String? = null,
@@ -38,13 +39,13 @@ data class DebugBoxQrCodeDto(
     val ver: String? = null,
     val type: String? = null,
     val box: String? = null,
-    val pn: String? = null,
+    val categoryName: String? = null,
     val name: String? = null,
     val lot: String? = null,
     val qty: Int = 0,
     val date: String? = null,
-    val snStart: String? = null,
-    val snEnd: String? = null,
+    val startSn: String? = null,
+    val endSn: String? = null,
 )
 
 data class DebugSnScanValidRequest(
@@ -131,12 +132,21 @@ data class DebugSnCheckRequest(
     val id: String,
     val ngPhenomena: String = "",
     val checkGroupDto: DebugCheckGroupDto,
+    val isDraft: Boolean,
 )
 
 data class SingleDebugCheckRequest(
     val qrCode: String,
     val ngPhenomena: String? = null,
     val checkGroupDto: DebugCheckGroupDto,
+    val isDraft: Boolean,
+)
+
+data class DebugTaskLogRequest(
+    val taskId: String,
+    val taskItemId: String,
+    val opName: String,
+    val opDesc: String,
 )
 
 data class DebugIdRequest(

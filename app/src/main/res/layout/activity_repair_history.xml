@@ -4,52 +4,80 @@
     style="@style/JStyle.Page"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fillViewport="true"
     android:padding="@dimen/j_space_8"
     tools:theme="@style/Theme.Zds">
 
     <LinearLayout
-        style="@style/JStyle.Card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="@dimen/j_space_12">
+        android:paddingBottom="@dimen/j_space_12">
 
-        <TextView
-            android:id="@+id/tvReport"
-            style="@style/JText.Body"
+        <LinearLayout
+            style="@style/JStyle.Card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:text="不良上报" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:padding="@dimen/j_space_10">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    style="@style/JText.Caption"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="当前 SN"
+                    android:textColor="@color/j_color_text_disabled" />
+
+                <TextView
+                    android:id="@+id/tvSn"
+                    style="@style/JText.Title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/j_space_2"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    tools:text="SN2606260005" />
+            </LinearLayout>
+
+            <com.jj.ui.widget.JStatusTagView
+                android:id="@+id/tagStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="@dimen/j_space_8" />
+        </LinearLayout>
 
         <TextView
-            android:id="@+id/tvRepair"
+            style="@style/JText.Title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/j_space_4"
+            android:layout_marginTop="@dimen/j_space_12"
+            android:text="处理轨迹" />
+
+        <TextView
+            android:id="@+id/tvEmpty"
             style="@style/JText.Secondary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/j_space_12"
-            tools:text="维修记录" />
+            android:gravity="center"
+            android:minHeight="140dp"
+            android:text="暂无处理轨迹"
+            android:visibility="gone"
+            tools:visibility="visible" />
 
-        <TextView
-            android:id="@+id/tvFiles"
-            style="@style/JText.Secondary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/j_space_12"
-            tools:text="维修照片" />
-
-        <HorizontalScrollView
-            android:id="@+id/scrollPhotoList"
+        <LinearLayout
+            android:id="@+id/layoutLogs"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/j_space_8"
-            android:visibility="gone"
-            tools:visibility="visible">
-
-            <LinearLayout
-                android:id="@+id/layoutPhotoList"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal" />
-        </HorizontalScrollView>
+            android:orientation="vertical"
+            tools:visibility="visible" />
     </LinearLayout>
 </ScrollView>

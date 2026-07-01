@@ -11,6 +11,7 @@
     tools:theme="@style/Theme.Zds">
 
     <LinearLayout
+        android:id="@+id/layoutScanCard"
         style="@style/JStyle.Card"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -26,7 +27,7 @@
             app:jInputHint=""
             app:jInputMode="scan"
             app:jInputSelectAllOnFocus="true"
-            app:jInputTitle="请扫描不良品SN码" />
+            app:jInputTitle="扫描不良SN码" />
     </LinearLayout>
 
     <ScrollView
@@ -50,10 +51,124 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:minHeight="180dp"
-                />
+                android:text="请扫描不良品SN\n系统会检查出尚未关闭的不良上报" />
 
             <LinearLayout
-                android:id="@+id/layoutContent"
+                android:id="@+id/layoutSummaryPage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone"
+                tools:visibility="visible">
+
+                <LinearLayout
+                    style="@style/JStyle.Card"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="@dimen/j_space_12">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                style="@style/JText.Caption"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="当前 SN"
+                                android:textColor="@color/j_color_text_disabled" />
+
+                            <TextView
+                                android:id="@+id/tvSn"
+                                style="@style/JText.Title"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/j_space_2"
+                                android:maxLines="1"
+                                android:ellipsize="end"
+                                tools:text="SN2606260005" />
+                        </LinearLayout>
+
+                        <com.jj.ui.widget.JStatusTagView
+                            android:id="@+id/tagStatus"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="@dimen/j_space_8" />
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginTop="@dimen/j_space_10"
+                        android:background="@color/j_color_line_light" />
+
+                    <TextView
+                        style="@style/JText.Caption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_10"
+                        android:text="不良现象"
+                        android:textColor="@color/j_color_text_disabled" />
+
+                    <TextView
+                        android:id="@+id/tvNgPhenomena"
+                        style="@style/JText.Title"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_4"
+                        android:textColor="@color/j_color_danger"
+                        tools:text="电流值异常" />
+
+                    <TextView
+                        style="@style/JText.Caption"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_10"
+                        android:text="不良说明"
+                        android:textColor="@color/j_color_text_disabled" />
+
+                    <TextView
+                        android:id="@+id/tvNgRemark"
+                        style="@style/JText.Body"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_4"
+                        android:ellipsize="end"
+                        android:lineSpacingExtra="2dp"
+                        android:maxLines="3"
+                        tools:text="变压器二次对地绝缘【10～50】，实际数值:0；\n变压器一次对地绝缘【500～1000】，实际数值:0；\n变压器前接线板异常@检查外观异常" />
+
+                    <Button
+                        android:id="@+id/btnToggleRemark"
+                        style="@style/JStyle.Button.Text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:minHeight="36dp"
+                        android:text="展开"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+
+                    <Button
+                        android:id="@+id/btnStartRepair"
+                        style="@style/JStyle.Button.Primary"
+                        android:layout_width="match_parent"
+                        android:layout_marginTop="@dimen/j_space_10"
+                        android:text="填写维修结果" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutRepairForm"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
@@ -73,94 +188,30 @@
                         android:gravity="center_vertical"
                         android:orientation="horizontal">
 
-                        <LinearLayout
+                        <TextView
+                            style="@style/JText.Title"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:orientation="vertical">
+                            android:text="填写维修结果" />
 
-                            <TextView
-                                android:id="@+id/tvSource"
-                                style="@style/JText.Caption"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:textColor="@color/j_color_primary"
-                                android:textStyle="bold"
-                                tools:text="不良来源" />
-
-                            <TextView
-                                android:id="@+id/tvSourceNo"
-                                style="@style/JText.Body"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="@dimen/j_space_4"
-                                android:maxLines="2"
-                                tools:text="IQC20260529002 / IQC20260529002-02" />
-                        </LinearLayout>
-
-                        <com.jj.ui.widget.JStatusTagView
-                            android:id="@+id/tagStatus"
+                        <Button
+                            android:id="@+id/btnBackToSummary"
+                            style="@style/JStyle.Button.Text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="@dimen/j_space_8" />
+                            android:minHeight="36dp"
+                            android:text="返回问题概览" />
                     </LinearLayout>
 
                     <TextView
-                        android:id="@+id/tvSn"
-                        style="@style/JText.Secondary"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/j_space_8"
-                        tools:text="SN：SN080" />
-
-                    <TextView
-                        android:id="@+id/tvMaterial"
-                        style="@style/JText.Secondary"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/j_space_4"
-                        tools:text="物料：010201-482 / 交换机面板组件*2（G516E)" />
-
-                    <TextView
-                        android:id="@+id/tvNgPhenomena"
-                        style="@style/JText.Secondary"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/j_space_4"
-                        tools:text="不良现象：调光功能失效" />
-
-                    <TextView
-                        android:id="@+id/tvNgRemark"
-                        style="@style/JText.Secondary"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/j_space_4"
-                        tools:text="说明：变压器二次对地绝缘【10 ~ 50】,实际数值:60" />
-
-                    <Button
-                        android:id="@+id/btnHistory"
-                        style="@style/JStyle.Button.Secondary"
-                        android:layout_width="match_parent"
-                        android:layout_marginTop="@dimen/j_space_10"
-                        android:text="处理记录" />
-                </LinearLayout>
-
-                <LinearLayout
-                    style="@style/JStyle.Card"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/j_space_8"
-                    android:orientation="vertical"
-                    android:padding="@dimen/j_space_10">
-
-                    <TextView
-                        android:id="@+id/tvLockNote"
+                        android:id="@+id/tvFormSn"
                         style="@style/JText.Caption"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/j_color_info"
-                        android:textStyle="bold"
-                        tools:text="当前不良可维修，保存后状态为维修中。" />
+                        android:layout_marginTop="@dimen/j_space_4"
+                        android:textColor="@color/j_color_text_disabled"
+                        tools:text="SN2606260005 · 电流值异常" />
 
                     <TextView
                         style="@style/JText.Secondary"
@@ -205,6 +256,7 @@
                         android:layout_width="match_parent"
                         android:layout_marginTop="@dimen/j_space_4"
                         android:hint="请输入维修人"
+                        android:maxLength="10"
                         android:singleLine="true" />
 
                     <TextView
@@ -218,13 +270,15 @@
                         android:id="@+id/editRepairDesc"
                         style="@style/JStyle.EditText.Normal"
                         android:layout_width="match_parent"
-                        android:layout_height="96dp"
+                        android:layout_height="88dp"
                         android:layout_marginTop="@dimen/j_space_4"
                         android:gravity="start|top"
                         android:hint="记录维修动作、替换物料、异常原因或处理说明"
                         android:inputType="textMultiLine"
+                        android:maxLength="1000"
                         android:paddingTop="@dimen/j_space_8"
-                        android:singleLine="false" />
+                        android:singleLine="false"
+                        android:textColorHint="?android:attr/textColorHint" />
 
                     <TextView
                         android:id="@+id/tvPhoto"

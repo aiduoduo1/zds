@@ -5,6 +5,7 @@ import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.TextView
+import androidx.activity.OnBackPressedCallback
 import androidx.core.content.ContextCompat
 import androidx.core.widget.TextViewCompat
 import androidx.fragment.app.Fragment
@@ -43,11 +44,13 @@ class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
         ) { item ->
             onToolbarMenuClick(item)
         }
+        bindBackNavigation()
         bindTabs()
         switchTab(PdaTab.HOME)
     }
 
-    override fun openProduceTab() {
+    override fun openProduceTab(lineId: String?) {
+        produceFragment.selectLine(lineId)
         switchTab(PdaTab.PRODUCE)
     }
 
@@ -55,6 +58,21 @@ class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
         binding.tabHome.setOnClickListener { switchTab(PdaTab.HOME) }
         binding.tabDebug.setOnClickListener { switchTab(PdaTab.DEBUG) }
         binding.tabProduce.setOnClickListener { switchTab(PdaTab.PRODUCE) }
+    }
+
+    private fun bindBackNavigation() {
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (currentTab == PdaTab.HOME) {
+                        moveTaskToBack(true)
+                    } else {
+                        switchTab(PdaTab.HOME)
+                    }
+                }
+            },
+        )
     }
 
     private fun switchTab(tab: PdaTab) {

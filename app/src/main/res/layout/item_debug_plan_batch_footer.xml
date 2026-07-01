@@ -7,6 +7,17 @@
     android:paddingTop="@dimen/j_space_8"
     android:paddingBottom="@dimen/j_space_12">
 
+    <TextView
+        android:id="@+id/tvEmptyHint"
+        style="@style/JText.Secondary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:padding="@dimen/j_space_12"
+        android:text="暂无批次，可创建批次或直接计划完工"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
     <LinearLayout
         android:id="@+id/layoutFinishPhoto"
         style="@style/JStyle.Card"

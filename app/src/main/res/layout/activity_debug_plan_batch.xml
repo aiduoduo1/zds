@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     style="@style/JStyle.Page"
     android:layout_width="match_parent"
@@ -148,26 +147,12 @@
         android:layout_marginTop="@dimen/j_space_4"
         android:layout_weight="1">
 
-        <FrameLayout
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerBatches"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerBatches"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                tools:itemCount="4"
-                tools:listitem="@layout/item_debug_plan_batch" />
-
-            <com.jj.ui.widget.JEmptyView
-                android:id="@+id/emptyView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone"
-                app:jActionText="刷新"
-                app:jDescription="当前调试计划还没有执行批次"
-                app:jTitle="暂无批次" />
-        </FrameLayout>
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            tools:itemCount="4"
+            tools:listitem="@layout/item_debug_plan_batch" />
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </LinearLayout>

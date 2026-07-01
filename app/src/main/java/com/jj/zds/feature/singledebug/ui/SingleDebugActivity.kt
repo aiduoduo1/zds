@@ -8,12 +8,14 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
+import android.text.InputFilter
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.EditText
 import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -52,6 +54,9 @@ import com.jj.zds.feature.debugplan.data.DebugTaskPhotoRow
 import com.jj.zds.feature.debugplan.data.DebugTaskSwitchRow
 import com.jj.zds.feature.debugplan.data.DebugTaskTextRow
 import com.jj.zds.feature.debugplan.data.DebugTaskValueRow
+import com.jj.zds.feature.debugplan.ui.DebugTaskCollectType
+import com.jj.zds.feature.debugplan.ui.DebugTaskInputRules
+import com.jj.zds.feature.debugplan.ui.DebugTaskSubmitRules
 import com.jj.zds.feature.photo.PhotoUploadFileProcessor
 import com.jj.zds.feature.photo.PhotoUploadMode
 import com.jj.zds.feature.repair.data.buildRepairFileUrl
@@ -170,8 +175,10 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
             handleCheckPhotoUploaded(result.checkId, result.fileId)
         }
         viewModel.debugOperationDone.observe(this) {
-            if (activeOperation == ActiveOperation.SUBMIT) {
-                handleSubmitDone()
+            when (activeOperation) {
+                ActiveOperation.SAVE_DRAFT -> handleSaveDone()
+                ActiveOperation.SUBMIT -> handleSubmitDone()
+                else -> Unit
             }
         }
     }
@@ -245,15 +252,22 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
         position: Int,
     ) {
         val pendingCount = checks.count { it.result == DebugTaskCheckResult.PENDING && !it.dto.isSkipable }
-        val failCount = checks.count { it.result == DebugTaskCheckResult.FAIL }
+        val failCount = DebugTaskSubmitRules.reportableFailureCount(checks)
         itemBinding.tvSubmitHint.text = when {
             currentSn == null -> "请先扫描 SN"
-            failCount > 0 -> "已完成，发现 $failCount 个不良"
             pendingCount > 0 -> "还有 $pendingCount 个检查项未完成"
+            failCount > 0 -> "已完成，发现 $failCount 个不良"
             else -> "检查项已全部完成"
         }
-        itemBinding.btnSubmit.text = if (activeOperation == ActiveOperation.SUBMIT) "提交中..." else "提交检查"
-        itemBinding.btnSubmit.isEnabled = currentSn != null && activeOperation != ActiveOperation.SUBMIT
+        val canOperate = currentSn != null && activeOperation == ActiveOperation.NONE
+        itemBinding.btnSave.text = if (activeOperation == ActiveOperation.SAVE_DRAFT) "保存中..." else "保存"
+        itemBinding.btnSave.isEnabled = canOperate
+        itemBinding.btnSave.alpha = if (itemBinding.btnSave.isEnabled) 1f else 0.6f
+        itemBinding.btnSave.setOnClickListener {
+            saveDraft()
+        }
+        itemBinding.btnSubmit.text = if (activeOperation == ActiveOperation.SUBMIT) "提交中..." else "提交"
+        itemBinding.btnSubmit.isEnabled = canOperate
         itemBinding.btnSubmit.alpha = if (itemBinding.btnSubmit.isEnabled) 1f else 0.6f
         itemBinding.btnSubmit.setOnClickListener {
             submitChecks()
@@ -298,7 +312,7 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
             focusScanInput(selectAll = false)
             return
         }
-        if (checks.any { it.result == DebugTaskCheckResult.FAIL }) {
+        if (DebugTaskSubmitRules.hasReportableFailure(checks)) {
             activeOperation = ActiveOperation.WAITING_NG
             viewModel.loadDebugDictItems()
             return
@@ -309,7 +323,16 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
             scrollToFirstPending()
             return
         }
-        submitSingleDebug(ngPhenomena = null)
+        submitSingleDebug(ngPhenomena = null, isDraft = false)
+    }
+
+    private fun saveDraft() {
+        if (currentSn == null || currentCheckGroup == null) {
+            JToast.show("请先扫描 SN")
+            focusScanInput(selectAll = false)
+            return
+        }
+        submitSingleDebug(ngPhenomena = null, isDraft = true)
     }
 
     private fun showNgPhenomenaDialog(items: List<DebugDictItemDto>) {
@@ -327,21 +350,28 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
                 if (value.isNullOrBlank()) {
                     JToast.show("请选择不良现象")
                 } else {
-                    submitSingleDebug(value)
+                    submitSingleDebug(value, isDraft = false)
                 }
             }
             .show()
     }
 
-    private fun submitSingleDebug(ngPhenomena: String?) {
+    private fun submitSingleDebug(ngPhenomena: String?, isDraft: Boolean) {
         val group = currentCheckGroup ?: return
-        activeOperation = ActiveOperation.SUBMIT
+        activeOperation = if (isDraft) ActiveOperation.SAVE_DRAFT else ActiveOperation.SUBMIT
         footerAdapter.updateItem(0, Unit)
         viewModel.submitSingleDebugCheck(
             qrCode = qrCode,
             ngPhenomena = ngPhenomena,
             checkGroupDto = group.withRowResults(checks),
+            isDraft = isDraft,
         )
+    }
+
+    private fun handleSaveDone() {
+        activeOperation = ActiveOperation.NONE
+        footerAdapter.updateItem(0, Unit)
+        JToast.show("草稿已保存")
     }
 
     private fun handleSubmitDone() {
@@ -386,7 +416,13 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
 
     private fun showRemarkDialog(id: String) {
         val item = checks.firstOrNull { it.checkId == id } as? DebugTaskTextRow ?: return
-        JInputDialog(this, this)
+        object : JInputDialog(this, this) {
+            init {
+                (inputLayout.focusedInputView() as? EditText)?.filters = arrayOf(
+                    InputFilter.LengthFilter(DebugTaskInputRules.MAX_INPUT_LENGTH),
+                )
+            }
+        }
             .setTitle(item.title)
             .setInputTitle("调试说明")
             .setHint(item.expectedText.ifBlank { "输入提示文本内容" })
@@ -520,7 +556,9 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
     }
 
     private fun scrollToFirstPending() {
-        val position = checks.indexOfFirst { it.result == DebugTaskCheckResult.PENDING }
+        val position = checks.indexOfFirst {
+            it.result == DebugTaskCheckResult.PENDING && !it.dto.isSkipable
+        }
         if (position < 0) return
         binding.recyclerChecks.smoothScrollToPosition(position + HEADER_ITEM_COUNT)
     }
@@ -573,30 +611,30 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
         val expectedText = standardOption?.takeIf { it.isNotBlank() } ?: itemDescription
         val rowId = "$parentKey-$checkId"
         val initialText = result?.toString().orEmpty()
-        return when {
-            isValueCollectType() -> DebugTaskValueRow(
+        return when (DebugTaskInputRules.resolveType(collectType, minValue, maxValue)) {
+            DebugTaskCollectType.NUM -> DebugTaskValueRow(
                 rowId = rowId,
                 checkId = checkId,
                 typeLabel = typeLabel,
                 title = title,
                 description = itemDescription,
                 dto = this,
-                inputValue = initialText,
+                inputValue = initialText.toDraftNumberText(),
                 referenceValue = buildReferenceText(),
                 result = initialText.toInitialValueResult(minValue, maxValue),
             )
-            isTextCollectType() -> DebugTaskTextRow(
+            DebugTaskCollectType.INPUT -> DebugTaskTextRow(
                 rowId = rowId,
                 checkId = checkId,
                 typeLabel = typeLabel,
                 title = title,
                 description = itemDescription,
                 dto = this,
-                remark = initialText.ifBlank { expectedText },
+                remark = initialText,
                 expectedText = expectedText,
-                result = initialText.ifBlank { expectedText }.toTextResult(expectedText),
+                result = initialText.toTextResult(expectedText),
             )
-            isPhotoCollectType() -> DebugTaskPhotoRow(
+            DebugTaskCollectType.PHOTO -> DebugTaskPhotoRow(
                 rowId = rowId,
                 checkId = checkId,
                 typeLabel = typeLabel,
@@ -610,7 +648,7 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
                     DebugTaskCheckResult.PENDING
                 },
             )
-            else -> DebugTaskSwitchRow(
+            DebugTaskCollectType.CONFIRM -> DebugTaskSwitchRow(
                 rowId = rowId,
                 checkId = checkId,
                 typeLabel = typeLabel,
@@ -641,42 +679,20 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
 
     private fun DebugCheckItemDto.withRowResult(row: DebugTaskCheckRow?): DebugCheckItemDto {
         return when (row) {
-            is DebugTaskSwitchRow -> copy(result = row.result == DebugTaskCheckResult.PASS)
-            is DebugTaskValueRow -> copy(result = row.inputValue)
-            is DebugTaskTextRow -> copy(result = row.remark)
-            is DebugTaskPhotoRow -> copy(result = row.photos.joinToString(",") { it.fileId })
+            is DebugTaskSwitchRow -> copy(
+                result = when (row.result) {
+                    DebugTaskCheckResult.PASS -> true
+                    DebugTaskCheckResult.FAIL -> false
+                    DebugTaskCheckResult.PENDING -> null
+                },
+            )
+            is DebugTaskValueRow -> copy(result = row.inputValue.takeIf { it.isNotBlank() })
+            is DebugTaskTextRow -> copy(result = row.remark.takeIf { it.isNotBlank() })
+            is DebugTaskPhotoRow -> copy(
+                result = row.photos.joinToString(",") { it.fileId }.takeIf { it.isNotBlank() },
+            )
             null -> this
         }
-    }
-
-    private fun DebugCheckItemDto.isValueCollectType(): Boolean {
-        val type = collectType.orEmpty().lowercase()
-        return minValue != null || maxValue != null ||
-            type.contains("number") ||
-            type.contains("value") ||
-            type.contains("input") ||
-            type.contains("num") ||
-            type.contains("数值")
-    }
-
-    private fun DebugCheckItemDto.isTextCollectType(): Boolean {
-        val type = collectType.orEmpty().lowercase()
-        return type.contains("text") ||
-            type.contains("remark") ||
-            type.contains("textarea") ||
-            type.contains("文本") ||
-            type.contains("说明")
-    }
-
-    private fun DebugCheckItemDto.isPhotoCollectType(): Boolean {
-        val type = collectType.orEmpty().lowercase()
-        return type.contains("photo") ||
-            type.contains("image") ||
-            type.contains("picture") ||
-            type.contains("file") ||
-            type.contains("拍照") ||
-            type.contains("照片") ||
-            type.contains("图片")
     }
 
     private fun String.toPhotoItems(): List<DebugTaskPhotoItem> {
@@ -685,6 +701,11 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
             .filter { it.isNotBlank() }
             .map { DebugTaskPhotoItem(fileId = it) }
             .take(MAX_PHOTO_COUNT)
+    }
+
+    private fun String.toDraftNumberText(): String {
+        if (isBlank()) return this
+        return toBigDecimalOrNull()?.stripTrailingZeros()?.toPlainString() ?: this
     }
 
     private fun DebugCheckItemDto.buildReferenceText(): String {
@@ -726,8 +747,7 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
 
     private fun String.toTextResult(expectedText: String): DebugTaskCheckResult {
         if (isBlank()) return DebugTaskCheckResult.PENDING
-        if (expectedText.isBlank()) return DebugTaskCheckResult.PASS
-        return if (trim() == expectedText.trim()) {
+        return if (DebugTaskInputRules.isInputMatched(this, expectedText)) {
             DebugTaskCheckResult.PASS
         } else {
             DebugTaskCheckResult.FAIL
@@ -802,6 +822,7 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
     private enum class ActiveOperation {
         NONE,
         WAITING_NG,
+        SAVE_DRAFT,
         SUBMIT,
     }
 

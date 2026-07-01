@@ -74,9 +74,11 @@ class DebugPlanListFragment : JiangVmFragment<ActivityDebugPlanListBinding, ZdsV
                     context = requireContext(),
                     taskId = item.id,
                     requireSubmitPhoto = item.requireSubmitPhoto,
+                    planMaterialCode = item.materialCode,
                 ),
             )
         }
+        binding.inputSearch.requestFocus()
 
         binding.inputSearch.onTextChanged {
             renderPlans()
@@ -104,8 +106,10 @@ class DebugPlanListFragment : JiangVmFragment<ActivityDebugPlanListBinding, ZdsV
     override fun initObserver() {
         viewModel.debugPlans.observe(viewLifecycleOwner) { result ->
             plans = result
-            pageHelper.setRefreshing(false)
             renderPlans()
+        }
+        viewModel.debugPlansLoadFinished.observe(viewLifecycleOwner) {
+            pageHelper.setRefreshing(false)
         }
         viewModel.debugPlanStatistics.observe(viewLifecycleOwner) { result ->
             statistics = result
@@ -113,7 +117,6 @@ class DebugPlanListFragment : JiangVmFragment<ActivityDebugPlanListBinding, ZdsV
         }
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             if (state is JiangUiState.Error) {
-                pageHelper.setRefreshing(false)
                 JToast.show(state.message)
             }
         }
@@ -185,7 +188,6 @@ class DebugPlanListFragment : JiangVmFragment<ActivityDebugPlanListBinding, ZdsV
         if (keyword.isBlank()) return true
         val text = buildString {
             append(code).append(' ')
-            append(id).append(' ')
             append(materialCode)
         }
         return text.contains(keyword, ignoreCase = true)

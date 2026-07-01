@@ -114,7 +114,11 @@ class ZdsApplication : Application() {
     }
 
     private companion object {
-        const val BASE_URL = "http://192.168.1.216:81/"
+         var BASE_URL = if (BuildConfig.DEBUG){
+            "http://192.168.1.216:81/"
+        }else{
+            "http://1.94.220.45/"
+        }
         const val UNAUTHORIZED_REDIRECT_INTERVAL_MS = 1_500L
     }
 }

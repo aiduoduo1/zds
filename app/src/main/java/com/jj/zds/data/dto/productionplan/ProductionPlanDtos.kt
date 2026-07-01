@@ -14,6 +14,23 @@ data class PlanRequest(
     val lineId: String? = null,
 )
 
+data class ProductionPlanExecuteRequest(
+    val planId: String,
+)
+
+data class ProductionSnBindInfoRequest(
+    val planId: String,
+    val sn: String,
+)
+
+data class ProductionKeyPartBindRequest(
+    val planId: String,
+    val proSn: String,
+    val matSn: String,
+    val changeMatSn: String? = null,
+    val operateType: Int = 1,
+)
+
 data class ProductionSwitchBeginRequest(
     val planId: String,
 )
@@ -287,6 +304,59 @@ data class ProductionPlanDto(
     val planStatus: Int = 0,
     val planStatusName: String? = null,
     val sort: Int = 0,
+)
+
+data class ProductionBindProgressDto(
+    val orderCode: String? = null,
+    val partId: String? = null,
+    val partCode: String? = null,
+    val finishedCount: Int = 0,
+    val totalCount: Int = 0,
+)
+
+data class ProductionSnBindInfoDto(
+    val planId: String? = null,
+    val orderCode: String? = null,
+    val sn: String? = null,
+    val partId: String? = null,
+    val partCode: String? = null,
+    val partName: String? = null,
+    val currentProcess: String? = null,
+    val currentProcessLabel: String? = null,
+    val finishedCount: String? = null,
+    val totalCount: String? = null,
+    val catList: List<ProductionSnBindCategoryDto> = emptyList(),
+)
+
+data class ProductionKeyPartBindResultDto(
+    val boundMatSns: List<String>? = emptyList(),
+)
+
+data class ProductionSnBindCategoryDto(
+    val categoryId: String? = null,
+    val categoryName: String? = null,
+    val productName: String? = null,
+    val quantity: Int = 0,
+    val matList: List<ProductionSnBindMaterialDto>? = null,
+)
+
+data class ProductionSnBindMaterialDto(
+    val materialId: String? = null,
+    val materialCode: String? = null,
+)
+
+data class ProductionStationProgressDto(
+    val operationType: Int = 0,
+    val finishedCount: Int = 0,
+    val totalCount: Int = 0,
+)
+
+data class ProductionStationProgressDetailDto(
+    val planId: String? = null,
+    val orderCode: String? = null,
+    val partCode: String? = null,
+    val partName: String? = null,
+    val staList: List<ProductionStationProgressDto> = emptyList(),
 )
 
 data class LineDto(
