@@ -20,3 +20,4 @@ keystore/
 captures/
 .externalNativeBuild/
 .cxx/
+.worktrees/
