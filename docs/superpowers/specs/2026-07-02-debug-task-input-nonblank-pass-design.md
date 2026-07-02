@@ -2,7 +2,7 @@
 
 ## 目标
 
-批次调试动作页中，`collectType=input` 的文本检查项不再校验输入内容是否与 `standardOption` 一致。操作员输入任意非空文本后，该项立即显示为通过状态并允许提交。
+所有调试动作页中，`collectType=input` 的文本检查项不再校验输入内容是否与 `standardOption` 一致。操作员输入任意非空文本后，该项立即显示为通过状态并允许提交。
 
 ## 规则
 
@@ -13,8 +13,8 @@
 
 ## 实现范围
 
-- 修改 `DebugTaskInputRules.isInputMatched()`，将判断收口为输入内容非空。
-- `DebugTaskExecuteActivity`、共用文本检查行及提交统计继续复用现有结果状态，无需修改布局。
+- 修改共享的 `DebugTaskInputRules.isInputMatched()`，将判断收口为输入内容非空。
+- 批次调试、单机调试、返检和整机测试继续复用该共享规则，无需修改布局。
 - 更新 `DebugTaskInputRulesTest`，先验证旧的精确匹配规则失败，再实现新规则。
 
 ## 回归

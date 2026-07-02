@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make `collectType=input` pass for any nonblank operator input without comparing it to the reference text.
+**Goal:** Make shared `collectType=input` validation pass for any nonblank operator input without comparing it to the reference text.
 
-**Architecture:** Keep the behavior inside the existing pure `DebugTaskInputRules` helper so all current text-row rendering continues to use one result rule. Change only its test and predicate; no page, layout, DTO, or submit-flow changes are needed.
+**Architecture:** Keep the behavior inside the existing pure `DebugTaskInputRules` helper so batch debug, single debug, recheck, and overall test pages continue to use one result rule. Change only its test and predicate; no page, layout, DTO, or submit-flow changes are needed.
 
 **Tech Stack:** Kotlin, JUnit 4, existing Android/JiangCore project.
 
