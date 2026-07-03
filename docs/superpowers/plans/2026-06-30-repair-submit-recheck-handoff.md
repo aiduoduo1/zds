@@ -2,44 +2,46 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Show a next-step dialog after formal repair submission and pass the original repair QR code into recheck for automatic validation.
+**Goal:** Route formal repair submission by the exact result label so only “已修好，允许复调” automatically enters recheck, while other final states require confirmation before submission.
 
-**Architecture:** Keep submission branching in `RepairActivity`; use a small pure rule helper to distinguish draft and submit success. Add one explicit QR-code launch contract to `RecheckActivity`, then reuse its existing input and `submitScanSn` path.
+**Architecture:** Resolve the selected backend value to its exact dictionary label in a pure rule helper. Keep request construction in `RepairActivity`; gate non-recheck results before calling the existing submit method, and reuse the existing QR-code launch contract for automatic recheck after successful repair submission.
 
 **Tech Stack:** Kotlin, Android ViewBinding, JiangCore dialogs, JUnit 4
 
 ---
 
-### Task 1: Post-submit rules
+### Task 1: Exact result-label rules
 
 **Files:**
-- Create: `app/src/main/java/com/jj/zds/feature/repair/ui/RepairSubmitSuccessRules.kt`
-- Create: `app/src/test/java/com/jj/zds/feature/repair/ui/RepairSubmitSuccessRulesTest.kt`
+- Modify: `app/src/main/java/com/jj/zds/feature/repair/ui/RepairSubmitSuccessRules.kt`
+- Modify: `app/src/test/java/com/jj/zds/feature/repair/ui/RepairSubmitSuccessRulesTest.kt`
 
-- [ ] Add failing tests proving only `RepairAction.SUBMIT` shows the next-step prompt and QR handoff trims but preserves the original SN/PRO scan payload.
-- [ ] Run the focused test and confirm it fails because `RepairSubmitSuccessRules` is missing.
-- [ ] Implement `shouldPrompt(action)` and `handoffQrCode(scanInput)`.
+- [ ] Add failing tests proving only an exact dictionary label `已修好，允许复调` permits automatic recheck; value matches and fuzzy labels must not pass.
+- [ ] Run the focused test and confirm the old action-only rule fails the new assertions.
+- [ ] Implement `isRecheckAllowed(selectedValue, items)` with exact trimmed value lookup and exact trimmed label comparison; keep QR trimming.
 - [ ] Re-run the focused test and confirm it passes.
 
-### Task 2: Repair success dialog
+### Task 2: Pre-submit final-state confirmation
 
 **Files:**
 - Modify: `app/src/main/java/com/jj/zds/feature/repair/ui/RepairActivity.kt`
 
 - [ ] Keep the existing draft success toast and page clear.
-- [ ] On formal submit success, show a non-cancelable `JConfirmDialog` with “继续维修” and “去复检”.
-- [ ] Make “继续维修” call the existing `clearRepairPage()`.
-- [ ] Make “去复检” capture `binding.inputSn.text()`, clear the repair page, and call `RecheckActivity.start(this, qrCode)`.
+- [ ] Extract the validated request dispatch so formal submission can be called only after branching.
+- [ ] If the selected label is exactly `已修好，允许复调`, submit immediately without a confirmation dialog.
+- [ ] For every other label or unresolved dictionary value, show “该状态为最终状态，确认后无法继续使用，是否确认？” before the request; confirm dispatches once, cancel leaves all form state intact.
+- [ ] Remove the old post-success “继续维修 / 去复检” dialog.
 
-### Task 3: Recheck launch contract
+### Task 3: Post-success destination
 
 **Files:**
-- Modify: `app/src/main/java/com/jj/zds/feature/recheck/ui/RecheckActivity.kt`
+- Modify: `app/src/main/java/com/jj/zds/feature/repair/ui/RepairActivity.kt`
+- Verify: `app/src/main/java/com/jj/zds/feature/recheck/ui/RecheckActivity.kt`
 
-- [ ] Add `start(context, qrCode)` using an explicit Intent extra.
-- [ ] Read the extra before `bindScanInput()` so the existing input renders the original QR code.
-- [ ] After adapters and listeners are ready, automatically call the existing `submitScanSn` when the launch QR code is nonblank.
-- [ ] Keep ordinary no-extra entry, manual input, scanner input, debounce, and error handling unchanged.
+- [ ] Capture whether the in-flight submission permits recheck and preserve the original scan QR code until success.
+- [ ] On successful allowed submission, clear the repair page and call the existing `RecheckActivity.start(context, qrCode)` directly.
+- [ ] On successful non-recheck submission, show success, clear the page, and remain in repair.
+- [ ] Keep the existing recheck input prefill and automatic validation behavior unchanged.
 
 ### Task 4: Verification
 
