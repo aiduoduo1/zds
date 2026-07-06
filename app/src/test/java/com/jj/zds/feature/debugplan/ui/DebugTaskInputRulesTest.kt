@@ -37,10 +37,10 @@ class DebugTaskInputRulesTest {
     }
 
     @Test
-    fun `input is limited to fifty characters and must equal reference`() {
+    fun `input passes for any nonblank content without matching reference`() {
         assertEquals(50, DebugTaskInputRules.MAX_INPUT_LENGTH)
-        assertTrue(DebugTaskInputRules.isInputMatched("111", "111"))
-        assertFalse(DebugTaskInputRules.isInputMatched("112", "111"))
-        assertFalse(DebugTaskInputRules.isInputMatched(" 111 ", "111"))
+        assertTrue(DebugTaskInputRules.isInputMatched("任意调试说明", "标准参考值"))
+        assertFalse(DebugTaskInputRules.isInputMatched("", "标准参考值"))
+        assertFalse(DebugTaskInputRules.isInputMatched("   ", "标准参考值"))
     }
 }

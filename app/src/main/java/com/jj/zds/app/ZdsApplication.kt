@@ -60,7 +60,7 @@ class ZdsApplication : Application() {
                 logLevel = if (BuildConfig.DEBUG) {
                     JiangNetworkLogLevel.BODY
                 } else {
-                    JiangNetworkLogLevel.NONE
+                    JiangNetworkLogLevel.BODY
                 },
                 unauthorizedHandler = ::handleUnauthorized,
             ),
@@ -93,9 +93,9 @@ class ZdsApplication : Application() {
     }
 
     private fun createNetworkInterceptors(): List<Interceptor> {
-        if (!BuildConfig.DEBUG) {
-            return emptyList()
-        }
+//        if (!BuildConfig.DEBUG) {
+//            return emptyList()
+//        }
         return listOf(
             ChuckerInterceptor.Builder(this)
                 .maxContentLength(250_000L)
@@ -114,9 +114,10 @@ class ZdsApplication : Application() {
     }
 
     private companion object {
-         var BASE_URL = if (BuildConfig.DEBUG){
+        var BASE_URL = if (BuildConfig.DEBUG) {
             "http://192.168.1.216:81/"
-        }else{
+//             "http://1.94.220.45/"
+        } else {
             "http://1.94.220.45/"
         }
         const val UNAUTHORIZED_REDIRECT_INTERVAL_MS = 1_500L

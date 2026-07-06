@@ -18,6 +18,11 @@ data class ProductionPlanExecuteRequest(
     val planId: String,
 )
 
+data class ProductionFinishRequest(
+    val planId: String,
+    val forceFinish: Boolean,
+)
+
 data class ProductionSnBindInfoRequest(
     val planId: String,
     val sn: String,
@@ -325,7 +330,7 @@ data class ProductionSnBindInfoDto(
     val currentProcessLabel: String? = null,
     val finishedCount: String? = null,
     val totalCount: String? = null,
-    val catList: List<ProductionSnBindCategoryDto> = emptyList(),
+    val catList: List<ProductionSnBindCategoryDto>? = null,
 )
 
 data class ProductionKeyPartBindResultDto(

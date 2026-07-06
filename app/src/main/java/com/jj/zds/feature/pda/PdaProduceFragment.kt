@@ -54,6 +54,7 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
                     JToast.show("生产计划ID为空")
                     return@setOnItemClickListener
                 }
+                refreshOnResume = true
                 ProductionExecuteProgressActivity.start(
                     context = requireContext(),
                     planId = planId,

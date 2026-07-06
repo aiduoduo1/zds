@@ -54,6 +54,8 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
     private var lastSubmitAt: Long = 0L
     private var scanInProgress = false
     private var submitAction: RepairAction? = null
+    private var submitAllowsRecheck = false
+    private var submittedQrCode = ""
     private var currentState: RepairUiState? = null
     private var ngReasons = emptyList<DebugDictItemDto>()
     private var repairResults = emptyList<DebugDictItemDto>()
@@ -156,11 +158,22 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         }
         viewModel.repairOperationDone.observe(this) {
             val action = submitAction
+            val allowsRecheck = submitAllowsRecheck
+            val handoffQrCode = submittedQrCode
             submitAction = null
+            submitAllowsRecheck = false
+            submittedQrCode = ""
             when {
-                RepairSubmitSuccessRules.shouldPrompt(action) -> showRepairNextStepDialog()
                 action == RepairAction.DRAFT -> {
                     JToast.show("维修记录已保存")
+                    clearRepairPage()
+                }
+                action == RepairAction.SUBMIT && allowsRecheck -> {
+                    clearRepairPage()
+                    RecheckActivity.start(this, handoffQrCode)
+                }
+                action == RepairAction.SUBMIT -> {
+                    JToast.show("维修结果已提交")
                     clearRepairPage()
                 }
                 else -> renderButtons()
@@ -256,6 +269,8 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         }
         val action = submitAction
         submitAction = null
+        submitAllowsRecheck = false
+        submittedQrCode = ""
         if (uploadingRepairPhoto) {
             uploadingRepairPhoto = false
             pendingPhotoFile = null
@@ -302,6 +317,8 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         lastSubmitAt = 0L
         scanInProgress = false
         submitAction = null
+        submitAllowsRecheck = false
+        submittedQrCode = ""
         currentState = null
         selectedNgReason = ""
         selectedRepairResult = ""
@@ -371,20 +388,15 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
             .show()
     }
 
-    private fun showRepairNextStepDialog() {
-        val handoffQrCode = RepairSubmitSuccessRules.handoffQrCode(binding.inputSn.text())
+    private fun showFinalStateSubmitDialog(request: RepairSubmitRequest) {
         JConfirmDialog(this, this)
-            .setTitle("维修提交成功")
-            .setMessage("请选择下一步操作")
-            .setCancelText("继续维修")
-            .setConfirmText("去复检")
+            .setTitle("确认提交")
+            .setMessage("该状态为最终状态，确认后无法继续使用，是否确认？")
+            .setCancelText("取消")
+            .setConfirmText("确认")
             .setCancelable(false)
-            .setOnCancel {
-                clearRepairPage()
-            }
             .setOnConfirm {
-                clearRepairPage()
-                RecheckActivity.start(this, handoffQrCode)
+                dispatchRepair(request, RepairAction.SUBMIT, allowsRecheck = false)
             }
             .show()
     }
@@ -590,7 +602,27 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
                 .take(MAX_PHOTO_COUNT)
                 .map { RepairFileDto(fileId = it) },
         )
+        val allowsRecheck = action == RepairAction.SUBMIT &&
+            RepairSubmitSuccessRules.isRecheckAllowed(result, repairResults)
+        if (action == RepairAction.SUBMIT && !allowsRecheck) {
+            showFinalStateSubmitDialog(request)
+            return
+        }
+        dispatchRepair(request, action, allowsRecheck)
+    }
+
+    private fun dispatchRepair(
+        request: RepairSubmitRequest,
+        action: RepairAction,
+        allowsRecheck: Boolean,
+    ) {
         submitAction = action
+        submitAllowsRecheck = allowsRecheck
+        submittedQrCode = if (allowsRecheck) {
+            RepairSubmitSuccessRules.handoffQrCode(binding.inputSn.text())
+        } else {
+            ""
+        }
         renderButtons()
         viewModel.submitRepair(request)
     }

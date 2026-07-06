@@ -22,9 +22,16 @@ import com.jj.zds.data.dto.login.LoginRequest
 import com.jj.zds.data.dto.menu.ZdsMenuDto
 import com.jj.zds.data.dto.productionplan.LineDto
 import com.jj.zds.data.dto.productionplan.ProductionBindProgressDto
+import com.jj.zds.data.dto.productionplan.ProductionCirculationInfoDto
+import com.jj.zds.data.dto.productionplan.ProductionCirculationMaterialDto
+import com.jj.zds.data.dto.productionplan.ProductionCirculationPrintLogDto
+import com.jj.zds.data.dto.productionplan.ProductionCirculationPrintRequest
+import com.jj.zds.data.dto.productionplan.ProductionCirculationProgressDto
 import com.jj.zds.data.dto.productionplan.ProductionEquipmentCheckRequest
 import com.jj.zds.data.dto.productionplan.ProductionKeyPartBindRequest
 import com.jj.zds.data.dto.productionplan.ProductionKeyPartBindResultDto
+import com.jj.zds.data.dto.productionplan.ProductionOverallTestProgressDto
+import com.jj.zds.data.dto.productionplan.ProductionOverallTestSnInfoDto
 import com.jj.zds.data.dto.productionplan.ProductionPlanDto
 import com.jj.zds.data.dto.productionplan.ProductionPlanStatus
 import com.jj.zds.data.dto.productionplan.ProductionPersonCheckRequest
@@ -116,6 +123,9 @@ class ZdsViewModel : JiangViewModel() {
     private val _debugPlans = MutableLiveData<List<DebugPlanDto>>()
     val debugPlans: LiveData<List<DebugPlanDto>> = _debugPlans
 
+    private val _debugPlanProgressPlans = MutableLiveData<List<DebugPlanDto>>()
+    val debugPlanProgressPlans: LiveData<List<DebugPlanDto>> = _debugPlanProgressPlans
+
     private val _debugPlansLoadFinished = MutableLiveData<Unit>()
     val debugPlansLoadFinished: LiveData<Unit> = _debugPlansLoadFinished
 
@@ -132,8 +142,39 @@ class ZdsViewModel : JiangViewModel() {
     val productionStationProgressList: LiveData<List<ProductionStationProgressDto>> =
         _productionStationProgressList
 
+    private val _productionOverallTestProgress = MutableLiveData<ProductionOverallTestProgressDto>()
+    val productionOverallTestProgress: LiveData<ProductionOverallTestProgressDto> =
+        _productionOverallTestProgress
+
+    private val _productionOverallTestSnInfo = MutableLiveData<ProductionOverallTestSnInfoDto>()
+    val productionOverallTestSnInfo: LiveData<ProductionOverallTestSnInfoDto> =
+        _productionOverallTestSnInfo
+
+    private val _productionOverallTestOperationDone = MutableLiveData<Boolean>()
+    val productionOverallTestOperationDone: LiveData<Boolean> =
+        _productionOverallTestOperationDone
+
     private val _productionBindProgress = MutableLiveData<ProductionBindProgressDto>()
     val productionBindProgress: LiveData<ProductionBindProgressDto> = _productionBindProgress
+
+    private val _productionCirculationProgress = MutableLiveData<ProductionCirculationProgressDto>()
+    val productionCirculationProgress: LiveData<ProductionCirculationProgressDto> =
+        _productionCirculationProgress
+
+    private val _productionCirculationInfo = MutableLiveData<ProductionCirculationInfoDto>()
+    val productionCirculationInfo: LiveData<ProductionCirculationInfoDto> =
+        _productionCirculationInfo
+
+    private val _productionCirculationMaterials = MutableLiveData<List<ProductionCirculationMaterialDto>>()
+    val productionCirculationMaterials: LiveData<List<ProductionCirculationMaterialDto>> =
+        _productionCirculationMaterials
+
+    private val _productionCirculationPrintLogs = MutableLiveData<List<ProductionCirculationPrintLogDto>>()
+    val productionCirculationPrintLogs: LiveData<List<ProductionCirculationPrintLogDto>> =
+        _productionCirculationPrintLogs
+
+    private val _productionCirculationPrintDone = MutableLiveData<Unit>()
+    val productionCirculationPrintDone: LiveData<Unit> = _productionCirculationPrintDone
 
     private val _productionSnBindInfo = MutableLiveData<ProductionSnBindInfoDto>()
     val productionSnBindInfo: LiveData<ProductionSnBindInfoDto> = _productionSnBindInfo
@@ -147,6 +188,9 @@ class ZdsViewModel : JiangViewModel() {
 
     private val _productionStartResult = MutableLiveData<ProductionStartResult>()
     val productionStartResult: LiveData<ProductionStartResult> = _productionStartResult
+
+    private val _productionFinishDone = MutableLiveData<Unit>()
+    val productionFinishDone: LiveData<Unit> = _productionFinishDone
 
     private val _productionSwitchDetail = MutableLiveData<ProductionSwitchDetailDto>()
     val productionSwitchDetail: LiveData<ProductionSwitchDetailDto> = _productionSwitchDetail
@@ -844,6 +888,145 @@ class ZdsViewModel : JiangViewModel() {
         )
     }
 
+    fun finishProduction(planId: String, forceFinish: Boolean = false) {
+        val trimmedPlanId = planId.trim()
+        if (trimmedPlanId.isBlank()) {
+            showToast("生产计划ID为空")
+            return
+        }
+        launchResult(
+            loadingMode = JiangLoadingMode.DIALOG,
+            loadingMessage = "结束生产中...",
+            block = { repository.finishProduction(trimmedPlanId, forceFinish) },
+            onSuccess = { _productionFinishDone.value = Unit },
+        )
+    }
+
+    fun loadDebugPlanProgress(code: String = "") {
+        launch(showLoading = false) {
+            when (
+                val result = repository.getDebugPlanList(
+                    DebugPlanListRequest(code = code),
+                )
+            ) {
+                is JiangResult.Success -> _debugPlanProgressPlans.value = result.data
+                is JiangResult.Error,
+                JiangResult.Loading,
+                JiangResult.Empty -> Unit
+            }
+        }
+    }
+
+    fun loadProductionCirculationProgress(planId: String) {
+        val id = planId.trim()
+        if (id.isBlank()) return
+        launchResult(
+            loadingMode = JiangLoadingMode.PAGE,
+            block = { repository.getProductionCirculationProgress(id) },
+            onSuccess = { _productionCirculationProgress.value = it },
+        )
+    }
+
+    fun loadProductionCirculationInfo(id: String) {
+        val circulationId = id.trim()
+        if (circulationId.isBlank()) return
+        launchResult(
+            loadingMode = JiangLoadingMode.PAGE,
+            block = { repository.getProductionCirculationInfo(circulationId) },
+            onSuccess = { _productionCirculationInfo.value = it },
+        )
+    }
+
+    fun loadProductionCirculationMaterials(circulationId: String) {
+        val id = circulationId.trim()
+        if (id.isBlank()) return
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = { repository.getProductionCirculationMaterials(id) },
+            onSuccess = { _productionCirculationMaterials.value = it },
+        )
+    }
+
+    fun loadProductionCirculationPrintLogs(circulationId: String) {
+        val id = circulationId.trim()
+        if (id.isBlank()) return
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = { repository.getProductionCirculationPrintLogs(id) },
+            onSuccess = { _productionCirculationPrintLogs.value = it },
+        )
+    }
+
+    fun printProductionCirculation(request: ProductionCirculationPrintRequest) {
+        launchResult(
+            loadingMode = JiangLoadingMode.DIALOG,
+            loadingMessage = "打印中...",
+            block = { repository.printProductionCirculation(request) },
+            onSuccess = { _productionCirculationPrintDone.value = Unit },
+        )
+    }
+
+    fun loadProductionOverallTestProgress(planId: String) {
+        val trimmedPlanId = planId.trim()
+        if (trimmedPlanId.isBlank()) {
+            showToast("生产计划ID为空")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = { repository.getProductionOverallTestProgress(trimmedPlanId) },
+            onSuccess = { progress ->
+                _productionOverallTestProgress.value = progress
+            },
+        )
+    }
+
+    fun loadProductionOverallTestSnInfo(planId: String, proSn: String) {
+        val trimmedPlanId = planId.trim()
+        val trimmedProSn = proSn.trim()
+        if (trimmedPlanId.isBlank()) {
+            showToast("生产计划ID为空")
+            return
+        }
+        if (trimmedProSn.isBlank()) {
+            showToast("请先扫描产品码")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = { repository.getProductionOverallTestSnInfo(trimmedPlanId, trimmedProSn) },
+            onSuccess = { info ->
+                _productionOverallTestSnInfo.value = info
+            },
+        )
+    }
+
+    fun submitProductionOverallTest(
+        planId: String,
+        proSn: String,
+        isDraft: Boolean,
+        ngPhenomena: String,
+        checkGroupDto: DebugCheckGroupDto,
+    ) {
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = {
+                repository.submitProductionOverallTest(
+                    planId = planId.trim(),
+                    proSn = proSn.trim(),
+                    isDraft = isDraft,
+                    ngPhenomena = ngPhenomena.trim(),
+                    checkGroupDto = checkGroupDto,
+                )
+            },
+            onSuccess = {
+                _productionOverallTestOperationDone.value = isDraft
+            },
+        )
+    }
+
     /**
      * 批次调试提交后的计划级不良数检查使用独立结果，不污染页面通用错误状态。
      */
@@ -979,6 +1162,7 @@ class ZdsViewModel : JiangViewModel() {
         qrCode: String,
         ngPhenomena: String?,
         checkGroupDto: DebugCheckGroupDto,
+        isDraft: Boolean,
     ) {
         val trimmedCode = qrCode.trim()
         if (trimmedCode.isBlank()) {
@@ -993,6 +1177,7 @@ class ZdsViewModel : JiangViewModel() {
                     qrCode = trimmedCode,
                     ngPhenomena = ngPhenomena,
                     checkGroupDto = checkGroupDto,
+                    isDraft = isDraft,
                 )
             },
             onSuccess = {

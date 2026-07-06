@@ -18,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/pda_bg_home_workbench"
-            android:elevation="4dp"
+            android:elevation="0dp"
             android:orientation="vertical"
             android:paddingStart="@dimen/j_space_12"
             android:paddingEnd="@dimen/j_space_12"
@@ -62,7 +62,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/pda_bg_card"
-            android:elevation="3dp"
+            android:elevation="0dp"
             android:orientation="vertical"
             android:padding="@dimen/j_space_12"
             android:visibility="gone">

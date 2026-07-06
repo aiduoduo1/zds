@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/pda_bg_page"
+    android:orientation="vertical"
+    android:padding="@dimen/j_space_12">
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="@dimen/j_radius_md"
+        app:cardElevation="2dp"
+        app:strokeColor="@color/j_color_line_light"
+        app:strokeWidth="1dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/j_space_12">
+
+            <EditText
+                android:id="@+id/inputPrintQuantity"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@drawable/j_bg_scan_input"
+                android:gravity="center_vertical"
+                android:hint="请输入本次打印数量"
+                android:inputType="number"
+                android:maxLines="1"
+                android:paddingStart="@dimen/j_space_12"
+                android:paddingEnd="@dimen/j_space_12"
+                android:selectAllOnFocus="true"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvProduct"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_8"
+                android:textColor="@color/j_color_text_secondary"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/tvDefaultHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_4"
+                android:textColor="@color/j_color_warning"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_2"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <TextView android:id="@+id/tvPendingCount" android:layout_width="0dp" android:layout_height="56dp" android:layout_weight="1" android:background="@drawable/pda_bg_card" android:gravity="center" android:textColor="@color/j_color_text_primary" android:textSize="12sp" />
+        <TextView android:id="@+id/tvPrintableCount" android:layout_width="0dp" android:layout_height="56dp" android:layout_marginStart="@dimen/j_space_6" android:layout_weight="1" android:background="@drawable/pda_bg_card" android:gravity="center" android:textColor="@color/j_color_text_primary" android:textSize="12sp" />
+        <TextView android:id="@+id/tvTailCount" android:layout_width="0dp" android:layout_height="56dp" android:layout_marginStart="@dimen/j_space_6" android:layout_weight="1" android:background="@drawable/pda_bg_card" android:gravity="center" android:textColor="@color/j_color_text_primary" android:textSize="12sp" />
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerCirculation"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/j_space_2"
+        android:layout_weight="1"
+        android:clipToPadding="false" />
+
+    <TextView
+        android:id="@+id/tvEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:text="暂无已打印流转单"
+        android:textColor="@color/j_color_text_secondary"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:orientation="horizontal">
+
+        <Button android:id="@+id/btnTailPrint" style="@style/JStyle.Button.Secondary" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="尾箱打印" />
+        <Button android:id="@+id/btnPrint" style="@style/JStyle.Button.Primary" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="@dimen/j_space_8" android:layout_weight="1" android:text="打印" />
+    </LinearLayout>
+</LinearLayout>

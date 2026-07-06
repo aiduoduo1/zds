@@ -10,4 +10,5 @@ data class RecheckSubmitRequest(
     val qrCode: String,
     val ngPhenomena: String? = null,
     val checkGroupDto: DebugCheckGroupDto,
+    val isDraft: Boolean,
 )

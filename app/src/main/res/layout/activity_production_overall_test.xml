@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/JStyle.Page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/j_space_8"
+    tools:theme="@style/Theme.Zds">
+
+    <com.jj.ui.input.JInputLayout
+        android:id="@+id/inputSn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:jInputClearEnabled="true"
+        app:jInputCompact="true"
+        app:jInputHint="扫描或输入产品码"
+        app:jInputMode="scan"
+        app:jInputSelectAllOnFocus="true"
+        app:jInputTitle="整体测试" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerChecks"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:descendantFocusability="afterDescendants"
+        tools:itemCount="8"
+        tools:listitem="@layout/item_single_debug_check_switch" />
+</LinearLayout>
+
+
+
+

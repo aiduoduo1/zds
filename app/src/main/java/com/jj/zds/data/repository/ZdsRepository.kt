@@ -37,12 +37,26 @@ import com.jj.zds.data.dto.menu.ZdsMenuDto
 import com.jj.zds.data.dto.productionplan.LineDto
 import com.jj.zds.data.dto.productionplan.PlanRequest
 import com.jj.zds.data.dto.productionplan.ProductionBindProgressDto
+import com.jj.zds.data.dto.productionplan.ProductionCirculationInfoDto
+import com.jj.zds.data.dto.productionplan.ProductionCirculationInfoRequest
+import com.jj.zds.data.dto.productionplan.ProductionCirculationMaterialDto
+import com.jj.zds.data.dto.productionplan.ProductionCirculationPrintLogDto
+import com.jj.zds.data.dto.productionplan.ProductionCirculationPrintRequest
+import com.jj.zds.data.dto.productionplan.ProductionCirculationProgressDto
+import com.jj.zds.data.dto.productionplan.ProductionCirculationProgressRequest
+import com.jj.zds.data.dto.productionplan.ProductionCirculationQueryRequest
 import com.jj.zds.data.dto.productionplan.ProductionEndSwitchRequest
 import com.jj.zds.data.dto.productionplan.ProductionEquipmentCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionFinishRequest
 import com.jj.zds.data.dto.productionplan.ProductionKeyPartBindRequest
 import com.jj.zds.data.dto.productionplan.ProductionKeyPartBindResultDto
 import com.jj.zds.data.dto.productionplan.ProductionPlanExecuteRequest
 import com.jj.zds.data.dto.productionplan.ProductionMaterialCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionOverallTestCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionOverallTestProgressDto
+import com.jj.zds.data.dto.productionplan.ProductionOverallTestProgressRequest
+import com.jj.zds.data.dto.productionplan.ProductionOverallTestSnInfoDto
+import com.jj.zds.data.dto.productionplan.ProductionOverallTestSnInfoRequest
 import com.jj.zds.data.dto.productionplan.ProductionPersonCheckRequest
 import com.jj.zds.data.dto.productionplan.ProductionPlanDto
 import com.jj.zds.data.dto.productionplan.ProductionPlanListRequest
@@ -345,6 +359,164 @@ class ZdsRepository(
         }
     }
 
+    suspend fun getProductionOverallTestProgress(
+        planId: String,
+    ): JiangResult<ProductionOverallTestProgressDto> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.getProductionOverallTestProgress(
+                    ProductionOverallTestProgressRequest(planId = planId.trim()),
+                )
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Overall test progress is empty.",
+            )
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun getProductionCirculationProgress(
+        planId: String,
+    ): JiangResult<ProductionCirculationProgressDto> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.getProductionCirculationProgress(
+                    ProductionCirculationProgressRequest(planId = planId),
+                )
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Circulation progress is empty.",
+            )
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun getProductionCirculationInfo(
+        id: String,
+    ): JiangResult<ProductionCirculationInfoDto> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.getProductionCirculationInfo(ProductionCirculationInfoRequest(id = id))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Circulation information is empty.",
+            )
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun getProductionCirculationMaterials(
+        circulationId: String,
+    ): JiangResult<List<ProductionCirculationMaterialDto>> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.getProductionCirculationMaterials(
+                    ProductionCirculationQueryRequest(circulationId = circulationId.trim()),
+                )
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Circulation material list is empty.",
+            )
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun getProductionCirculationPrintLogs(
+        circulationId: String,
+    ): JiangResult<List<ProductionCirculationPrintLogDto>> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.getProductionCirculationPrintLogs(
+                    ProductionCirculationQueryRequest(circulationId = circulationId.trim()),
+                )
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Circulation print log list is empty.",
+            )
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun printProductionCirculation(
+        request: ProductionCirculationPrintRequest,
+    ): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.printProductionCirculation(request)
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun getProductionOverallTestSnInfo(
+        planId: String,
+        proSn: String,
+    ): JiangResult<ProductionOverallTestSnInfoDto> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.getProductionOverallTestSnInfo(
+                    ProductionOverallTestSnInfoRequest(
+                        planId = planId.trim(),
+                        proSn = proSn.trim(),
+                    ),
+                )
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Overall test SN information is empty.",
+            )
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun submitProductionOverallTest(
+        planId: String,
+        proSn: String,
+        isDraft: Boolean,
+        ngPhenomena: String,
+        checkGroupDto: DebugCheckGroupDto,
+    ): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.submitProductionOverallTest(
+                    ProductionOverallTestCheckRequest(
+                        planId = planId,
+                        proSn = proSn,
+                        isDraft = isDraft,
+                        ngPhenomena = ngPhenomena,
+                        checkGroupDto = checkGroupDto,
+                    ),
+                )
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
     suspend fun getProductionBindProgress(planId: String): JiangResult<ProductionBindProgressDto> {
         return when (
             val result = JiangApiCaller.safeApiCall {
@@ -408,6 +580,21 @@ class ZdsRepository(
         return when (
             val result = JiangApiCaller.safeApiCall {
                 api.startProduction(ProductionPlanExecuteRequest(planId = planId))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun finishProduction(planId: String, forceFinish: Boolean): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.finishProduction(
+                    ProductionFinishRequest(planId = planId, forceFinish = forceFinish),
+                )
             }
         ) {
             is JiangResult.Success -> result.data.toUnitResult()
@@ -718,6 +905,7 @@ class ZdsRepository(
         qrCode: String,
         ngPhenomena: String?,
         checkGroupDto: DebugCheckGroupDto,
+        isDraft: Boolean,
     ): JiangResult<Unit> {
         return when (
             val result = JiangApiCaller.safeApiCall {
@@ -726,6 +914,7 @@ class ZdsRepository(
                         qrCode = qrCode,
                         ngPhenomena = ngPhenomena,
                         checkGroupDto = checkGroupDto,
+                        isDraft = isDraft,
                     ),
                 )
             }

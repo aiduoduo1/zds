@@ -1,18 +1,22 @@
 package com.jj.zds.feature.debugplan.adapter
 
+import android.app.AlertDialog
 import android.graphics.Color
 import android.text.Editable
 import android.text.InputFilter
 import android.text.TextWatcher
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import java.math.BigDecimal
 import androidx.core.content.ContextCompat
 import coil.load
 import com.jj.ui.recycler.multitype.JItemBinder
@@ -27,6 +31,7 @@ import com.jj.zds.feature.debugplan.data.DebugTaskSwitchRow
 import com.jj.zds.feature.debugplan.data.DebugTaskTextRow
 import com.jj.zds.feature.debugplan.data.DebugTaskValueRow
 import com.jj.zds.feature.debugplan.ui.DebugTaskInputRules
+import com.jj.zds.feature.debugplan.ui.DebugTaskItemDisplayRules
 import com.jj.zds.feature.photo.PhotoUploadMode
 import com.jj.zds.feature.repair.data.buildRepairFileUrl
 
@@ -52,8 +57,10 @@ class DebugTaskSwitchBinder(
         position: Int,
     ) {
         binding.viewStatus.bindStatus(item.result)
-        binding.tvTitle.text = item.title
-        binding.tvDescription.bindDescription(item.description)
+        binding.tvTitle.bindTitle(item.title)
+        val display = DebugTaskItemDisplayRules.build(item.dto.standardOption, item.description)
+        binding.tvContent.bindDescription(display.content)
+        binding.tvDescription.bindDescription(display.description)
         binding.btnPass.applyResultButton(item.result == DebugTaskCheckResult.PASS, DebugTaskCheckResult.PASS)
         binding.btnFail.applyResultButton(item.result == DebugTaskCheckResult.FAIL, DebugTaskCheckResult.FAIL)
         binding.btnPass.setOnClickListener { onResultChange(item.checkId, DebugTaskCheckResult.PASS) }
@@ -64,6 +71,7 @@ class DebugTaskSwitchBinder(
 class DebugTaskValueBinder(
     private val onValueChange: (id: String, value: String, result: DebugTaskCheckResult) -> Unit,
     private val onFocus: (id: String) -> Unit,
+    private val onNext: () -> Unit,
 ) : JItemBinder<DebugTaskValueRow, ItemSingleDebugCheckValueBinding>() {
 
     override fun isForViewType(item: Any): Boolean = item is DebugTaskValueRow
@@ -84,7 +92,7 @@ class DebugTaskValueBinder(
         position: Int,
     ) {
         binding.viewStatus.bindStatus(item.result)
-        binding.tvTitle.text = item.title
+        binding.tvTitle.bindTitle(item.title)
         binding.tvUnit.text = item.unit
         binding.tvReference.text = item.referenceValue.ifBlank { "参考值：-" }
         binding.tvDescription.bindDescription(item.description)
@@ -96,6 +104,17 @@ class DebugTaskValueBinder(
         }
         binding.editValue.setOnFocusChangeListener { _, hasFocus ->
             if (hasFocus) onFocus(item.checkId)
+        }
+        binding.editValue.imeOptions = EditorInfo.IME_ACTION_NEXT
+        binding.editValue.setOnEditorActionListener { _, actionId, event ->
+            val isNext = actionId == EditorInfo.IME_ACTION_NEXT
+            val isEnter = event?.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_UP
+            if (isNext || isEnter) {
+                onNext()
+                true
+            } else {
+                false
+            }
         }
     }
 }
@@ -128,7 +147,7 @@ class DebugTaskTextBinder(
         position: Int,
     ) {
         binding.viewStatus.bindStatus(item.result)
-        binding.tvTitle.text = item.title
+        binding.tvTitle.bindTitle(item.title)
         binding.tvRemarkState.text = item.remark.ifBlank { "未填写" }
         binding.tvDescription.bindDescription(item.description)
         binding.btnRemark.text = if (item.remark.isBlank()) "填写" else "修改"
@@ -160,8 +179,10 @@ class DebugTaskPhotoBinder(
         position: Int,
     ) {
         binding.viewStatus.bindStatus(item.result)
-        binding.tvTitle.text = item.title
-        binding.tvDescription.bindDescription(item.description)
+        binding.tvTitle.bindTitle(item.title)
+        val display = DebugTaskItemDisplayRules.build(item.dto.standardOption, item.description)
+        binding.tvContent.bindDescription(display.content)
+        binding.tvDescription.bindDescription(display.description)
         binding.tvPhotoState.text = if (item.photos.isNotEmpty()) {
             "${item.photos.size}张"
         } else {
@@ -293,6 +314,26 @@ private fun TextView.bindDescription(description: String) {
     visibility = if (textValue.isBlank()) View.GONE else View.VISIBLE
 }
 
+private fun TextView.bindTitle(title: String) {
+    val shortTitle = DebugTaskItemDisplayRules.shortTitle(title)
+    text = shortTitle
+    val truncated = shortTitle != title.trim()
+    isClickable = truncated
+    setOnClickListener(
+        if (truncated) {
+            View.OnClickListener {
+                AlertDialog.Builder(context)
+                    .setTitle("项目名称")
+                    .setMessage(title)
+                    .setPositiveButton("知道了", null)
+                    .show()
+            }
+        } else {
+            null
+        },
+    )
+}
+
 private fun View.bindStatus(result: DebugTaskCheckResult) {
     visibility = when (result) {
         DebugTaskCheckResult.PENDING -> View.GONE
@@ -338,14 +379,14 @@ private fun EditText.replaceAfterTextChanged(
 /**
  * 数值判定规则：空值待处理，非数字失败，超过上下限失败，其余通过。
  */
-private fun String.toValueResult(minValue: Int?, maxValue: Int?): DebugTaskCheckResult {
+private fun String.toValueResult(minValue: BigDecimal?, maxValue: BigDecimal?): DebugTaskCheckResult {
     if (isBlank()) return DebugTaskCheckResult.PENDING
     val number = toBigDecimalOrNull() ?: return DebugTaskCheckResult.FAIL
     minValue?.let {
-        if (number < it.toBigDecimal()) return DebugTaskCheckResult.FAIL
+        if (number < it) return DebugTaskCheckResult.FAIL
     }
     maxValue?.let {
-        if (number > it.toBigDecimal()) return DebugTaskCheckResult.FAIL
+        if (number > it) return DebugTaskCheckResult.FAIL
     }
     return DebugTaskCheckResult.PASS
 }

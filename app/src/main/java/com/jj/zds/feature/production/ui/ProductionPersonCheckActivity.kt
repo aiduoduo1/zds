@@ -423,7 +423,7 @@ class ProductionPersonCheckActivity :
     }
 
     private fun PersonCheckRow.matchesSkill(user: CurUserDto): Boolean {
-        val requiredSkillId = item.skiId?.trim()?.takeIf { it.isNotBlank() } ?: return false
+        val requiredSkillId = item.skiId?.trim()?.takeIf { it.isNotBlank() } ?: return true
         return user.skiList
             .orEmpty()
             .any { it.skillId?.trim() == requiredSkillId }

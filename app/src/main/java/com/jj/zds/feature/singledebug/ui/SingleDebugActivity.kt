@@ -8,14 +8,13 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
-import android.text.InputFilter
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.EditText
 import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,7 +26,6 @@ import coil.load
 import com.jj.core.permission.hasJiangPermission
 import com.jj.storage.JiangStorage
 import com.jj.ui.base.JiangToolbarStateVmActivity
-import com.jj.ui.dialog.JInputDialog
 import com.jj.ui.dialog.JSingleChoiceDialog
 import com.jj.ui.recycler.adapter.JBindingAdapter
 import com.jj.ui.recycler.ext.addDefaultDivider
@@ -54,6 +52,10 @@ import com.jj.zds.feature.debugplan.data.DebugTaskPhotoRow
 import com.jj.zds.feature.debugplan.data.DebugTaskSwitchRow
 import com.jj.zds.feature.debugplan.data.DebugTaskTextRow
 import com.jj.zds.feature.debugplan.data.DebugTaskValueRow
+import com.jj.zds.feature.debugplan.ui.DebugTaskCheckOrder
+import com.jj.zds.feature.debugplan.ui.DebugTaskNextActionRules
+import com.jj.zds.feature.debugplan.ui.DebugTaskRemarkDialog
+import com.jj.zds.feature.debugplan.ui.focusDebugCheck
 import com.jj.zds.feature.debugplan.ui.DebugTaskCollectType
 import com.jj.zds.feature.debugplan.ui.DebugTaskInputRules
 import com.jj.zds.feature.debugplan.ui.DebugTaskSubmitRules
@@ -62,6 +64,7 @@ import com.jj.zds.feature.photo.PhotoUploadMode
 import com.jj.zds.feature.repair.data.buildRepairFileUrl
 import com.jj.zds.viewmodel.ZdsViewModel
 import java.io.File
+import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -85,7 +88,7 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
     )
     private val checkAdapter = JMultiBindingAdapter<DebugTaskCheckRow>()
         .addItemBinder(DebugTaskSwitchBinder(::updateSwitchResult))
-        .addItemBinder(DebugTaskValueBinder(::updateValueResult, ::scrollCheckIntoView))
+        .addItemBinder(DebugTaskValueBinder(::updateValueResult, ::scrollCheckIntoView, ::handleCheckNextAction))
         .addItemBinder(DebugTaskTextBinder(::showRemarkDialog))
         .addItemBinder(
             DebugTaskPhotoBinder(
@@ -135,6 +138,20 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
 
     override fun createViewBinding(inflater: LayoutInflater): ActivitySingleDebugBinding {
         return ActivitySingleDebugBinding.inflate(inflater)
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (
+            DebugTaskNextActionRules.shouldHandlePageEnter(
+                hasCheckForm = currentSn != null && checks.isNotEmpty(),
+                isEnterKey = event.keyCode == KeyEvent.KEYCODE_ENTER,
+                isKeyUp = event.action == KeyEvent.ACTION_UP,
+            )
+        ) {
+            handleCheckNextAction()
+            return true
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     override fun initView(savedInstanceState: Bundle?) {
@@ -416,25 +433,23 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
 
     private fun showRemarkDialog(id: String) {
         val item = checks.firstOrNull { it.checkId == id } as? DebugTaskTextRow ?: return
-        object : JInputDialog(this, this) {
-            init {
-                (inputLayout.focusedInputView() as? EditText)?.filters = arrayOf(
-                    InputFilter.LengthFilter(DebugTaskInputRules.MAX_INPUT_LENGTH),
-                )
+        val applyRemark: (String) -> Unit = { remark ->
+            updateCheck(id) { oldItem ->
+                (oldItem as? DebugTaskTextRow)?.copy(
+                    remark = remark,
+                    result = remark.toTextResult(oldItem.expectedText),
+                ) ?: oldItem
             }
+        }
+        DebugTaskRemarkDialog(this, this) { remark ->
+            applyRemark(remark)
+            binding.root.post(::handleCheckNextAction)
         }
             .setTitle(item.title)
             .setInputTitle("调试说明")
             .setHint(item.expectedText.ifBlank { "输入提示文本内容" })
             .setText(item.remark)
-            .setOnConfirm { remark ->
-                updateCheck(id) { oldItem ->
-                    (oldItem as? DebugTaskTextRow)?.copy(
-                        remark = remark,
-                        result = remark.toTextResult(oldItem.expectedText),
-                    ) ?: oldItem
-                }
-            }
+            .setOnConfirm(applyRemark)
             .selectAll()
             .show()
     }
@@ -556,11 +571,17 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
     }
 
     private fun scrollToFirstPending() {
-        val position = checks.indexOfFirst {
-            it.result == DebugTaskCheckResult.PENDING && !it.dto.isSkipable
-        }
+        val position = DebugTaskNextActionRules.firstPendingIndex(checks)
         if (position < 0) return
-        binding.recyclerChecks.smoothScrollToPosition(position + HEADER_ITEM_COUNT)
+        binding.recyclerChecks.focusDebugCheck(position + HEADER_ITEM_COUNT, checks[position])
+    }
+
+    private fun handleCheckNextAction() {
+        if (DebugTaskNextActionRules.firstPendingIndex(checks) >= 0) {
+            scrollToFirstPending()
+        } else {
+            submitChecks()
+        }
     }
 
     private fun requestCheckVisible(position: Int) {
@@ -587,18 +608,12 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
     }
 
     private fun DebugCheckGroupDto.toRows(): List<DebugTaskCheckRow> {
-        return checkList
-            .sortedBy { it.sort }
-            .flatMapIndexed { firstIndex, first ->
-                first.children.sortedBy { it.sort }.flatMapIndexed { secondIndex, second ->
-                    second.children.sortedBy { it.sort }.mapIndexed { itemIndex, item ->
-                        item.toRow(
-                            typeLabel = "${firstIndex + 1}.${secondIndex + 1}.${itemIndex + 1}",
-                            parentKey = "${first.name.orEmpty()}-${second.id.orEmpty()}-${itemIndex}",
-                        )
-                    }
-                }
-            }
+        return DebugTaskCheckOrder.flatten(this).map { path ->
+            path.item.toRow(
+                typeLabel = path.typeLabel,
+                parentKey = path.parentKey,
+            )
+        }
     }
 
     private fun DebugCheckItemDto.toRow(
@@ -733,14 +748,14 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
         }
     }
 
-    private fun String.toInitialValueResult(minValue: Int?, maxValue: Int?): DebugTaskCheckResult {
+    private fun String.toInitialValueResult(minValue: BigDecimal?, maxValue: BigDecimal?): DebugTaskCheckResult {
         if (isBlank()) return DebugTaskCheckResult.PENDING
         val number = toBigDecimalOrNull() ?: return DebugTaskCheckResult.FAIL
         minValue?.let {
-            if (number < it.toBigDecimal()) return DebugTaskCheckResult.FAIL
+            if (number < it) return DebugTaskCheckResult.FAIL
         }
         maxValue?.let {
-            if (number > it.toBigDecimal()) return DebugTaskCheckResult.FAIL
+            if (number > it) return DebugTaskCheckResult.FAIL
         }
         return DebugTaskCheckResult.PASS
     }

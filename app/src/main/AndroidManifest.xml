@@ -67,6 +67,18 @@
             android:exported="false"
             android:windowSoftInputMode="stateHidden|stateUnchanged" />
         <activity
+            android:name=".feature.production.ui.ProductionOverallTestActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+        <activity
+            android:name=".feature.production.ui.ProductionCirculationPrintActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+        <activity
+            android:name=".feature.production.ui.ProductionCirculationDetailActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
+        <activity
             android:name=".feature.production.ui.ProductionSnBindActivity"
             android:exported="false"
             android:windowSoftInputMode="stateHidden|stateUnchanged" />

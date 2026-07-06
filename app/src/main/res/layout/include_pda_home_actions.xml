@@ -18,10 +18,10 @@
             android:layout_weight="1"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#FAFCFF"
+            app:cardBackgroundColor="@color/j_color_bg_card"
             app:cardCornerRadius="8dp"
-            app:cardElevation="3dp"
-            app:strokeColor="#E8EEF5"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/j_color_line_light"
             app:strokeWidth="1dp">
 
             <TextView
@@ -40,10 +40,10 @@
             android:layout_weight="1"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#FAFCFF"
+            app:cardBackgroundColor="@color/j_color_bg_card"
             app:cardCornerRadius="8dp"
-            app:cardElevation="3dp"
-            app:strokeColor="#E8EEF5"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/j_color_line_light"
             app:strokeWidth="1dp">
 
             <TextView
@@ -62,10 +62,10 @@
             android:layout_weight="1"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#FAFCFF"
+            app:cardBackgroundColor="@color/j_color_bg_card"
             app:cardCornerRadius="8dp"
-            app:cardElevation="3dp"
-            app:strokeColor="#E8EEF5"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/j_color_line_light"
             app:strokeWidth="1dp">
 
             <TextView
@@ -90,10 +90,10 @@
             android:layout_weight="1"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#FAFCFF"
+            app:cardBackgroundColor="@color/j_color_bg_card"
             app:cardCornerRadius="8dp"
-            app:cardElevation="3dp"
-            app:strokeColor="#E8EEF5"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/j_color_line_light"
             app:strokeWidth="1dp">
 
             <TextView
@@ -112,10 +112,10 @@
             android:layout_weight="1"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#FAFCFF"
+            app:cardBackgroundColor="@color/j_color_bg_card"
             app:cardCornerRadius="8dp"
-            app:cardElevation="3dp"
-            app:strokeColor="#E8EEF5"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/j_color_line_light"
             app:strokeWidth="1dp">
 
             <TextView
@@ -141,10 +141,10 @@
             android:layout_weight="1"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#FAFCFF"
+            app:cardBackgroundColor="@color/j_color_bg_card"
             app:cardCornerRadius="8dp"
-            app:cardElevation="3dp"
-            app:strokeColor="#E8EEF5"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/j_color_line_light"
             app:strokeWidth="1dp">
 
             <TextView
@@ -163,10 +163,10 @@
             android:layout_weight="1"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#FAFCFF"
+            app:cardBackgroundColor="@color/j_color_bg_card"
             app:cardCornerRadius="8dp"
-            app:cardElevation="3dp"
-            app:strokeColor="#E8EEF5"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/j_color_line_light"
             app:strokeWidth="1dp">
 
             <TextView
@@ -185,10 +185,10 @@
             android:layout_weight="1"
             android:clickable="true"
             android:focusable="true"
-            app:cardBackgroundColor="#FAFCFF"
+            app:cardBackgroundColor="@color/j_color_bg_card"
             app:cardCornerRadius="8dp"
-            app:cardElevation="3dp"
-            app:strokeColor="#E8EEF5"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/j_color_line_light"
             app:strokeWidth="1dp">
 
             <TextView

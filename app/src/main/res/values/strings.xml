@@ -3,8 +3,8 @@
     <string name="menu_pic">菜单图标</string>
     <string name="main_title">zds</string>
     <string name="main_subtitle">JiangCore business project is ready.</string>
-    <string name="login_title">ZDS 登录</string>
-    <string name="login_subtitle">请输入账号和密码</string>
+    <string name="login_title">DZS</string>
+    <string name="login_subtitle">智能制造·高效协同</string>
     <string name="login_account">账号</string>
     <string name="login_account_hint">请输入账号</string>
     <string name="login_password">密码</string>

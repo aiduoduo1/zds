@@ -28,11 +28,25 @@ import com.jj.zds.data.dto.menu.ZdsMenuDto
 import com.jj.zds.data.dto.productionplan.LineDto
 import com.jj.zds.data.dto.productionplan.PlanRequest
 import com.jj.zds.data.dto.productionplan.ProductionBindProgressDto
+import com.jj.zds.data.dto.productionplan.ProductionCirculationInfoDto
+import com.jj.zds.data.dto.productionplan.ProductionCirculationInfoRequest
+import com.jj.zds.data.dto.productionplan.ProductionCirculationMaterialDto
+import com.jj.zds.data.dto.productionplan.ProductionCirculationPrintLogDto
+import com.jj.zds.data.dto.productionplan.ProductionCirculationPrintRequest
+import com.jj.zds.data.dto.productionplan.ProductionCirculationProgressDto
+import com.jj.zds.data.dto.productionplan.ProductionCirculationProgressRequest
+import com.jj.zds.data.dto.productionplan.ProductionCirculationQueryRequest
 import com.jj.zds.data.dto.productionplan.ProductionEndSwitchRequest
 import com.jj.zds.data.dto.productionplan.ProductionEquipmentCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionFinishRequest
 import com.jj.zds.data.dto.productionplan.ProductionKeyPartBindRequest
 import com.jj.zds.data.dto.productionplan.ProductionKeyPartBindResultDto
 import com.jj.zds.data.dto.productionplan.ProductionMaterialCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionOverallTestCheckRequest
+import com.jj.zds.data.dto.productionplan.ProductionOverallTestProgressDto
+import com.jj.zds.data.dto.productionplan.ProductionOverallTestProgressRequest
+import com.jj.zds.data.dto.productionplan.ProductionOverallTestSnInfoDto
+import com.jj.zds.data.dto.productionplan.ProductionOverallTestSnInfoRequest
 import com.jj.zds.data.dto.productionplan.ProductionPersonCheckRequest
 import com.jj.zds.data.dto.productionplan.ProductionPlanDto
 import com.jj.zds.data.dto.productionplan.ProductionPlanExecuteRequest
@@ -160,9 +174,54 @@ interface ZdsApi {
         @Body request: ProductionPlanExecuteRequest,
     ): ZdsBaseResult<ProductionStationProgressDetailDto>
 
+    @POST("/pro/proPlaDtl/testProgress")
+    suspend fun getProductionOverallTestProgress(
+        @Body request: ProductionOverallTestProgressRequest,
+    ): ZdsBaseResult<ProductionOverallTestProgressDto>
+
+    @POST("/pro/proPlaDtl/snTestInfo")
+    suspend fun getProductionOverallTestSnInfo(
+        @Body request: ProductionOverallTestSnInfoRequest,
+    ): ZdsBaseResult<ProductionOverallTestSnInfoDto>
+
+    @POST("/pro/proPlaDtl/check")
+    suspend fun submitProductionOverallTest(
+        @Body request: ProductionOverallTestCheckRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/matCirculation/circulationProgress")
+    suspend fun getProductionCirculationProgress(
+        @Body request: ProductionCirculationProgressRequest,
+    ): ZdsBaseResult<ProductionCirculationProgressDto>
+
+    @POST("/pro/matCirculation/circulationInfo")
+    suspend fun getProductionCirculationInfo(
+        @Body request: ProductionCirculationInfoRequest,
+    ): ZdsBaseResult<ProductionCirculationInfoDto>
+
+    @POST("/pro/matCirculationToMat/matInfo")
+    suspend fun getProductionCirculationMaterials(
+        @Body request: ProductionCirculationQueryRequest,
+    ): ZdsBaseResult<List<ProductionCirculationMaterialDto>>
+
+    @POST("/pro/matCirculationPrintLog/printLog")
+    suspend fun getProductionCirculationPrintLogs(
+        @Body request: ProductionCirculationQueryRequest,
+    ): ZdsBaseResult<List<ProductionCirculationPrintLogDto>>
+
+    @POST("/pro/matCirculation/print")
+    suspend fun printProductionCirculation(
+        @Body request: ProductionCirculationPrintRequest,
+    ): ZdsBaseResult<Any>
+
     @POST("/pro/proPlaDtl/startProduce")
     suspend fun startProduction(
         @Body request: ProductionPlanExecuteRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/proPlaDtl/finishProduce")
+    suspend fun finishProduction(
+        @Body request: ProductionFinishRequest,
     ): ZdsBaseResult<Any>
 
     @POST("/pro/proLineSwi/beginSwitch")

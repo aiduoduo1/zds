@@ -75,6 +75,9 @@ class DebugPlanListFragment : JiangVmFragment<ActivityDebugPlanListBinding, ZdsV
                     taskId = item.id,
                     requireSubmitPhoto = item.requireSubmitPhoto,
                     planMaterialCode = item.materialCode,
+                    planCode = item.code,
+                    bindSnCount = item.bindSnCount,
+                    planCheckQty = item.planCheckQty,
                 ),
             )
         }

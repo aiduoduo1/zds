@@ -9,12 +9,11 @@ import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
-import android.text.InputFilter
 import android.view.Gravity
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.EditText
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.PopupWindow
@@ -28,7 +27,6 @@ import coil.load
 import com.jj.core.permission.hasJiangPermission
 import com.jj.storage.JiangStorage
 import com.jj.ui.base.JiangToolbarStateVmActivity
-import com.jj.ui.dialog.JInputDialog
 import com.jj.ui.dialog.JSingleChoiceDialog
 import com.jj.ui.recycler.adapter.JBindingAdapter
 import com.jj.ui.recycler.ext.addDefaultDivider
@@ -55,6 +53,10 @@ import com.jj.zds.feature.debugplan.data.DebugTaskPhotoRow
 import com.jj.zds.feature.debugplan.data.DebugTaskSwitchRow
 import com.jj.zds.feature.debugplan.data.DebugTaskTextRow
 import com.jj.zds.feature.debugplan.data.DebugTaskValueRow
+import com.jj.zds.feature.debugplan.ui.DebugTaskCheckOrder
+import com.jj.zds.feature.debugplan.ui.DebugTaskNextActionRules
+import com.jj.zds.feature.debugplan.ui.DebugTaskRemarkDialog
+import com.jj.zds.feature.debugplan.ui.focusDebugCheck
 import com.jj.zds.feature.debugplan.ui.DebugTaskCollectType
 import com.jj.zds.feature.debugplan.ui.DebugTaskInputRules
 import com.jj.zds.feature.photo.PhotoUploadFileProcessor
@@ -62,6 +64,7 @@ import com.jj.zds.feature.photo.PhotoUploadMode
 import com.jj.zds.feature.repair.data.buildRepairFileUrl
 import com.jj.zds.viewmodel.ZdsViewModel
 import java.io.File
+import java.math.BigDecimal
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -85,7 +88,7 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
     )
     private val checkAdapter = JMultiBindingAdapter<DebugTaskCheckRow>()
         .addItemBinder(DebugTaskSwitchBinder(::updateSwitchResult))
-        .addItemBinder(DebugTaskValueBinder(::updateValueResult, ::scrollCheckIntoView))
+        .addItemBinder(DebugTaskValueBinder(::updateValueResult, ::scrollCheckIntoView, ::handleCheckNextAction))
         .addItemBinder(DebugTaskTextBinder(::showRemarkDialog))
         .addItemBinder(
             DebugTaskPhotoBinder(
@@ -137,6 +140,20 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
         return ActivitySingleDebugBinding.inflate(inflater)
     }
 
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (
+            DebugTaskNextActionRules.shouldHandlePageEnter(
+                hasCheckForm = currentSn != null && checks.isNotEmpty(),
+                isEnterKey = event.keyCode == KeyEvent.KEYCODE_ENTER,
+                isKeyUp = event.action == KeyEvent.ACTION_UP,
+            )
+        ) {
+            handleCheckNextAction()
+            return true
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
     override fun initView(savedInstanceState: Bundle?) {
         qrCode = intent.getStringExtra(EXTRA_QR_CODE).orEmpty().trim()
         binding.inputSn.setTitle("复检")
@@ -180,8 +197,10 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
             handleCheckPhotoUploaded(result.checkId, result.fileId)
         }
         viewModel.debugOperationDone.observe(this) {
-            if (activeOperation == ActiveOperation.SUBMIT) {
-                handleSubmitDone()
+            when (activeOperation) {
+                ActiveOperation.SAVE_DRAFT -> handleSaveDone()
+                ActiveOperation.SUBMIT -> handleSubmitDone()
+                else -> Unit
             }
         }
     }
@@ -262,8 +281,15 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
             pendingCount > 0 -> "还有 $pendingCount 个检查项未完成"
             else -> "检查项已全部完成"
         }
+        val canOperate = currentSn != null && activeOperation == ActiveOperation.NONE
+        itemBinding.btnSave.text = if (activeOperation == ActiveOperation.SAVE_DRAFT) "保存中..." else "保存"
+        itemBinding.btnSave.isEnabled = canOperate
+        itemBinding.btnSave.alpha = if (itemBinding.btnSave.isEnabled) 1f else 0.6f
+        itemBinding.btnSave.setOnClickListener {
+            saveDraft()
+        }
         itemBinding.btnSubmit.text = if (activeOperation == ActiveOperation.SUBMIT) "提交中..." else "提交检查"
-        itemBinding.btnSubmit.isEnabled = currentSn != null && activeOperation != ActiveOperation.SUBMIT
+        itemBinding.btnSubmit.isEnabled = canOperate
         itemBinding.btnSubmit.alpha = if (itemBinding.btnSubmit.isEnabled) 1f else 0.6f
         itemBinding.btnSubmit.setOnClickListener {
             submitChecks()
@@ -319,7 +345,16 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
             scrollToFirstPending()
             return
         }
-        submitRecheck(ngPhenomena = null)
+        submitRecheck(ngPhenomena = null, isDraft = false)
+    }
+
+    private fun saveDraft() {
+        if (currentSn == null || currentCheckGroup == null) {
+            JToast.show("请先扫描 SN")
+            focusScanInput(selectAll = false)
+            return
+        }
+        submitRecheck(ngPhenomena = null, isDraft = true)
     }
 
     private fun showNgPhenomenaDialog(items: List<DebugDictItemDto>) {
@@ -337,21 +372,28 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
                 if (value.isNullOrBlank()) {
                     JToast.show("请选择不良现象")
                 } else {
-                    submitRecheck(value)
+                    submitRecheck(value, isDraft = false)
                 }
             }
             .show()
     }
 
-    private fun submitRecheck(ngPhenomena: String?) {
+    private fun submitRecheck(ngPhenomena: String?, isDraft: Boolean) {
         val group = currentCheckGroup ?: return
-        activeOperation = ActiveOperation.SUBMIT
+        activeOperation = if (isDraft) ActiveOperation.SAVE_DRAFT else ActiveOperation.SUBMIT
         footerAdapter.updateItem(0, Unit)
         viewModel.submitRecheck(
             qrCode = qrCode,
             ngPhenomena = ngPhenomena,
             checkGroupDto = group.withRowResults(checks),
+            isDraft = isDraft,
         )
+    }
+
+    private fun handleSaveDone() {
+        activeOperation = ActiveOperation.NONE
+        footerAdapter.updateItem(0, Unit)
+        JToast.show("草稿已保存")
     }
 
     private fun handleSubmitDone() {
@@ -396,25 +438,23 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
 
     private fun showRemarkDialog(id: String) {
         val item = checks.firstOrNull { it.checkId == id } as? DebugTaskTextRow ?: return
-        object : JInputDialog(this, this) {
-            init {
-                (inputLayout.focusedInputView() as? EditText)?.filters = arrayOf(
-                    InputFilter.LengthFilter(DebugTaskInputRules.MAX_INPUT_LENGTH),
-                )
+        val applyRemark: (String) -> Unit = { remark ->
+            updateCheck(id) { oldItem ->
+                (oldItem as? DebugTaskTextRow)?.copy(
+                    remark = remark,
+                    result = remark.toTextResult(oldItem.expectedText),
+                ) ?: oldItem
             }
+        }
+        DebugTaskRemarkDialog(this, this) { remark ->
+            applyRemark(remark)
+            binding.root.post(::handleCheckNextAction)
         }
             .setTitle(item.title)
             .setInputTitle("调试说明")
             .setHint(item.expectedText.ifBlank { "输入提示文本内容" })
             .setText(item.remark)
-            .setOnConfirm { remark ->
-                updateCheck(id) { oldItem ->
-                    (oldItem as? DebugTaskTextRow)?.copy(
-                        remark = remark,
-                        result = remark.toTextResult(oldItem.expectedText),
-                    ) ?: oldItem
-                }
-            }
+            .setOnConfirm(applyRemark)
             .selectAll()
             .show()
     }
@@ -536,11 +576,17 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
     }
 
     private fun scrollToFirstPending() {
-        val position = checks.indexOfFirst {
-            it.result == DebugTaskCheckResult.PENDING && !it.dto.isSkipable
-        }
+        val position = DebugTaskNextActionRules.firstPendingIndex(checks)
         if (position < 0) return
-        binding.recyclerChecks.smoothScrollToPosition(position + HEADER_ITEM_COUNT)
+        binding.recyclerChecks.focusDebugCheck(position + HEADER_ITEM_COUNT, checks[position])
+    }
+
+    private fun handleCheckNextAction() {
+        if (DebugTaskNextActionRules.firstPendingIndex(checks) >= 0) {
+            scrollToFirstPending()
+        } else {
+            submitChecks()
+        }
     }
 
     private fun requestCheckVisible(position: Int) {
@@ -567,18 +613,12 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
     }
 
     private fun DebugCheckGroupDto.toRows(): List<DebugTaskCheckRow> {
-        return checkList
-            .sortedBy { it.sort }
-            .flatMapIndexed { firstIndex, first ->
-                first.children.sortedBy { it.sort }.flatMapIndexed { secondIndex, second ->
-                    second.children.sortedBy { it.sort }.mapIndexed { itemIndex, item ->
-                        item.toRow(
-                            typeLabel = "${firstIndex + 1}.${secondIndex + 1}.${itemIndex + 1}",
-                            parentKey = "${first.name.orEmpty()}-${second.id.orEmpty()}-${itemIndex}",
-                        )
-                    }
-                }
-            }
+        return DebugTaskCheckOrder.flatten(this).map { path ->
+            path.item.toRow(
+                typeLabel = path.typeLabel,
+                parentKey = path.parentKey,
+            )
+        }
     }
 
     private fun DebugCheckItemDto.toRow(
@@ -713,14 +753,14 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
         }
     }
 
-    private fun String.toInitialValueResult(minValue: Int?, maxValue: Int?): DebugTaskCheckResult {
+    private fun String.toInitialValueResult(minValue: BigDecimal?, maxValue: BigDecimal?): DebugTaskCheckResult {
         if (isBlank()) return DebugTaskCheckResult.PENDING
         val number = toBigDecimalOrNull() ?: return DebugTaskCheckResult.FAIL
         minValue?.let {
-            if (number < it.toBigDecimal()) return DebugTaskCheckResult.FAIL
+            if (number < it) return DebugTaskCheckResult.FAIL
         }
         maxValue?.let {
-            if (number > it.toBigDecimal()) return DebugTaskCheckResult.FAIL
+            if (number > it) return DebugTaskCheckResult.FAIL
         }
         return DebugTaskCheckResult.PASS
     }
@@ -802,6 +842,7 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
     private enum class ActiveOperation {
         NONE,
         WAITING_NG,
+        SAVE_DRAFT,
         SUBMIT,
     }
 

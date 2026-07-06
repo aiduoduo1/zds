@@ -26,9 +26,9 @@ class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
     private lateinit var binding: ActivityPdaMainBinding
     private var currentTab = PdaTab.HOME
 
-    private val homeFragment by lazy { PdaHomeFragment() }
-    private val debugFragment by lazy { DebugPlanListFragment() }
-    private val produceFragment by lazy { PdaProduceFragment() }
+    private lateinit var homeFragment: PdaHomeFragment
+    private lateinit var debugFragment: DebugPlanListFragment
+    private lateinit var produceFragment: PdaProduceFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,6 +44,7 @@ class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
         ) { item ->
             onToolbarMenuClick(item)
         }
+        restoreFragments()
         bindBackNavigation()
         bindTabs()
         switchTab(PdaTab.HOME)
@@ -79,9 +80,29 @@ class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
         currentTab = tab
         updateHeader(tab)
         renderTabs(tab)
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, tab.fragment())
-            .commit()
+        val targetFragment = tab.fragment()
+        val transaction = supportFragmentManager.beginTransaction()
+        listOf(homeFragment, debugFragment, produceFragment).forEach { fragment ->
+            if (fragment.isAdded && fragment !== targetFragment) {
+                transaction.hide(fragment)
+            }
+        }
+        if (targetFragment.isAdded) {
+            transaction.show(targetFragment)
+        } else {
+            transaction.add(R.id.fragmentContainer, targetFragment, tab.fragmentTag())
+        }
+        transaction.setPrimaryNavigationFragment(targetFragment)
+        transaction.commit()
+    }
+
+    private fun restoreFragments() {
+        homeFragment = supportFragmentManager.findFragmentByTag(TAG_HOME) as? PdaHomeFragment
+            ?: PdaHomeFragment()
+        debugFragment = supportFragmentManager.findFragmentByTag(TAG_DEBUG) as? DebugPlanListFragment
+            ?: DebugPlanListFragment()
+        produceFragment = supportFragmentManager.findFragmentByTag(TAG_PRODUCE) as? PdaProduceFragment
+            ?: PdaProduceFragment()
     }
 
     private fun updateHeader(tab: PdaTab) {
@@ -157,6 +178,14 @@ class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
         }
     }
 
+    private fun PdaTab.fragmentTag(): String {
+        return when (this) {
+            PdaTab.HOME -> TAG_HOME
+            PdaTab.DEBUG -> TAG_DEBUG
+            PdaTab.PRODUCE -> TAG_PRODUCE
+        }
+    }
+
     private enum class PdaTab {
         HOME,
         DEBUG,
@@ -164,6 +193,9 @@ class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
     }
 
     private companion object {
+        const val TAG_HOME = "pda_home"
+        const val TAG_DEBUG = "pda_debug"
+        const val TAG_PRODUCE = "pda_produce"
         const val MENU_UPDATE = 1
         const val MENU_LOGOUT = 2
     }

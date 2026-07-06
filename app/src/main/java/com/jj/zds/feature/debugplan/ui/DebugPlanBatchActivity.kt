@@ -36,6 +36,7 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
 
     private var taskId: String = ""
     private var planMaterialCode: String = ""
+    private var planCode: String = ""
     private var requireSubmitPhoto = false
     private var refreshOnResume = false
     private var finishingPlan = false
@@ -103,6 +104,7 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
     override fun initView(savedInstanceState: Bundle?) {
         taskId = intent.getStringExtra(EXTRA_TASK_ID).orEmpty()
         planMaterialCode = intent.getStringExtra(EXTRA_PLAN_MATERIAL_CODE).orEmpty()
+        planCode = intent.getStringExtra(EXTRA_PLAN_CODE).orEmpty()
         requireSubmitPhoto = intent.getBooleanExtra(EXTRA_REQUIRE_SUBMIT_PHOTO, false)
         if (taskId.isBlank()) {
             JToast.show("调试计划ID为空")
@@ -149,6 +151,12 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
             binding.refreshLayout.isRefreshing = false
             renderDetail(detail)
         }
+        viewModel.debugPlanProgressPlans.observe(this) { plans ->
+            val plan = DebugPlanBatchProgressRules.selectPlan(plans, taskId) ?: return@observe
+            toolbar.setSubtitleText(
+                DebugPlanBatchProgressRules.subtitle(plan.bindSnCount, plan.planCheckQty),
+            )
+        }
         viewModel.debugPlanFinishResult.observe(this) { result ->
             handlePlanFinishResult(result)
         }
@@ -159,7 +167,12 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
 
     override fun toolbarTitle(): CharSequence = "调试计划"
 
-    override fun toolbarSubtitle(): CharSequence = "调试批次创建/执行"
+    override fun toolbarSubtitle(): CharSequence {
+        return DebugPlanBatchProgressRules.subtitle(
+            bindSnCount = intent.getIntExtra(EXTRA_BIND_SN_COUNT, 0),
+            planCheckQty = intent.getIntExtra(EXTRA_PLAN_CHECK_QTY, 0),
+        )
+    }
 
     override fun toolbarMenuItems(): List<JiangToolbarMenuItem> {
         return listOf(JiangToolbarMenuItem(MENU_SYNC, "刷新"))
@@ -200,6 +213,7 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
     private fun refreshDetail() {
         binding.refreshLayout.isRefreshing = true
         viewModel.loadDebugPlanDetail(taskId)
+        viewModel.loadDebugPlanProgress(planCode)
     }
 
     private fun renderDetail(detail: DebugPlanDetailDto) {
@@ -486,6 +500,9 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
         private const val EXTRA_TASK_ID = "extra_task_id"
         private const val EXTRA_REQUIRE_SUBMIT_PHOTO = "extra_require_submit_photo"
         private const val EXTRA_PLAN_MATERIAL_CODE = "extra_plan_material_code"
+        private const val EXTRA_PLAN_CODE = "extra_plan_code"
+        private const val EXTRA_BIND_SN_COUNT = "extra_bind_sn_count"
+        private const val EXTRA_PLAN_CHECK_QTY = "extra_plan_check_qty"
         private const val MENU_SYNC = 1
         private const val CODE_FINISH_NEED_FORCE_PASS = 10011
 
@@ -494,12 +511,25 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
             taskId: String?,
             requireSubmitPhoto: Boolean = false,
             planMaterialCode: String = "",
+            planCode: String = "",
+            bindSnCount: Int = 0,
+            planCheckQty: Int = 0,
         ) {
             if (taskId.isNullOrBlank()) {
                 JToast.show("调试计划ID为空")
                 return
             }
-            context.startActivity(createIntent(context, taskId, requireSubmitPhoto, planMaterialCode))
+            context.startActivity(
+                createIntent(
+                    context = context,
+                    taskId = taskId,
+                    requireSubmitPhoto = requireSubmitPhoto,
+                    planMaterialCode = planMaterialCode,
+                    planCode = planCode,
+                    bindSnCount = bindSnCount,
+                    planCheckQty = planCheckQty,
+                ),
+            )
         }
 
         fun createIntent(
@@ -507,11 +537,17 @@ class DebugPlanBatchActivity : JiangToolbarStateVmActivity<ActivityDebugPlanBatc
             taskId: String,
             requireSubmitPhoto: Boolean = false,
             planMaterialCode: String = "",
+            planCode: String = "",
+            bindSnCount: Int = 0,
+            planCheckQty: Int = 0,
         ): Intent {
             return Intent(context, DebugPlanBatchActivity::class.java)
                 .putExtra(EXTRA_TASK_ID, taskId)
                 .putExtra(EXTRA_REQUIRE_SUBMIT_PHOTO, requireSubmitPhoto)
                 .putExtra(EXTRA_PLAN_MATERIAL_CODE, planMaterialCode)
+                .putExtra(EXTRA_PLAN_CODE, planCode)
+                .putExtra(EXTRA_BIND_SN_COUNT, bindSnCount)
+                .putExtra(EXTRA_PLAN_CHECK_QTY, planCheckQty)
         }
     }
 }

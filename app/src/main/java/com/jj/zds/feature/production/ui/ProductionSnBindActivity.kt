@@ -88,7 +88,7 @@ class ProductionSnBindActivity :
             }
             currentInfo = info
             currentProSn = returnedProSn
-            rows = info.catList.mapIndexed { index, item ->
+            rows = info.catList.orEmpty().mapIndexed { index, item ->
                 item.toBindCategoryRow(index)
             }.toMutableList()
             scanStep = ScanStep.SN

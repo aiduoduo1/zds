@@ -1,5 +1,7 @@
 package com.jj.zds.data.dto.debugplan
 
+import java.math.BigDecimal
+
 data class DebugBoxScanValidRequest(
     val iqcTaskId: String,
     val boxQrCode: String,
@@ -112,8 +114,8 @@ data class DebugCheckItemDto(
     val collectType: String? = null,
     val isSkipable: Boolean = false,
     val standardOption: String? = null,
-    val minValue: Int? = null,
-    val maxValue: Int? = null,
+    val minValue: BigDecimal? = null,
+    val maxValue: BigDecimal? = null,
     val description: String? = null,
     val sort: Int = 0,
     val result: Any? = null,

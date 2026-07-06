@@ -119,4 +119,13 @@
         android:textColor="@color/j_color_text_secondary"
         android:textSize="@dimen/j_text_size_md"
         android:visibility="gone" />
+
+    <Button
+        android:id="@+id/btnFinishProduction"
+        style="@style/JStyle.Button.Danger"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:text="结束生产"
+        android:visibility="visible" />
 </LinearLayout>

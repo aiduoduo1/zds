@@ -14,8 +14,8 @@ internal object DebugTaskInputRules {
 
     fun resolveType(
         collectType: String?,
-        minValue: Int?,
-        maxValue: Int?,
+        minValue: Number?,
+        maxValue: Number?,
     ): DebugTaskCollectType {
         return when (collectType.orEmpty().trim().lowercase()) {
             "confirm" -> DebugTaskCollectType.CONFIRM
@@ -32,7 +32,7 @@ internal object DebugTaskInputRules {
 
     fun isValidNumCandidate(value: String): Boolean = numPattern.matches(value)
 
-    fun isInputMatched(value: String, reference: String): Boolean {
-        return value == reference
+    fun isInputMatched(value: String, _reference: String): Boolean {
+        return value.isNotBlank()
     }
 }

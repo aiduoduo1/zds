@@ -35,9 +35,21 @@ class ProductionExecuteProgressActivity :
 
     override fun initView(savedInstanceState: Bundle?) {
         binding.recyclerProgress.setupLinear(adapter)
+        binding.btnFinishProduction.setOnClickListener {
+            viewModel.finishProduction(planId)
+        }
         adapter.setOnItemClickListener { item, _ ->
-            if (item.operationType == OPERATION_BIND) {
-                ProductionSnBindActivity.start(
+            when (item.operationType) {
+                OPERATION_BIND -> ProductionSnBindActivity.start(
+                    context = this,
+                    planId = planId,
+                    planNo = planNo,
+                )
+                OPERATION_TEST -> ProductionOverallTestActivity.start(
+                    context = this,
+                    planId = planId,
+                )
+                OPERATION_PRINT -> ProductionCirculationPrintActivity.start(
                     context = this,
                     planId = planId,
                     planNo = planNo,
@@ -58,6 +70,11 @@ class ProductionExecuteProgressActivity :
             renderHeader(progressList)
             adapter.setList(progressList)
             binding.tvEmpty.visibility = if (progressList.isEmpty()) View.VISIBLE else View.GONE
+        }
+        viewModel.productionFinishDone.observe(this) {
+            JToast.show("计划完成")
+            setResult(RESULT_OK)
+            finish()
         }
     }
 
@@ -83,6 +100,21 @@ class ProductionExecuteProgressActivity :
     override fun defaultLoadingMode(): JiangLoadingMode = JiangLoadingMode.PAGE
 
     override fun errorMode(): JiangErrorMode = JiangErrorMode.TOAST
+
+    override fun onUiError(code: Int, message: String, throwable: Throwable?) {
+        if (code == CODE_FORCE_FINISH_REQUIRED) {
+            dismissLoadingDialog()
+            showContentPage()
+            showConfirmDialog(
+                title = "强制结束生产",
+                message = message,
+                confirmText = "确认结束",
+                onConfirm = { viewModel.finishProduction(planId, forceFinish = true) },
+            )
+            return
+        }
+        super.onUiError(code, message, throwable)
+    }
 
     private fun renderHeader(progressList: List<ProductionStationProgressDto>) {
         val finishedCount = progressList.sumOf { it.finishedCount.coerceAtLeast(0) }
@@ -153,6 +185,7 @@ class ProductionExecuteProgressActivity :
         private const val OPERATION_BIND = 1
         private const val OPERATION_TEST = 2
         private const val OPERATION_PRINT = 3
+        private const val CODE_FORCE_FINISH_REQUIRED = 10087
 
         fun start(
             context: Context,

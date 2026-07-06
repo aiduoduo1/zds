@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="@dimen/j_space_8"
+    app:cardCornerRadius="@dimen/j_radius_md"
+    app:cardElevation="2dp"
+    app:strokeColor="@color/j_color_line_light"
+    app:strokeWidth="1dp">
+
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/j_space_12">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+            <TextView android:id="@+id/tvCode" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:textColor="@color/j_color_text_primary" android:textSize="15sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tvType" android:layout_width="wrap_content" android:layout_height="26dp" android:background="@drawable/j_bg_status_info" android:gravity="center" android:minWidth="50dp" android:paddingStart="@dimen/j_space_8" android:paddingEnd="@dimen/j_space_8" android:textColor="@color/j_color_primary" android:textStyle="bold" />
+        </LinearLayout>
+        <TextView android:id="@+id/tvInfo" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/j_space_8" android:textColor="@color/j_color_text_secondary" android:textSize="12sp" />
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/j_space_8" android:gravity="end" android:orientation="horizontal">
+            <Button android:id="@+id/btnDetail" style="@style/JStyle.Button.Secondary" android:layout_width="wrap_content" android:layout_height="40dp" android:text="查看详情" />
+            <Button android:id="@+id/btnReprint" style="@style/JStyle.Button.Primary" android:layout_width="wrap_content" android:layout_height="40dp" android:layout_marginStart="@dimen/j_space_8" android:text="重新打印" />
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
