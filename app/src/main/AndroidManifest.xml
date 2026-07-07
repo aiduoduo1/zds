@@ -140,6 +140,26 @@
             android:exported="false"
             android:windowSoftInputMode="stateHidden|stateUnchanged" />
         <activity
+            android:name=".feature.aging.AgingActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateAlwaysHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.circulation.ui.CirculationManageActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.circulation.ui.CirculationDiscardActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+        <activity
+            android:name=".feature.circulation.ui.CirculationAdjustActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+        <activity
+            android:name=".feature.circulation.ui.CirculationTicketDetailActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
+        <activity
             android:name=".feature.twolevelscan.ui.TwoLevelScanDemoActivity"
             android:exported="false"
             android:windowSoftInputMode="stateHidden|stateUnchanged" />

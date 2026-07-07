@@ -133,6 +133,10 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
             )
             refreshData()
         }
+        viewModel.productionRunStateChanged.observe(viewLifecycleOwner) { result ->
+            JToast.show(if (result.paused) "生产已暂停" else "生产已重新开始")
+            refreshData()
+        }
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             if (state is JiangUiState.Error) {
                 JToast.show(state.message)
@@ -232,11 +236,22 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
         } else {
             View.GONE
         }
-        itemBinding.btnPause.visibility = if (status == ProductionPlanStatus.PRODUCT_ING) {
+        itemBinding.btnPause.visibility = if (
+            status == ProductionPlanStatus.PRODUCT_ING ||
+            status == ProductionPlanStatus.PAUSE
+        ) {
             View.VISIBLE
         } else {
             View.GONE
         }
+        itemBinding.btnPause.text = if (status == ProductionPlanStatus.PAUSE) "重新开始" else "暂停"
+        itemBinding.btnPause.setBackgroundResource(
+            if (status == ProductionPlanStatus.PAUSE) {
+                R.drawable.pda_bg_button_primary
+            } else {
+                R.drawable.pda_bg_button_warning
+            },
+        )
         itemBinding.btnFinishPlan.visibility = if (
             status == ProductionPlanStatus.PRODUCT_ING ||
             status == ProductionPlanStatus.PAUSE
@@ -264,7 +279,11 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
             }
         }
         itemBinding.btnPause.setOnClickListener {
-            JToast.show("暂停生产：${planNo.ifBlank { "-" }}")
+            if (status == ProductionPlanStatus.PAUSE) {
+                viewModel.restartProduction(planId)
+            } else {
+                viewModel.pauseProduction(planId)
+            }
         }
         itemBinding.btnFinishPlan.setOnClickListener {
             JToast.show("生产完成：${planNo.ifBlank { "-" }}")

@@ -5,11 +5,13 @@ data class ProductionCirculationProgressRequest(
 )
 
 data class ProductionCirculationInfoRequest(
-    val id: String,
+    val id: String? = null,
+    val qrCode: String? = null,
 )
 
 data class ProductionCirculationQueryRequest(
-    val circulationId: String,
+    val circulationId: String? = null,
+    val circulationQrCode: String? = null,
 )
 
 data class ProductionCirculationPrintRequest(
@@ -48,6 +50,7 @@ data class ProductionCirculationProgressDto(
 data class ProductionCirculationItemDto(
     val id: String? = null,
     val circulationCode: String? = null,
+    val valid: Boolean = true,
     val num: Int = 0,
     val sort: Int = 0,
     val type: Int = 0,
@@ -58,12 +61,18 @@ data class ProductionCirculationItemDto(
 data class ProductionCirculationInfoDto(
     val id: String? = null,
     val circulationCode: String? = null,
+    val valid: Boolean? = null,
+    val faceNum: Int = 0,
     val num: Int = 0,
     val generateTime: String? = null,
     val printTime: String? = null,
     val printCount: Int = 0,
+    val remark: String? = null,
     val orderCode: String? = null,
     val partCode: String? = null,
     val partName: String? = null,
     val specification: String? = null,
+    val tecVer: String? = null,
+    val lineName: String? = null,
+    val createByName: String? = null,
 )

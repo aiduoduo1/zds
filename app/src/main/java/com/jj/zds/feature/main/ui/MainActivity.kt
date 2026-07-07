@@ -16,6 +16,7 @@ import com.jj.zds.data.dto.menu.ZdsMenuDto
 import com.jj.zds.data.local.ZdsStorageKeys
 import com.jj.zds.databinding.ActivityMainBinding
 import com.jj.zds.databinding.ItemZdsMenuBinding
+import com.jj.zds.feature.aging.AgingActivity
 import com.jj.zds.feature.debugplan.ui.CurrentBatchDebugRecordActivity
 import com.jj.zds.feature.debugplan.ui.DebugPlanListActivity
 import com.jj.zds.feature.login.ui.LoginActivity
@@ -89,6 +90,7 @@ class MainActivity : JiangToolbarStateVmActivity<ActivityMainBinding, ZdsViewMod
             JiangToolbarMenuItem(MENU_QR_DECODE, "QrDecode"),
             JiangToolbarMenuItem(MENU_CURRENT_BATCH_RECORD, "BatchRecord"),
             JiangToolbarMenuItem(MENU_PDA_WORKBENCH, "PDA"),
+            JiangToolbarMenuItem(MENU_AGING_MANAGEMENT, "老化管理"),
             JiangToolbarMenuItem(MENU_LOGIN_OUT, "Logout"),
         )
     }
@@ -120,6 +122,7 @@ class MainActivity : JiangToolbarStateVmActivity<ActivityMainBinding, ZdsViewMod
                 startActivity(Intent(this, PdaMainActivity::class.java))
             }
 
+            MENU_AGING_MANAGEMENT -> startActivity(Intent(this, AgingActivity::class.java))
             MENU_LOGIN_OUT -> clearLogin()
         }
     }
@@ -179,6 +182,7 @@ class MainActivity : JiangToolbarStateVmActivity<ActivityMainBinding, ZdsViewMod
         const val MENU_CURRENT_BATCH_RECORD = 6
         const val MENU_PDA_WORKBENCH = 7
         const val MENU_LOGIN_OUT = 8
+        const val MENU_AGING_MANAGEMENT = 9
         const val PART_SWITCH = "partSwitch"
         const val PRODUCE = "produce"
         const val RECEIVE = "receive"

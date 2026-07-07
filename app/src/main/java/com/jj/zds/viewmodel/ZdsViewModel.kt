@@ -74,6 +74,11 @@ data class ProductionStartResult(
     val planId: String,
 )
 
+data class ProductionRunStateChangeResult(
+    val planId: String,
+    val paused: Boolean,
+)
+
 class ZdsViewModel : JiangViewModel() {
 
     private val repository by lazy { ZdsRepository() }
@@ -191,6 +196,10 @@ class ZdsViewModel : JiangViewModel() {
 
     private val _productionFinishDone = MutableLiveData<Unit>()
     val productionFinishDone: LiveData<Unit> = _productionFinishDone
+
+    private val _productionRunStateChanged = MutableLiveData<ProductionRunStateChangeResult>()
+    val productionRunStateChanged: LiveData<ProductionRunStateChangeResult> =
+        _productionRunStateChanged
 
     private val _productionSwitchDetail = MutableLiveData<ProductionSwitchDetailDto>()
     val productionSwitchDetail: LiveData<ProductionSwitchDetailDto> = _productionSwitchDetail
@@ -899,6 +908,32 @@ class ZdsViewModel : JiangViewModel() {
             loadingMessage = "结束生产中...",
             block = { repository.finishProduction(trimmedPlanId, forceFinish) },
             onSuccess = { _productionFinishDone.value = Unit },
+        )
+    }
+
+    fun pauseProduction(planId: String) {
+        changeProductionRunState(planId, paused = true)
+    }
+
+    fun restartProduction(planId: String) {
+        changeProductionRunState(planId, paused = false)
+    }
+
+    private fun changeProductionRunState(planId: String, paused: Boolean) {
+        val id = planId.trim()
+        if (id.isBlank()) {
+            showToast("生产计划ID为空")
+            return
+        }
+        launchResult(
+            loadingMode = JiangLoadingMode.DIALOG,
+            loadingMessage = if (paused) "暂停生产中..." else "重新开始生产中...",
+            block = {
+                if (paused) repository.pauseProduction(id) else repository.restartProduction(id)
+            },
+            onSuccess = {
+                _productionRunStateChanged.value = ProductionRunStateChangeResult(id, paused)
+            },
         )
     }
 

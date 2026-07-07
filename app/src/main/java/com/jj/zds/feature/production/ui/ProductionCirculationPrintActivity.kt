@@ -111,6 +111,7 @@ class ProductionCirculationPrintActivity :
             val id = item.id.orEmpty()
             if (id.isBlank()) JToast.show("流转单ID为空") else ProductionCirculationDetailActivity.start(this, id)
         }
+        itemBinding.btnReprint.visibility = if (item.valid) View.VISIBLE else View.GONE
         itemBinding.btnReprint.setOnClickListener {
             val id = item.id.orEmpty()
             if (id.isBlank()) {

@@ -16,6 +16,12 @@ class PdaHomeCardStyleContractTest {
         assertFalse(home.contains("android:elevation=\"3dp\""))
         assertFalse(actions.contains("app:cardElevation=\"3dp\""))
         assertTrue(actions.contains("app:strokeColor=\"@color/j_color_line_light\""))
+        assertTrue(actions.contains("android:id=\"@+id/btnAging\""))
+        assertTrue(actions.contains("android:text=\"老化管理\""))
+
+        val fragment = projectFile("src/main/java/com/jj/zds/feature/pda/PdaHomeFragment.kt").readText()
+        assertTrue(fragment.contains("binding.homeActions.btnAging.setOnClickListener"))
+        assertTrue(fragment.contains("AgingActivity::class.java"))
     }
 
     private fun projectFile(relativePath: String): File {

@@ -19,6 +19,8 @@ import com.jj.zds.data.dto.productionplan.LineDto
 import com.jj.zds.data.dto.productionplan.ProductionPlanDto
 import com.jj.zds.data.dto.productionplan.ProductionPlanStatus
 import com.jj.zds.databinding.FragmentPdaHomeBinding
+import com.jj.zds.feature.aging.AgingActivity
+import com.jj.zds.feature.circulation.ui.CirculationManageActivity
 import com.jj.zds.feature.recheck.ui.RecheckActivity
 import com.jj.zds.feature.repair.ui.RepairActivity
 import com.jj.zds.feature.singledebug.ui.SingleDebugActivity
@@ -240,6 +242,12 @@ class PdaHomeFragment : JiangVmFragment<FragmentPdaHomeBinding, ZdsViewModel>() 
         }
         binding.homeActions.btnRecheck.setOnClickListener {
             startActivity(Intent(requireContext(), RecheckActivity::class.java))
+        }
+        binding.homeActions.btnAging.setOnClickListener {
+            startActivity(Intent(requireContext(), AgingActivity::class.java))
+        }
+        binding.homeActions.btnCirculationManage.setOnClickListener {
+            startActivity(Intent(requireContext(), CirculationManageActivity::class.java))
         }
         binding.homeActions.btnProductIn.setOnClickListener { JToast.show("进入成品入库") }
         binding.homeActions.btnProductOut.setOnClickListener { JToast.show("进入成品出库") }

@@ -7,10 +7,22 @@ import com.jj.network.JiangNetwork
 import com.jj.network.call.JiangApiCaller
 import com.jj.storage.JiangStorage
 import com.jj.zds.data.api.ZdsApi
+import com.jj.zds.data.dto.aging.AgingProductDto
+import com.jj.zds.data.dto.aging.AgingEndDetailDto
+import com.jj.zds.data.dto.aging.AgingEndRequest
+import com.jj.zds.data.dto.aging.AgingScanValidRequest
+import com.jj.zds.data.dto.aging.AgingStartRequest
 import com.jj.zds.data.dto.common.CurUserDto
 import com.jj.zds.data.dto.common.UserSkillRequest
 import com.jj.zds.data.dto.common.ZdsBaseResult
 import com.jj.zds.data.dto.common.toJiangResult
+import com.jj.zds.data.dto.circulation.CirculationDiscardRequest
+import com.jj.zds.data.dto.circulation.CirculationCombineRequest
+import com.jj.zds.data.dto.circulation.CirculationProductCheckDto
+import com.jj.zds.data.dto.circulation.CirculationProductOperationRequest
+import com.jj.zds.data.dto.circulation.CirculationProductQrCodeRequest
+import com.jj.zds.data.dto.circulation.CirculationQrCodeRequest
+import com.jj.zds.data.dto.circulation.CirculationReasonDto
 import com.jj.zds.data.dto.debugplan.DebugBoxBindRequest
 import com.jj.zds.data.dto.debugplan.DebugBoxQrCodeDto
 import com.jj.zds.data.dto.debugplan.DebugBoxQrCodeRequest
@@ -334,6 +346,72 @@ class ZdsRepository(
         }
     }
 
+    suspend fun scanValidAgingProduct(qrCode: String): JiangResult<List<AgingProductDto>> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.scanValidAgingProduct(AgingScanValidRequest(qrCode = qrCode))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Aging product list is empty.",
+            )
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun startAging(products: List<AgingProductDto>): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.startAging(AgingStartRequest(agingProList = products))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun scanValidAgingEnd(qrCode: String): JiangResult<AgingEndDetailDto> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.scanValidAgingEnd(AgingScanValidRequest(qrCode = qrCode))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Aging end detail is empty.",
+            )
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun endAging(
+        id: String,
+        agingResult: String,
+        ngPhenomena: String,
+    ): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.endAging(
+                    AgingEndRequest(
+                        id = id,
+                        result = agingResult,
+                        ngPhenomena = ngPhenomena,
+                    ),
+                )
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
     suspend fun getProductionStationProgressList(planId: String): JiangResult<List<ProductionStationProgressDto>> {
         return when (
             val result = JiangApiCaller.safeApiCall {
@@ -412,6 +490,96 @@ class ZdsRepository(
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
         }
+    }
+
+    suspend fun getProductionCirculationInfoByQrCode(
+        qrCode: String,
+    ): JiangResult<ProductionCirculationInfoDto> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.getProductionCirculationInfo(ProductionCirculationInfoRequest(qrCode = qrCode))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Circulation information is empty.",
+            )
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun checkCirculationDiscard(qrCode: String): JiangResult<Unit> {
+        return JiangApiCaller.safeApiCall {
+            api.checkCirculationDiscard(CirculationQrCodeRequest(qrCode = qrCode))
+        }.let { result ->
+            when (result) {
+                is JiangResult.Success -> result.data.toUnitResult()
+                is JiangResult.Error -> result
+                JiangResult.Loading -> JiangResult.Loading
+                JiangResult.Empty -> JiangResult.Empty
+            }
+        }
+    }
+
+    suspend fun getCirculationDiscardReasons(): JiangResult<List<CirculationReasonDto>> {
+        return when (val result = JiangApiCaller.safeApiCall { api.getCirculationDiscardReasons() }) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Circulation discard reason list is empty.",
+            )
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun discardCirculation(request: CirculationDiscardRequest): JiangResult<Unit> {
+        return when (val result = JiangApiCaller.safeApiCall { api.discardCirculation(request) }) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun checkCirculationCombineMain(qrCode: String) = unitApiCall {
+        api.checkCirculationCombineMain(CirculationQrCodeRequest(qrCode))
+    }
+
+    suspend fun checkCirculationCombineFrom(qrCode: String) = unitApiCall {
+        api.checkCirculationCombineFrom(CirculationQrCodeRequest(qrCode))
+    }
+
+    suspend fun checkAddProductCirculation(qrCode: String) = unitApiCall {
+        api.checkAddProductCirculation(CirculationQrCodeRequest(qrCode))
+    }
+
+    suspend fun checkRemoveProductCirculation(qrCode: String) = unitApiCall {
+        api.checkRemoveProductCirculation(CirculationQrCodeRequest(qrCode))
+    }
+
+    suspend fun checkCirculationAddProduct(qrCode: String): JiangResult<List<CirculationProductCheckDto>> {
+        return dataApiCall { api.checkCirculationAddProduct(CirculationProductQrCodeRequest(qrCode)) }
+    }
+
+    suspend fun checkCirculationRemoveProduct(qrCode: String): JiangResult<List<CirculationProductCheckDto>> {
+        return dataApiCall { api.checkCirculationRemoveProduct(CirculationProductQrCodeRequest(qrCode)) }
+    }
+
+    suspend fun getCirculationCombineReasons(): JiangResult<List<CirculationReasonDto>> {
+        return dataApiCall { api.getCirculationCombineReasons() }
+    }
+
+    suspend fun combineCirculation(request: CirculationCombineRequest) = unitApiCall {
+        api.combineCirculation(request)
+    }
+
+    suspend fun addCirculationProduct(request: CirculationProductOperationRequest) = unitApiCall {
+        api.addCirculationProduct(request)
+    }
+
+    suspend fun removeCirculationProduct(request: CirculationProductOperationRequest) = unitApiCall {
+        api.removeCirculationProduct(request)
     }
 
     suspend fun getProductionCirculationMaterials(
@@ -595,6 +763,32 @@ class ZdsRepository(
                 api.finishProduction(
                     ProductionFinishRequest(planId = planId, forceFinish = forceFinish),
                 )
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun pauseProduction(planId: String): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.pauseProduction(ProductionPlanExecuteRequest(planId = planId))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun restartProduction(planId: String): JiangResult<Unit> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.restartProduction(ProductionPlanExecuteRequest(planId = planId))
             }
         ) {
             is JiangResult.Success -> result.data.toUnitResult()
@@ -1313,6 +1507,28 @@ class ZdsRepository(
                 message = message ?: msg ?: "Request failed.",
             ),
         )
+    }
+
+    private suspend fun unitApiCall(
+        call: suspend () -> ZdsBaseResult<*>,
+    ): JiangResult<Unit> {
+        return when (val result = JiangApiCaller.safeApiCall(call)) {
+            is JiangResult.Success -> result.data.toUnitResult()
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    private suspend fun <T : Any> dataApiCall(
+        call: suspend () -> ZdsBaseResult<T>,
+    ): JiangResult<T> {
+        return when (val result = JiangApiCaller.safeApiCall(call)) {
+            is JiangResult.Success -> result.data.toJiangResult("Response data is empty.")
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
     }
 
     private companion object {

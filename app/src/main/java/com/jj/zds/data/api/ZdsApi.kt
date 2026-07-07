@@ -1,8 +1,20 @@
 package com.jj.zds.data.api
 
+import com.jj.zds.data.dto.aging.AgingProductDto
+import com.jj.zds.data.dto.aging.AgingEndDetailDto
+import com.jj.zds.data.dto.aging.AgingEndRequest
+import com.jj.zds.data.dto.aging.AgingScanValidRequest
+import com.jj.zds.data.dto.aging.AgingStartRequest
 import com.jj.zds.data.dto.common.CurUserDto
 import com.jj.zds.data.dto.common.UserSkillRequest
 import com.jj.zds.data.dto.common.ZdsBaseResult
+import com.jj.zds.data.dto.circulation.CirculationCombineRequest
+import com.jj.zds.data.dto.circulation.CirculationDiscardRequest
+import com.jj.zds.data.dto.circulation.CirculationProductCheckDto
+import com.jj.zds.data.dto.circulation.CirculationProductOperationRequest
+import com.jj.zds.data.dto.circulation.CirculationProductQrCodeRequest
+import com.jj.zds.data.dto.circulation.CirculationQrCodeRequest
+import com.jj.zds.data.dto.circulation.CirculationReasonDto
 import com.jj.zds.data.dto.debugplan.DebugBoxBindRequest
 import com.jj.zds.data.dto.debugplan.DebugBoxQrCodeDto
 import com.jj.zds.data.dto.debugplan.DebugBoxQrCodeRequest
@@ -154,6 +166,26 @@ interface ZdsApi {
         @Body request: PlanRequest,
     ): ZdsBaseResult<List<LineDto>>
 
+    @POST("/pro/proAgingPlan/beScanValid")
+    suspend fun scanValidAgingProduct(
+        @Body request: AgingScanValidRequest,
+    ): ZdsBaseResult<List<AgingProductDto>>
+
+    @POST("/pro/proAgingPlan/startAging")
+    suspend fun startAging(
+        @Body request: AgingStartRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/proAgingPlan/afScanValid")
+    suspend fun scanValidAgingEnd(
+        @Body request: AgingScanValidRequest,
+    ): ZdsBaseResult<AgingEndDetailDto>
+
+    @POST("/pro/proAgingPlan/endAging")
+    suspend fun endAging(
+        @Body request: AgingEndRequest,
+    ): ZdsBaseResult<Any>
+
     @POST("/pro/proPlaDtl/bindProgress")
     suspend fun getProductionBindProgress(
         @Body request: ProductionPlanExecuteRequest,
@@ -214,6 +246,67 @@ interface ZdsApi {
         @Body request: ProductionCirculationPrintRequest,
     ): ZdsBaseResult<Any>
 
+    @POST("/pro/matCirculation/checkDiscard")
+    suspend fun checkCirculationDiscard(
+        @Body request: CirculationQrCodeRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/matCirculation/discardReason")
+    suspend fun getCirculationDiscardReasons(): ZdsBaseResult<List<CirculationReasonDto>>
+
+    @POST("/pro/matCirculation/discard")
+    suspend fun discardCirculation(
+        @Body request: CirculationDiscardRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/matCirculation/checkCombineMain")
+    suspend fun checkCirculationCombineMain(
+        @Body request: CirculationQrCodeRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/matCirculation/checkCombineFrom")
+    suspend fun checkCirculationCombineFrom(
+        @Body request: CirculationQrCodeRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/matCirculation/combineReason")
+    suspend fun getCirculationCombineReasons(): ZdsBaseResult<List<CirculationReasonDto>>
+
+    @POST("/pro/matCirculation/combine")
+    suspend fun combineCirculation(
+        @Body request: CirculationCombineRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/matCirculation/checkAddCirculation")
+    suspend fun checkAddProductCirculation(
+        @Body request: CirculationQrCodeRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/matCirculation/checkAddPro")
+    suspend fun checkCirculationAddProduct(
+        @Body request: CirculationProductQrCodeRequest,
+    ): ZdsBaseResult<List<CirculationProductCheckDto>>
+
+    @POST("/pro/matCirculation/addPro")
+    suspend fun addCirculationProduct(
+        @Body request: CirculationProductOperationRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/matCirculation/checkRemoveCirculation")
+    suspend fun checkRemoveProductCirculation(
+        @Body request: CirculationQrCodeRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/matCirculation/checkRemovePro")
+    suspend fun checkCirculationRemoveProduct(
+        @Body request: CirculationProductQrCodeRequest,
+    ): ZdsBaseResult<List<CirculationProductCheckDto>>
+
+    @POST("/pro/matCirculation/removePro")
+    suspend fun removeCirculationProduct(
+        @Body request: CirculationProductOperationRequest,
+    ): ZdsBaseResult<Any>
+
     @POST("/pro/proPlaDtl/startProduce")
     suspend fun startProduction(
         @Body request: ProductionPlanExecuteRequest,
@@ -222,6 +315,16 @@ interface ZdsApi {
     @POST("/pro/proPlaDtl/finishProduce")
     suspend fun finishProduction(
         @Body request: ProductionFinishRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/proPlaDtl/pauseProduce")
+    suspend fun pauseProduction(
+        @Body request: ProductionPlanExecuteRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/pro/proPlaDtl/reStartProduce")
+    suspend fun restartProduction(
+        @Body request: ProductionPlanExecuteRequest,
     ): ZdsBaseResult<Any>
 
     @POST("/pro/proLineSwi/beginSwitch")

@@ -9,9 +9,35 @@ class ProductionCirculationQueryDtosTest {
 
     @Test
     fun `circulation query request keeps backend field name`() {
-        val request = ProductionCirculationQueryRequest(circulationId = "circulation-1")
+        val request = ProductionCirculationQueryRequest(circulationQrCode = "LZD001")
 
-        assertEquals("circulation-1", request.circulationId)
+        assertEquals("LZD001", request.circulationQrCode)
+    }
+
+    @Test
+    fun `circulation info keeps updated response fields`() {
+        val info = ProductionCirculationInfoDto(
+            valid = true,
+            faceNum = 30,
+            num = 28,
+            remark = "首件确认通过",
+            tecVer = "V3.2",
+            lineName = "自动线 A",
+            createByName = "张强",
+        )
+
+        assertEquals(true, info.valid)
+        assertEquals(30, info.faceNum)
+        assertEquals(28, info.num)
+        assertEquals("V3.2", info.tecVer)
+        assertEquals("自动线 A", info.lineName)
+    }
+
+    @Test
+    fun `circulation progress item keeps valid state`() {
+        val item = ProductionCirculationItemDto(valid = false)
+
+        assertEquals(false, item.valid)
     }
 
     @Test
