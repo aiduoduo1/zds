@@ -1,6 +1,7 @@
 package com.jj.zds.feature.production.ui
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
@@ -50,6 +51,7 @@ import com.jj.zds.feature.debugplan.data.DebugTaskCheckResult
 import com.jj.zds.feature.debugplan.data.DebugTaskCheckRow
 import com.jj.zds.feature.debugplan.data.DebugTaskPhotoItem
 import com.jj.zds.feature.debugplan.data.DebugTaskPhotoRow
+import com.jj.zds.feature.debugplan.data.DebugTaskPhotoSource
 import com.jj.zds.feature.debugplan.data.DebugTaskSwitchRow
 import com.jj.zds.feature.debugplan.data.DebugTaskTextRow
 import com.jj.zds.feature.debugplan.data.DebugTaskValueRow
@@ -80,6 +82,7 @@ class ProductionOverallTestActivity : JiangToolbarStateVmActivity<ActivityProduc
     private var currentSn: ProductionOverallTestSnInfoDto? = null
     private var currentCheckGroup: DebugCheckGroupDto? = null
     private var pendingPhotoCheckId: String? = null
+    private var pendingOscilloscopeCheckId: String? = null
     private var pendingPhotoFile: File? = null
     private var clearingSnForm = false
     private val checks = mutableListOf<DebugTaskCheckRow>()
@@ -142,6 +145,7 @@ class ProductionOverallTestActivity : JiangToolbarStateVmActivity<ActivityProduc
         return ActivityProductionOverallTestBinding.inflate(inflater)
     }
 
+    @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (
             DebugTaskNextActionRules.shouldHandlePageEnter(
@@ -196,6 +200,9 @@ class ProductionOverallTestActivity : JiangToolbarStateVmActivity<ActivityProduc
         viewModel.debugTaskCheckPhotoUploadResult.observe(this) { result ->
             handleCheckPhotoUploaded(result.checkId, result.fileId)
         }
+        viewModel.oscilloscopeScreenshotFileId.observe(this) { fileId ->
+            handleOscilloscopeScreenshotCaptured(fileId)
+        }
         viewModel.productionOverallTestOperationDone.observe(this) { isDraft ->
             if (isDraft) handleSaveDone() else handleSubmitDone()
         }
@@ -224,6 +231,10 @@ class ProductionOverallTestActivity : JiangToolbarStateVmActivity<ActivityProduc
             pendingPhotoCheckId = null
             pendingPhotoFile = null
         }
+        pendingOscilloscopeCheckId?.let { checkId ->
+            updatePhotoUploading(checkId, uploading = false)
+            pendingOscilloscopeCheckId = null
+        }
         activeOperation = ActiveOperation.NONE
         footerAdapter.updateItem(0, Unit)
         if (wasScanInProgress) {
@@ -247,7 +258,7 @@ class ProductionOverallTestActivity : JiangToolbarStateVmActivity<ActivityProduc
             val versionText = group.showVersion?.takeIf { it.isNotBlank() } ?: "V${group.version}"
             itemBinding.tvFormName.text = "${group.name.orDash()} $versionText"
             itemBinding.layoutSnInfo.visibility = View.VISIBLE
-            itemBinding.tvSn.text = "SN：${currentSn?.proSn.orDash()}"
+            itemBinding.tvSn.text = "PRO：${currentSn?.proSn.orDash()}"
             itemBinding.tvSnMeta.text = "当前工序：${currentSn?.currentProcessLabel.orDash()}"
         }
     }
@@ -308,6 +319,7 @@ class ProductionOverallTestActivity : JiangToolbarStateVmActivity<ActivityProduc
         if (code == lastSubmitCode && now - lastSubmitAt < SUBMIT_DEBOUNCE_WINDOW) return
         lastSubmitCode = code
         lastSubmitAt = now
+        qrCode = code
         scanInProgress = true
         binding.inputSn.verifying("SN 校验中...")
         viewModel.loadProductionOverallTestSnInfo(planId, code)
@@ -315,7 +327,6 @@ class ProductionOverallTestActivity : JiangToolbarStateVmActivity<ActivityProduc
 
     private fun renderSnScanResult(result: ProductionOverallTestSnInfoDto) {
         currentSn = result
-        qrCode = result.proSn ?: qrCode
         currentCheckGroup = result.checkGroupDto
         checks.clear()
         checks += currentCheckGroup?.toRows().orEmpty()
@@ -383,7 +394,7 @@ class ProductionOverallTestActivity : JiangToolbarStateVmActivity<ActivityProduc
 
     private fun submitOverallTest(ngPhenomena: String?, isDraft: Boolean) {
         val group = currentCheckGroup ?: return
-        val proSn = currentSn?.proSn?.takeIf { it.isNotBlank() } ?: qrCode
+        val proSn = qrCode
         activeOperation = if (isDraft) ActiveOperation.SAVE_DRAFT else ActiveOperation.SUBMIT
         footerAdapter.updateItem(0, Unit)
         viewModel.submitProductionOverallTest(
@@ -419,6 +430,7 @@ class ProductionOverallTestActivity : JiangToolbarStateVmActivity<ActivityProduc
         currentSn = null
         currentCheckGroup = null
         pendingPhotoCheckId = null
+        pendingOscilloscopeCheckId = null
         pendingPhotoFile = null
         checks.clear()
         qrCode = ""
@@ -468,6 +480,10 @@ class ProductionOverallTestActivity : JiangToolbarStateVmActivity<ActivityProduc
 
     private fun requestCheckPhoto(id: String) {
         val item = checks.firstOrNull { it.checkId == id } as? DebugTaskPhotoRow ?: return
+        if (item.source == DebugTaskPhotoSource.OSCILLOSCOPE) {
+            requestOscilloscopeScreenshot(id, item)
+            return
+        }
         if (item.photos.size >= MAX_PHOTO_COUNT) {
             JToast.show("检查照片最多 9 张")
             return
@@ -478,6 +494,16 @@ class ProductionOverallTestActivity : JiangToolbarStateVmActivity<ActivityProduc
         } else {
             cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
         }
+    }
+
+    private fun requestOscilloscopeScreenshot(id: String, item: DebugTaskPhotoRow) {
+        if (item.photos.size >= MAX_PHOTO_COUNT) {
+            JToast.show("示波器图片最多 9 张")
+            return
+        }
+        pendingOscilloscopeCheckId = id
+        updatePhotoUploading(id, uploading = true)
+        viewModel.captureOscilloscopeScreen()
     }
 
     private fun updatePhotoUploadMode(id: String, mode: PhotoUploadMode) {
@@ -507,6 +533,22 @@ class ProductionOverallTestActivity : JiangToolbarStateVmActivity<ActivityProduc
         updateCheck(checkId) { item ->
             (item as? DebugTaskPhotoRow)?.let {
                 val photos = (it.photos + DebugTaskPhotoItem(fileId = fileId.toString(), localFile = localFile))
+                    .take(MAX_PHOTO_COUNT)
+                it.copy(
+                    photos = photos,
+                    uploading = false,
+                    result = if (photos.isEmpty()) DebugTaskCheckResult.PENDING else DebugTaskCheckResult.PASS,
+                )
+            } ?: item
+        }
+    }
+
+    private fun handleOscilloscopeScreenshotCaptured(fileId: Long) {
+        val checkId = pendingOscilloscopeCheckId ?: return
+        pendingOscilloscopeCheckId = null
+        updateCheck(checkId) { item ->
+            (item as? DebugTaskPhotoRow)?.let {
+                val photos = (it.photos + DebugTaskPhotoItem(fileId = fileId.toString()))
                     .take(MAX_PHOTO_COUNT)
                 it.copy(
                     photos = photos,
@@ -669,6 +711,21 @@ class ProductionOverallTestActivity : JiangToolbarStateVmActivity<ActivityProduc
                 description = itemDescription,
                 dto = this,
                 photos = initialText.toPhotoItems(),
+                result = if (initialText.toPhotoItems().isNotEmpty()) {
+                    DebugTaskCheckResult.PASS
+                } else {
+                    DebugTaskCheckResult.PENDING
+                },
+            )
+            DebugTaskCollectType.OSC -> DebugTaskPhotoRow(
+                rowId = rowId,
+                checkId = checkId,
+                typeLabel = typeLabel,
+                title = title,
+                description = itemDescription,
+                dto = this,
+                photos = initialText.toPhotoItems(),
+                source = DebugTaskPhotoSource.OSCILLOSCOPE,
                 result = if (initialText.toPhotoItems().isNotEmpty()) {
                     DebugTaskCheckResult.PASS
                 } else {

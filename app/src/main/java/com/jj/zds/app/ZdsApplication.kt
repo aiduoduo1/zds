@@ -20,6 +20,7 @@ import com.jj.zds.data.local.ZdsStorageKeys
 import com.jj.zds.feature.login.ui.LoginActivity
 import com.jj.zds.feature.message.ZdsMessageSseService
 import okhttp3.Interceptor
+import java.util.concurrent.TimeUnit
 
 class ZdsApplication : Application() {
 
@@ -97,6 +98,18 @@ class ZdsApplication : Application() {
 //            return emptyList()
 //        }
         return listOf(
+            Interceptor { chain ->
+                val request = chain.request()
+                if (request.url.encodedPath == OSCILLOSCOPE_SCREENSHOT_PATH) {
+                    chain
+                        .withConnectTimeout(OSCILLOSCOPE_SCREENSHOT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                        .withReadTimeout(OSCILLOSCOPE_SCREENSHOT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                        .withWriteTimeout(OSCILLOSCOPE_SCREENSHOT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                        .proceed(request)
+                } else {
+                    chain.proceed(request)
+                }
+            },
             ChuckerInterceptor.Builder(this)
                 .maxContentLength(250_000L)
                 .redactHeaders(
@@ -113,13 +126,20 @@ class ZdsApplication : Application() {
         )
     }
 
-    private companion object {
-        var BASE_URL = if (BuildConfig.DEBUG) {
+    companion object {
+        val BASE_URL = if (BuildConfig.DEBUG) {
             "http://192.168.1.216:81/"
-//             "http://1.94.220.45/"
+             //"http://1.94.220.45/"
         } else {
             "http://1.94.220.45/"
         }
+
+        fun buildFileDownloadUrl(fileId: String, token: String): String {
+            return "${BASE_URL.trimEnd('/')}/task/taskFile/download/$fileId?token=$token"
+        }
+
         const val UNAUTHORIZED_REDIRECT_INTERVAL_MS = 1_500L
+        const val OSCILLOSCOPE_SCREENSHOT_PATH = "/s/micsig/screenAndGet"
+        const val OSCILLOSCOPE_SCREENSHOT_TIMEOUT_SECONDS = 30
     }
 }

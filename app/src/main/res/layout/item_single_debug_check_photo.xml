@@ -31,6 +31,7 @@
                 style="@style/JText.Body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:ellipsize="end"
                 android:maxLines="1"
                 android:textSize="@dimen/j_text_size_xs"
                 android:textStyle="bold" />
@@ -41,7 +42,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/j_space_2"
-                android:singleLine="false"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:textColor="@color/j_color_primary"
                 android:textSize="@dimen/j_text_size_sm" />
 
@@ -51,7 +53,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/j_space_2"
-                android:singleLine="false"
+                android:ellipsize="end"
+                android:maxLines="1"
                 android:textColor="@color/j_color_text_hint"
                 android:textSize="@dimen/j_text_size_xs" />
         </LinearLayout>

@@ -1,12 +1,11 @@
 package com.jj.zds.feature.repair.data
 
+import com.jj.zds.app.ZdsApplication
+
 fun buildRepairFileUrl(
     fileId: String?,
     token: String,
-    baseUrl: String = FINAL_MES_BASE_URL,
 ): String? {
     val id = fileId?.takeIf { it.isNotBlank() } ?: return null
-    return "$baseUrl/task/taskFile/download/$id?token=$token"
+    return ZdsApplication.buildFileDownloadUrl(id, token)
 }
-
-private const val FINAL_MES_BASE_URL = "http://192.168.1.216:81"

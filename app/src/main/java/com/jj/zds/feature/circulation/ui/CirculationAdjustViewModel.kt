@@ -54,21 +54,21 @@ class CirculationAdjustViewModel : JiangViewModel() {
         )
     }
 
-    fun checkSecond(mode: CirculationAdjustMode, code: String) {
+    fun checkSecond(mode: CirculationAdjustMode, primaryId: String, code: String) {
         when (mode) {
             CirculationAdjustMode.COMBINE -> launchResult(
                 loadingMode = JiangLoadingMode.NONE,
-                block = { repository.checkCirculationCombineFrom(code) },
+                block = { repository.checkCirculationCombineFrom(code, primaryId) },
                 onSuccess = { _secondarySheetChecked.value = code },
             )
             CirculationAdjustMode.ADD -> launchResult(
                 loadingMode = JiangLoadingMode.NONE,
-                block = { repository.checkCirculationAddProduct(code) },
+                block = { repository.checkCirculationAddProduct(primaryId, code) },
                 onSuccess = { _productChecked.value = it.firstOrNull() ?: return@launchResult },
             )
             CirculationAdjustMode.REMOVE -> launchResult(
                 loadingMode = JiangLoadingMode.NONE,
-                block = { repository.checkCirculationRemoveProduct(code) },
+                block = { repository.checkCirculationRemoveProduct(primaryId, code) },
                 onSuccess = { _productChecked.value = it.firstOrNull() ?: return@launchResult },
             )
         }
@@ -78,8 +78,11 @@ class CirculationAdjustViewModel : JiangViewModel() {
         launchResult(
             loadingMode = JiangLoadingMode.NONE,
             block = {
-                if (mode == CirculationAdjustMode.COMBINE) repository.getCirculationCombineReasons()
-                else repository.getCirculationDiscardReasons()
+                when (mode) {
+                    CirculationAdjustMode.COMBINE -> repository.getCirculationCombineReasons()
+                    CirculationAdjustMode.ADD -> repository.getCirculationAddReasons()
+                    CirculationAdjustMode.REMOVE -> repository.getCirculationRemoveReasons()
+                }
             },
             onSuccess = { _reasons.value = it },
         )

@@ -163,10 +163,7 @@ class CirculationDiscardActivity :
         if (info == null) return
         binding.tvSheetCode.text = info.circulationCode.orDash()
         binding.tvSheetProduct.text = "${info.partName.orDash()} · ${info.specification.orDash()}"
-        binding.tvSheetStatus.text = if (info.valid == true) "有效" else "失效"
-        binding.tvFaceQuantity.text = "${info.faceNum} 台"
         binding.tvSystemQuantity.text = "${info.num} 台"
-        binding.tvProductName.text = info.partName.orDash()
         binding.tvProductCode.text = info.partCode.orDash()
         binding.tvProductionTime.text = info.generateTime.orDash()
         binding.tvOperator.text = info.createByName.orDash()

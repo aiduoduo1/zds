@@ -126,6 +126,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/j_space_8"
-        android:text="结束生产"
+        android:text="生产完成"
         android:visibility="visible" />
 </LinearLayout>

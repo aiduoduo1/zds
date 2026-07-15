@@ -21,7 +21,7 @@ class RepairDetailActivity : JiangToolbarActivity<ActivityRepairDetailBinding>()
     }
 
     override fun initView(savedInstanceState: Bundle?) {
-        binding.tvSn.text = "SN  ${extra(EXTRA_SN)}"
+        binding.tvSn.text = "SN/PRO  ${extra(EXTRA_SN)}"
         binding.tvSource.text = "来源  ${extra(EXTRA_SOURCE)}"
         binding.tvPlan.text = "单号  ${extra(EXTRA_PLAN)}"
         binding.tvBatch.text = "批次  ${extra(EXTRA_BATCH)}"

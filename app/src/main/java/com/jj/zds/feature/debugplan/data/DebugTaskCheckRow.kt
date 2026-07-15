@@ -63,10 +63,16 @@ data class DebugTaskPhotoRow(
     override val description: String = "",
     override val dto: DebugCheckItemDto,
     val photos: List<DebugTaskPhotoItem> = emptyList(),
+    val source: DebugTaskPhotoSource = DebugTaskPhotoSource.CAMERA,
     val uploadMode: PhotoUploadMode = PhotoUploadMode.default(),
     val uploading: Boolean = false,
     override val result: DebugTaskCheckResult = DebugTaskCheckResult.PENDING,
 ) : DebugTaskCheckRow
+
+enum class DebugTaskPhotoSource {
+    CAMERA,
+    OSCILLOSCOPE,
+}
 
 data class DebugTaskPhotoItem(
     val fileId: String,

@@ -64,15 +64,19 @@ class CirculationTicketDetailActivity :
         titleCode = info.circulationCode.orDash()
         toolbar.setSubtitleText(titleCode)
         binding.tvBaseInfo.text = buildString {
-            appendLine("流转单号：${info.circulationCode.orDash()}    状态：${if (info.valid == true) "有效" else "失效"}")
-            appendLine("产品名称：${info.partName.orDash()}    产品号：${info.partCode.orDash()}")
+            appendLine("流转单号：${info.circulationCode.orDash()}")
+            appendLine("状态：${if (info.valid == true) "有效" else "失效"}")
+            appendLine("产品名称：${info.partName.orDash()}")
+            appendLine("产品号：${info.partCode.orDash()}")
             appendLine("产品型号：${info.specification.orDash()}")
-            appendLine("票面数量：${info.faceNum} 台    系统当前数量：${info.num} 台")
+            appendLine("当前数量：${info.num} 台")
             append("备注：${info.remark.orDash()}")
         }
         binding.tvProductionInfo.text = buildString {
-            appendLine("生产计划号：${info.orderCode.orDash()}    工艺版本：${info.tecVer.orDash()}")
-            appendLine("生产时间：${info.generateTime.orDash()}    作业者：${info.createByName.orDash()}")
+            appendLine("生产计划号：${info.orderCode.orDash()}")
+            appendLine("工艺版本：${info.tecVer.orDash()}")
+            appendLine("生产时间：${info.generateTime.orDash()}")
+            appendLine("作业者：${info.createByName.orDash()}")
             append("生产线体：${info.lineName.orDash()}")
         }
     }

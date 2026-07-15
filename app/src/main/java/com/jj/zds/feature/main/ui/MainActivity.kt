@@ -12,6 +12,7 @@ import com.jj.ui.recycler.adapter.JBindingAdapter
 import com.jj.ui.recycler.ext.setupGrid
 import com.jj.ui.toolbar.JiangToolbarMenuItem
 import com.jj.zds.R
+import com.jj.zds.app.ZdsApplication
 import com.jj.zds.data.dto.menu.ZdsMenuDto
 import com.jj.zds.data.local.ZdsStorageKeys
 import com.jj.zds.databinding.ActivityMainBinding
@@ -21,6 +22,7 @@ import com.jj.zds.feature.debugplan.ui.CurrentBatchDebugRecordActivity
 import com.jj.zds.feature.debugplan.ui.DebugPlanListActivity
 import com.jj.zds.feature.login.ui.LoginActivity
 import com.jj.zds.feature.message.ZdsMessageSseService
+import com.jj.zds.feature.micsig.ui.OscilloscopeScreenshotActivity
 import com.jj.zds.feature.permission.ui.PermissionAccessDemoActivity
 import com.jj.zds.feature.pda.PdaMainActivity
 import com.jj.zds.feature.qrcode.ui.QrCodeDecodeActivity
@@ -91,6 +93,7 @@ class MainActivity : JiangToolbarStateVmActivity<ActivityMainBinding, ZdsViewMod
             JiangToolbarMenuItem(MENU_CURRENT_BATCH_RECORD, "BatchRecord"),
             JiangToolbarMenuItem(MENU_PDA_WORKBENCH, "PDA"),
             JiangToolbarMenuItem(MENU_AGING_MANAGEMENT, "老化管理"),
+            JiangToolbarMenuItem(MENU_OSCILLOSCOPE_SCREENSHOT, "示波器截图"),
             JiangToolbarMenuItem(MENU_LOGIN_OUT, "Logout"),
         )
     }
@@ -123,6 +126,7 @@ class MainActivity : JiangToolbarStateVmActivity<ActivityMainBinding, ZdsViewMod
             }
 
             MENU_AGING_MANAGEMENT -> startActivity(Intent(this, AgingActivity::class.java))
+            MENU_OSCILLOSCOPE_SCREENSHOT -> startActivity(Intent(this, OscilloscopeScreenshotActivity::class.java))
             MENU_LOGIN_OUT -> clearLogin()
         }
     }
@@ -156,7 +160,7 @@ class MainActivity : JiangToolbarStateVmActivity<ActivityMainBinding, ZdsViewMod
     private fun buildMenuIconUrl(icon: String?): String? {
         val fileId = icon?.takeIf { it.isNotBlank() } ?: return null
         val token = JiangStorage.kv.getString(ZdsStorageKeys.MES_UP_TOKEN, "").orEmpty()
-        return "$FINAL_MES_BASE_URL/task/taskFile/download/$fileId?token=$token"
+        return ZdsApplication.buildFileDownloadUrl(fileId, token)
     }
 
     private fun openMenu(item: ZdsMenuDto) {
@@ -183,12 +187,12 @@ class MainActivity : JiangToolbarStateVmActivity<ActivityMainBinding, ZdsViewMod
         const val MENU_PDA_WORKBENCH = 7
         const val MENU_LOGIN_OUT = 8
         const val MENU_AGING_MANAGEMENT = 9
+        const val MENU_OSCILLOSCOPE_SCREENSHOT = 10
         const val PART_SWITCH = "partSwitch"
         const val PRODUCE = "produce"
         const val RECEIVE = "receive"
         const val SALE = "sale"
         const val BACK = "back"
         const val PRINT = "print"
-        const val FINAL_MES_BASE_URL = "http://192.168.1.216:81"
     }
 }

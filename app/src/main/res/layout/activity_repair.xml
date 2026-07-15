@@ -27,7 +27,7 @@
             app:jInputHint=""
             app:jInputMode="scan"
             app:jInputSelectAllOnFocus="true"
-            app:jInputTitle="扫描不良SN码" />
+            app:jInputTitle="扫描不良 SN/PRO 码" />
     </LinearLayout>
 
     <ScrollView
@@ -51,7 +51,7 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:minHeight="180dp"
-                android:text="请扫描不良品SN\n系统会检查出尚未关闭的不良上报" />
+                android:text="请扫描不良 SN 或 PRO 码\n系统会检查尚未关闭的不良记录" />
 
             <LinearLayout
                 android:id="@+id/layoutSummaryPage"
@@ -84,7 +84,7 @@
                                 style="@style/JText.Caption"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="当前 SN"
+                                android:text="当前 SN/PRO"
                                 android:textColor="@color/j_color_text_disabled" />
 
                             <TextView
@@ -212,6 +212,90 @@
                         android:layout_marginTop="@dimen/j_space_4"
                         android:textColor="@color/j_color_text_disabled"
                         tools:text="SN2606260005 · 电流值异常" />
+
+                    <LinearLayout
+                        android:id="@+id/layoutProductRepair"
+                        style="@style/JStyle.Card"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_10"
+                        android:orientation="vertical"
+                        android:padding="@dimen/j_space_8"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <TextView
+                            style="@style/JText.Title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="成品维修" />
+
+                        <RadioGroup
+                            android:id="@+id/groupRepairMode"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/j_space_6"
+                            android:checkedButton="@id/rbNormalRepair"
+                            android:orientation="horizontal">
+
+                            <RadioButton
+                                android:id="@+id/rbNormalRepair"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="常规维修" />
+
+                            <RadioButton
+                                android:id="@+id/rbReplaceRepair"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="换件" />
+                        </RadioGroup>
+
+                        <TextView
+                            style="@style/JText.Secondary"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/j_space_8"
+                            android:text="损坏关键部件（单选）" />
+
+                        <LinearLayout
+                            android:id="@+id/layoutKeyPartOptions"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/j_space_4"
+                            android:orientation="vertical" />
+
+                        <TextView
+                            style="@style/JText.Caption"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/j_space_6"
+                            android:gravity="center"
+                            android:text="或填写非关键部件物料号（与上方互斥）"
+                            android:textColor="@color/j_color_text_disabled" />
+
+                        <EditText
+                            android:id="@+id/editFaultMaterialCode"
+                            style="@style/JStyle.EditText.Normal"
+                            android:layout_width="match_parent"
+                            android:layout_marginTop="@dimen/j_space_4"
+                            android:hint="输入损坏/更换的物料号"
+                            android:singleLine="true" />
+
+                        <com.jj.ui.input.JInputLayout
+                            android:id="@+id/inputReplacementSn"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="@dimen/j_space_8"
+                            android:visibility="gone"
+                            app:jInputClearEnabled="true"
+                            app:jInputCompact="true"
+                            app:jInputMode="scan"
+                            app:jInputTitle="扫描新关键部件 SN 码"
+                            tools:visibility="visible" />
+                    </LinearLayout>
 
                     <TextView
                         style="@style/JText.Secondary"

@@ -3,7 +3,6 @@
     style="@style/JStyle.Card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:gravity="center_vertical"
     android:minHeight="58dp"
     android:orientation="horizontal"
     android:padding="@dimen/j_space_8">
@@ -26,6 +25,7 @@
             style="@style/JText.Body"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
             android:maxLines="1"
             android:textSize="@dimen/j_text_size_xs"
             android:textStyle="bold" />
@@ -36,7 +36,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/j_space_2"
-            android:singleLine="false"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/j_color_primary"
             android:textSize="@dimen/j_text_size_sm" />
 
@@ -46,34 +47,36 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/j_space_2"
-            android:singleLine="false"
+            android:ellipsize="end"
+            android:maxLines="1"
             android:textColor="@color/j_color_text_hint"
             android:textSize="@dimen/j_text_size_xs" />
-    </LinearLayout>
 
-    <LinearLayout
-        android:layout_width="96dp"
-        android:layout_height="32dp"
-        android:layout_marginStart="@dimen/j_space_8"
-        android:orientation="horizontal">
+        <LinearLayout
+            android:layout_width="96dp"
+            android:layout_height="32dp"
+            android:layout_gravity="end"
+            android:layout_marginTop="@dimen/j_space_6"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/btnPass"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="是"
-            android:textStyle="bold" />
+            <TextView
+                android:id="@+id/btnPass"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="是"
+                android:textStyle="bold" />
 
-        <TextView
-            android:id="@+id/btnFail"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="@dimen/j_space_4"
-            android:layout_weight="1"
-            android:gravity="center"
-            android:text="否"
-            android:textStyle="bold" />
+            <TextView
+                android:id="@+id/btnFail"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_marginStart="@dimen/j_space_4"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:text="否"
+                android:textStyle="bold" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

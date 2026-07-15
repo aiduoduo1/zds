@@ -19,6 +19,7 @@ import com.jj.zds.databinding.ActivityPdaMainBinding
 import com.jj.zds.feature.debugplan.ui.DebugPlanListFragment
 import com.jj.zds.feature.login.ui.LoginActivity
 import com.jj.zds.feature.message.ZdsMessageSseService
+import com.jj.zds.feature.micsig.ui.OscilloscopeScreenshotActivity
 import com.jj.zds.feature.update.ui.ZdsUpdateActivity
 
 class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
@@ -40,7 +41,9 @@ class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
             listOf(
                 JiangToolbarMenuItem(MENU_UPDATE, "版本更新"),
                 JiangToolbarMenuItem(MENU_LOGOUT, "退出登录"),
-            ),
+                JiangToolbarMenuItem(MENU_OSCILLOSCOPE_SCREENSHOT, "示波器截图"),
+
+                ),
         ) { item ->
             onToolbarMenuClick(item)
         }
@@ -126,6 +129,9 @@ class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
         when (item.id) {
             MENU_UPDATE -> startActivity(Intent(this, ZdsUpdateActivity::class.java))
             MENU_LOGOUT -> logout()
+            MENU_OSCILLOSCOPE_SCREENSHOT->{
+                startActivity(Intent(this, OscilloscopeScreenshotActivity::class.java))
+            }
         }
     }
 
@@ -196,6 +202,8 @@ class PdaMainActivity : FragmentActivity(), PdaHomeFragment.Callback {
         const val TAG_HOME = "pda_home"
         const val TAG_DEBUG = "pda_debug"
         const val TAG_PRODUCE = "pda_produce"
+
+        const val MENU_OSCILLOSCOPE_SCREENSHOT = 10
         const val MENU_UPDATE = 1
         const val MENU_LOGOUT = 2
     }

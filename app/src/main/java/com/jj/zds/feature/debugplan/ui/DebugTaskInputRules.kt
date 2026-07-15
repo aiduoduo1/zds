@@ -5,6 +5,7 @@ internal enum class DebugTaskCollectType {
     NUM,
     INPUT,
     PHOTO,
+    OSC,
 }
 
 internal object DebugTaskInputRules {
@@ -22,6 +23,7 @@ internal object DebugTaskInputRules {
             "num", "number", "value", "数值" -> DebugTaskCollectType.NUM
             "input", "text", "remark", "textarea", "文本", "说明" -> DebugTaskCollectType.INPUT
             "photo", "image", "picture", "file", "拍照", "照片", "图片" -> DebugTaskCollectType.PHOTO
+            "osc", "oscilloscope", "示波器" -> DebugTaskCollectType.OSC
             else -> if (minValue != null || maxValue != null) {
                 DebugTaskCollectType.NUM
             } else {

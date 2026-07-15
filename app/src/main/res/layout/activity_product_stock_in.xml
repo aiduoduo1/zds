@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/j_color_bg_page"
+    android:orientation="vertical"
+    android:padding="@dimen/j_space_12">
+
+    <LinearLayout
+        style="@style/JStyle.Card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/j_space_8"
+        android:paddingEnd="@dimen/j_space_8">
+
+        <com.jj.ui.input.JInputLayout
+            android:id="@+id/inputStockInScan"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:jInputClearEnabled="true"
+            app:jInputCompact="true"
+            app:jInputHint="请扫描流转单或 PRO码"
+            app:jInputMode="scan"
+            app:jInputScanOnly="true"
+            app:jInputSelectAllOnFocus="true"
+            app:jInputTitle="产品扫码" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tvProductSummary"
+            style="@style/JText.Body"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="待入库 0 台 · 0 个生产计划"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/btnClear"
+            style="@style/JStyle.Button.Text"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/j_small_button_height"
+            android:gravity="center"
+            android:text="清空列表" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerProducts"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false" />
+
+        <com.jj.ui.widget.JEmptyView
+            android:id="@+id/emptyProducts"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:jDescription="支持连续扫描流转单和单个 PRO码"
+            app:jTitle="暂无待入库产品" />
+    </FrameLayout>
+
+    <Button
+        android:id="@+id/btnConfirmStockIn"
+        style="@style/JStyle.Button.Primary"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:text="确认入库（0台）"
+        android:textAllCaps="false" />
+</LinearLayout>

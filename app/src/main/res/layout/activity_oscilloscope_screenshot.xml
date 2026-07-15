@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    style="@style/JStyle.Page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/j_space_8"
+    tools:theme="@style/Theme.Zds">
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnGetScreenshot"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="获取最新截图"
+        app:icon="@android:drawable/ic_menu_camera" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnLandscapePreview"
+        style="@style/Widget.Material3.Button.OutlinedButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:enabled="false"
+        android:text="横屏查看大图"
+        app:icon="@android:drawable/ic_menu_view" />
+
+    <TextView
+        android:id="@+id/tvFileId"
+        style="@style/JText.Caption"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:visibility="gone"
+        tools:text="文件 ID：123456" />
+
+    <ImageView
+        android:id="@+id/ivScreenshot"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:layout_weight="1"
+        android:adjustViewBounds="true"
+        android:background="@drawable/zds_bg_tree_child"
+        android:contentDescription="示波器截图"
+        android:scaleType="fitCenter"
+        tools:src="@android:drawable/ic_menu_gallery" />
+</LinearLayout>

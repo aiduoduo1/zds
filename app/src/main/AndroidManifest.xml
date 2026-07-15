@@ -144,6 +144,14 @@
             android:exported="false"
             android:windowSoftInputMode="stateAlwaysHidden|stateUnchanged" />
         <activity
+            android:name=".feature.micsig.ui.OscilloscopeScreenshotActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.productstockin.ProductStockInActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateAlwaysHidden|stateUnchanged" />
+        <activity
             android:name=".feature.circulation.ui.CirculationManageActivity"
             android:exported="false"
             android:windowSoftInputMode="stateHidden|stateUnchanged" />

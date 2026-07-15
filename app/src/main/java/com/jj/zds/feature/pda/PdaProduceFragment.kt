@@ -12,6 +12,7 @@ import androidx.core.content.ContextCompat
 import com.jj.arch.base.JiangVmFragment
 import com.jj.arch.event.JiangUiEvent
 import com.jj.arch.state.JiangUiState
+import com.jj.ui.dialog.JConfirmDialog
 import com.jj.ui.recycler.adapter.JBindingAdapter
 import com.jj.ui.recycler.ext.setupLinear
 import com.jj.ui.toast.JToast
@@ -31,6 +32,7 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
     private var lineTabs = emptyList<LineTab>()
     private var selectedLineId: String? = null
     private var pendingSelectedLineId: String? = null
+    private var pendingFinishPlanId: String? = null
     private var refreshOnResume = false
 
     private val adapter = JBindingAdapter(
@@ -137,8 +139,17 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
             JToast.show(if (result.paused) "生产已暂停" else "生产已重新开始")
             refreshData()
         }
+        viewModel.productionFinishDone.observe(viewLifecycleOwner) {
+            pendingFinishPlanId = null
+            JToast.show("计划完成")
+            refreshData()
+        }
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             if (state is JiangUiState.Error) {
+                if (state.code == CODE_FORCE_FINISH_REQUIRED) {
+                    showForceFinishDialog(state.message)
+                    return@observe
+                }
                 JToast.show(state.message)
             }
         }
@@ -203,13 +214,33 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
             item.unitStr?.takeIf { it.isNotBlank() }?.let { append(it) }
         }
         itemBinding.tvBatch.text = "批次：${item.lot.orDash()}"
+        itemBinding.bindProductionTime(item)
         itemBinding.tvPlanDate.setTextOrGone("业务日期：", item.planDate)
-        itemBinding.tvStartTime.setTextOrGone("计划开始时间：", item.planStartTime)
-        itemBinding.tvActualStartTime.setTextOrGone("实际开始生产时间：", item.actualStartTime)
         itemBinding.tvStatus.text = item.displayStatus()
         itemBinding.tvStatus.setStatusStyle(item.planStatus)
         itemBinding.viewStatusStrip.setBackgroundColor(item.planStatus.statusColor())
         bindActionButtons(itemBinding, item.planStatus, planId, planNo)
+    }
+
+    private fun ItemPdaProducePlanBinding.bindProductionTime(item: ProductionPlanDto) {
+        when (item.planStatus) {
+            ProductionPlanStatus.WAIT_SWITCH,
+            ProductionPlanStatus.SWITCHING,
+            ProductionPlanStatus.WAIT_PRODUCT -> {
+                tvStartTime.setTextOrGone("预计开始时间：", item.planStartTime)
+                tvActualStartTime.visibility = View.GONE
+            }
+
+            ProductionPlanStatus.PRODUCT_ING -> {
+                tvStartTime.visibility = View.GONE
+                tvActualStartTime.setTextOrGone("实际开始时间：", item.actualStartTime)
+            }
+
+            else -> {
+                tvStartTime.visibility = View.GONE
+                tvActualStartTime.visibility = View.GONE
+            }
+        }
     }
 
     private fun bindActionButtons(
@@ -286,8 +317,21 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
             }
         }
         itemBinding.btnFinishPlan.setOnClickListener {
-            JToast.show("生产完成：${planNo.ifBlank { "-" }}")
+            pendingFinishPlanId = planId
+            viewModel.finishProduction(planId)
         }
+    }
+
+    private fun showForceFinishDialog(message: String) {
+        val planId = pendingFinishPlanId?.takeIf { it.isNotBlank() } ?: return JToast.show(message)
+        JConfirmDialog(requireContext(), viewLifecycleOwner)
+            .setTitle("强制生产完成")
+            .setMessage(message)
+            .setConfirmText("确认完成")
+            .setOnConfirm {
+                viewModel.finishProduction(planId, forceFinish = true)
+            }
+            .show()
     }
 
     private fun TextView.setTextOrGone(prefix: String, value: String?) {
@@ -332,7 +376,7 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
     private fun renderPlans() {
         val visiblePlans = allPlans.filter { plan ->
             selectedLineId.isNullOrBlank() || plan.lineId == selectedLineId
-        }
+        }.sortedWith(compareBy<ProductionPlanDto> { it.lineName.lineSortNo() }.thenBy { it.sort })
         binding.tvProduceEmpty.visibility = if (visiblePlans.isEmpty()) View.VISIBLE else View.GONE
         binding.recyclerProducePlans.visibility = if (visiblePlans.isEmpty()) View.GONE else View.VISIBLE
         adapter.setList(visiblePlans)
@@ -348,6 +392,17 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
                     count = line.activeCount(),
                 )
             }
+            .sortedWith(compareBy<LineTab> { it.title.lineSortNo() }.thenBy { it.title })
+    }
+
+    private fun String?.lineSortNo(): Int {
+        val lineName = this?.trim().orEmpty()
+        return Regex("^L\\s*(\\d+)", RegexOption.IGNORE_CASE)
+            .find(lineName)
+            ?.groupValues
+            ?.getOrNull(1)
+            ?.toIntOrNull()
+            ?: Int.MAX_VALUE
     }
 
     private fun renderLineTabs() {
@@ -451,4 +506,8 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
         val title: String,
         val count: Int,
     )
+
+    companion object {
+        private const val CODE_FORCE_FINISH_REQUIRED = 10087
+    }
 }

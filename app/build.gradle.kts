@@ -32,7 +32,7 @@ android {
         minSdk = 24
         targetSdk = 35
         versionCode = 1
-        versionName = "1.0"
+        versionName = "1.01"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -122,6 +122,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.swiperefreshlayout)
     implementation(libs.android.material)
+    implementation(libs.gson)
     debugImplementation(libs.chucker.library)
     releaseImplementation(libs.chucker.library.no.op)
     testImplementation(libs.junit)

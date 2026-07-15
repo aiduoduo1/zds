@@ -32,7 +32,7 @@
                     style="@style/JText.Caption"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="当前 SN"
+                    android:text="当前 SN/PRO"
                     android:textColor="@color/j_color_text_disabled" />
 
                 <TextView

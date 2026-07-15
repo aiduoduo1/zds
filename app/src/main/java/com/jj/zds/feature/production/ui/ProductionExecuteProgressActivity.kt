@@ -106,9 +106,9 @@ class ProductionExecuteProgressActivity :
             dismissLoadingDialog()
             showContentPage()
             showConfirmDialog(
-                title = "强制结束生产",
+                title = "强制生产完成",
                 message = message,
-                confirmText = "确认结束",
+                confirmText = "确认完成",
                 onConfirm = { viewModel.finishProduction(planId, forceFinish = true) },
             )
             return

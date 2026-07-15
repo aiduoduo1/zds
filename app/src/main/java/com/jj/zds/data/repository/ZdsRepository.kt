@@ -7,6 +7,7 @@ import com.jj.network.JiangNetwork
 import com.jj.network.call.JiangApiCaller
 import com.jj.storage.JiangStorage
 import com.jj.zds.data.api.ZdsApi
+import com.jj.zds.data.api.ZdsRawApiCaller
 import com.jj.zds.data.dto.aging.AgingProductDto
 import com.jj.zds.data.dto.aging.AgingEndDetailDto
 import com.jj.zds.data.dto.aging.AgingEndRequest
@@ -18,9 +19,10 @@ import com.jj.zds.data.dto.common.ZdsBaseResult
 import com.jj.zds.data.dto.common.toJiangResult
 import com.jj.zds.data.dto.circulation.CirculationDiscardRequest
 import com.jj.zds.data.dto.circulation.CirculationCombineRequest
+import com.jj.zds.data.dto.circulation.CirculationCombineFromCheckRequest
 import com.jj.zds.data.dto.circulation.CirculationProductCheckDto
+import com.jj.zds.data.dto.circulation.CirculationProductCheckRequest
 import com.jj.zds.data.dto.circulation.CirculationProductOperationRequest
-import com.jj.zds.data.dto.circulation.CirculationProductQrCodeRequest
 import com.jj.zds.data.dto.circulation.CirculationQrCodeRequest
 import com.jj.zds.data.dto.circulation.CirculationReasonDto
 import com.jj.zds.data.dto.debugplan.DebugBoxBindRequest
@@ -85,8 +87,13 @@ import com.jj.zds.data.dto.recheck.RecheckScanValidRequest
 import com.jj.zds.data.dto.recheck.RecheckSubmitRequest
 import com.jj.zds.data.dto.repair.REPAIR_DICT_MAINTAIN_RESULT
 import com.jj.zds.data.dto.repair.REPAIR_DICT_NG_REASON
+import com.jj.zds.data.dto.repair.NewRepairPartSnScanValidDto
+import com.jj.zds.data.dto.repair.NewRepairPartSnScanValidRequest
+import com.jj.zds.data.dto.repair.ProductRepairPartDto
+import com.jj.zds.data.dto.repair.ProductRepairPartListRequest
 import com.jj.zds.data.dto.repair.RepairLogDto
 import com.jj.zds.data.dto.repair.RepairLogListRequest
+import com.jj.zds.data.dto.repair.RepairOptionDto
 import com.jj.zds.data.dto.repair.RepairSnScanValidDto
 import com.jj.zds.data.dto.repair.RepairSnScanValidRequest
 import com.jj.zds.data.dto.repair.RepairSubmitRequest
@@ -245,6 +252,14 @@ class ZdsRepository(
         }
     }
 
+    suspend fun captureOscilloscopeScreen(): JiangResult<Long> {
+        return ZdsRawApiCaller.safeBaseCall(
+            emptyMessage = "Oscilloscope screenshot file id is empty.",
+        ) {
+            api.captureOscilloscopeScreenRaw()
+        }
+    }
+
     suspend fun scanValidRepairSn(qrCode: String): JiangResult<RepairSnScanValidDto> {
         return when (
             val result = JiangApiCaller.safeApiCall {
@@ -262,14 +277,10 @@ class ZdsRepository(
     }
 
     suspend fun getDebugPlanStatistics(): JiangResult<DebugPlanStatisticsDto> {
-        return when (val result = JiangApiCaller.safeApiCall { api.getDebugPlanStatistics() }) {
-            is JiangResult.Success -> result.data.toJiangResult(
-                emptyMessage = "Debug plan statistics is empty.",
-            )
-
-            is JiangResult.Error -> result
-            JiangResult.Loading -> JiangResult.Loading
-            JiangResult.Empty -> JiangResult.Empty
+        return ZdsRawApiCaller.safeBaseCall(
+            emptyMessage = "Debug plan statistics is empty.",
+        ) {
+            api.getDebugPlanStatisticsRaw()
         }
     }
 
@@ -546,8 +557,8 @@ class ZdsRepository(
         api.checkCirculationCombineMain(CirculationQrCodeRequest(qrCode))
     }
 
-    suspend fun checkCirculationCombineFrom(qrCode: String) = unitApiCall {
-        api.checkCirculationCombineFrom(CirculationQrCodeRequest(qrCode))
+    suspend fun checkCirculationCombineFrom(qrCode: String, mainCirculationId: String) = unitApiCall {
+        api.checkCirculationCombineFrom(CirculationCombineFromCheckRequest(qrCode, mainCirculationId))
     }
 
     suspend fun checkAddProductCirculation(qrCode: String) = unitApiCall {
@@ -558,16 +569,30 @@ class ZdsRepository(
         api.checkRemoveProductCirculation(CirculationQrCodeRequest(qrCode))
     }
 
-    suspend fun checkCirculationAddProduct(qrCode: String): JiangResult<List<CirculationProductCheckDto>> {
-        return dataApiCall { api.checkCirculationAddProduct(CirculationProductQrCodeRequest(qrCode)) }
+    suspend fun checkCirculationAddProduct(
+        circulationId: String,
+        qrCode: String,
+    ): JiangResult<List<CirculationProductCheckDto>> {
+        return dataApiCall { api.checkCirculationAddProduct(CirculationProductCheckRequest(circulationId, qrCode)) }
     }
 
-    suspend fun checkCirculationRemoveProduct(qrCode: String): JiangResult<List<CirculationProductCheckDto>> {
-        return dataApiCall { api.checkCirculationRemoveProduct(CirculationProductQrCodeRequest(qrCode)) }
+    suspend fun checkCirculationRemoveProduct(
+        circulationId: String,
+        qrCode: String,
+    ): JiangResult<List<CirculationProductCheckDto>> {
+        return dataApiCall { api.checkCirculationRemoveProduct(CirculationProductCheckRequest(circulationId, qrCode)) }
     }
 
     suspend fun getCirculationCombineReasons(): JiangResult<List<CirculationReasonDto>> {
         return dataApiCall { api.getCirculationCombineReasons() }
+    }
+
+    suspend fun getCirculationAddReasons(): JiangResult<List<CirculationReasonDto>> {
+        return dataApiCall { api.getCirculationAddReasons() }
+    }
+
+    suspend fun getCirculationRemoveReasons(): JiangResult<List<CirculationReasonDto>> {
+        return dataApiCall { api.getCirculationRemoveReasons() }
     }
 
     suspend fun combineCirculation(request: CirculationCombineRequest) = unitApiCall {
@@ -1365,6 +1390,70 @@ class ZdsRepository(
 
     suspend fun getRepairResultItems(): JiangResult<List<DebugDictItemDto>> {
         return getRepairDictItems(REPAIR_DICT_MAINTAIN_RESULT)
+    }
+
+    suspend fun getProductRepairParts(infoId: Long): JiangResult<List<ProductRepairPartDto>> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.getProductRepairParts(ProductRepairPartListRequest(infoId = infoId))
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Product repair part list is empty.",
+            )
+
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun getRepairMaintainTypeOptions(): JiangResult<List<RepairOptionDto>> {
+        return when (val result = JiangApiCaller.safeApiCall { api.getRepairMaintainTypeOptions() }) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Repair maintain type option list is empty.",
+            )
+
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun getRepairFaultTypeOptions(): JiangResult<List<RepairOptionDto>> {
+        return when (val result = JiangApiCaller.safeApiCall { api.getRepairFaultTypeOptions() }) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "Repair fault type option list is empty.",
+            )
+
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun scanValidNewRepairPartSn(
+        damagePartCatId: String,
+        qrCode: String,
+    ): JiangResult<NewRepairPartSnScanValidDto> {
+        return when (
+            val result = JiangApiCaller.safeApiCall {
+                api.scanValidNewRepairPartSn(
+                    NewRepairPartSnScanValidRequest(
+                        damagePartCatId = damagePartCatId,
+                        qrCode = qrCode,
+                    ),
+                )
+            }
+        ) {
+            is JiangResult.Success -> result.data.toJiangResult(
+                emptyMessage = "New repair part SN data is empty.",
+            )
+
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
     }
 
     suspend fun submitRepair(request: RepairSubmitRequest): JiangResult<Unit> {

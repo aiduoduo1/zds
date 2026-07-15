@@ -123,7 +123,17 @@ class CirculationAdjustActivity :
         if (code.isBlank() || busy || secondComplete()) return
         busy = true
         binding.inputCirculation.verifying("校验中...")
-        if (step == 1) viewModel.checkPrimary(mode, code) else viewModel.checkSecond(mode, code)
+        if (step == 1) {
+            viewModel.checkPrimary(mode, code)
+        } else {
+            val primaryId = primaryInfo?.id?.takeIf(String::isNotBlank)
+            if (primaryId == null) {
+                busy = false
+                binding.inputCirculation.showError("接口未返回主流转单ID")
+                return
+            }
+            viewModel.checkSecond(mode, primaryId, code)
+        }
     }
 
     private fun startSecondStep() {
@@ -138,6 +148,7 @@ class CirculationAdjustActivity :
         )
         binding.inputCirculation.setHint(if (mode == CirculationAdjustMode.COMBINE) "请扫描另一张流转单" else "请扫描成品码")
         binding.cardReason.visibility = View.VISIBLE
+        renderTargetWaiting()
         binding.btnConfirmDiscard.visibility = View.VISIBLE
         updateConfirmButton()
         focusScanner()
@@ -145,6 +156,7 @@ class CirculationAdjustActivity :
 
     private fun completeSecondStep() {
         binding.inputCirculation.showSuccess("校验通过")
+        renderTargetComplete()
         updateConfirmButton()
     }
 
@@ -152,14 +164,60 @@ class CirculationAdjustActivity :
         binding.cardSheet.visibility = View.VISIBLE
         binding.tvSheetCode.text = info.circulationCode.orDash()
         binding.tvSheetProduct.text = "${info.partName.orDash()} · ${info.specification.orDash()}"
-        binding.tvSheetStatus.text = if (info.valid == true) "有效" else "失效"
-        binding.tvFaceQuantity.text = "${info.faceNum} 台"
         binding.tvSystemQuantity.text = "${info.num} 台"
-        binding.tvProductName.text = info.partName.orDash()
         binding.tvProductCode.text = info.partCode.orDash()
         binding.tvProductionTime.text = info.generateTime.orDash()
         binding.tvOperator.text = info.createByName.orDash()
         binding.tvSheetRemark.text = "备注：${info.remark.orDash()}"
+    }
+
+    private fun renderTargetWaiting() {
+        binding.cardTarget.visibility = View.VISIBLE
+        binding.tvTargetSubtitle.text = "等待第二步扫描"
+        binding.tvTargetStatus.visibility = View.GONE
+        binding.tvTargetName.text = when (mode) {
+            CirculationAdjustMode.COMBINE -> "被合并单"
+            CirculationAdjustMode.ADD -> "加入成品"
+            CirculationAdjustMode.REMOVE -> "移除成品"
+        }
+        binding.tvTargetDesc.text = when (mode) {
+            CirculationAdjustMode.COMBINE -> "请扫描另一张流转单"
+            CirculationAdjustMode.ADD, CirculationAdjustMode.REMOVE -> "请扫描成品码"
+        }
+        binding.tvTargetCode.text = "-"
+        binding.tvTargetQuantity.text = ""
+    }
+
+    private fun renderTargetComplete() {
+        binding.cardTarget.visibility = View.VISIBLE
+        binding.tvTargetSubtitle.text = "第二步已校验"
+        binding.tvTargetStatus.visibility = View.VISIBLE
+        when (mode) {
+            CirculationAdjustMode.COMBINE -> {
+                val mainNum = primaryInfo?.num ?: 0
+                val fromNum = secondaryInfo?.num ?: 0
+                binding.tvTargetName.text = "被合并单"
+                binding.tvTargetDesc.text = "系统数量变化"
+                binding.tvTargetCode.text = secondaryInfo?.circulationCode.orDash()
+                binding.tvTargetQuantity.text = "$mainNum → ${mainNum + fromNum} 台"
+            }
+            CirculationAdjustMode.ADD -> {
+                val mainNum = primaryInfo?.num ?: 0
+                val qty = productInfo?.proMatQty ?: 1
+                binding.tvTargetName.text = "加入成品"
+                binding.tvTargetDesc.text = "当前数量变化"
+                binding.tvTargetCode.text = productInfo?.proMatCode.orDash()
+                binding.tvTargetQuantity.text = "$mainNum → ${mainNum + qty} 台"
+            }
+            CirculationAdjustMode.REMOVE -> {
+                val mainNum = primaryInfo?.num ?: 0
+                val qty = productInfo?.proMatQty ?: 1
+                binding.tvTargetName.text = "移除成品"
+                binding.tvTargetDesc.text = "当前数量变化"
+                binding.tvTargetCode.text = productInfo?.proMatCode.orDash()
+                binding.tvTargetQuantity.text = "$mainNum → ${(mainNum - qty).coerceAtLeast(0)} 台"
+            }
+        }
     }
 
     private fun showReasonDialog() {
@@ -206,6 +264,7 @@ class CirculationAdjustActivity :
             .setTitle("请扫描流转单码")
             .setHint("请扫描流转单号")
         binding.cardSheet.visibility = View.GONE
+        binding.cardTarget.visibility = View.GONE
         binding.cardReason.visibility = View.GONE
         binding.btnConfirmDiscard.visibility = View.GONE
         binding.tvReason.text = "请选择操作原因"

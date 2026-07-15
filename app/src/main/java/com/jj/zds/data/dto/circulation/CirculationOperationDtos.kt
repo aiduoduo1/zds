@@ -4,7 +4,13 @@ data class CirculationQrCodeRequest(
     val qrCode: String,
 )
 
-data class CirculationProductQrCodeRequest(
+data class CirculationCombineFromCheckRequest(
+    val qrCode: String,
+    val mainCirculationId: String,
+)
+
+data class CirculationProductCheckRequest(
+    val circulationId: String,
     val proQrCode: String,
 )
 

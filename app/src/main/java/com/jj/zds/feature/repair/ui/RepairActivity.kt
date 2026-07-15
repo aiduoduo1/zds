@@ -20,6 +20,7 @@ import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.FileProvider
+import androidx.core.widget.doAfterTextChanged
 import coil.load
 import com.jj.core.permission.hasJiangPermission
 import com.jj.storage.JiangStorage
@@ -31,6 +32,11 @@ import com.jj.ui.toast.JToast
 import com.jj.ui.toolbar.JiangToolbarMenuItem
 import com.jj.ui.widget.JStatusType
 import com.jj.zds.data.dto.debugplan.DebugDictItemDto
+import com.jj.zds.data.dto.repair.ProductRepairPartDto
+import com.jj.zds.data.dto.repair.REPAIR_FAULT_TYPE_KEY_PART
+import com.jj.zds.data.dto.repair.REPAIR_FAULT_TYPE_OTHER_PART
+import com.jj.zds.data.dto.repair.REPAIR_MAINTAIN_TYPE_CHANGE_PART
+import com.jj.zds.data.dto.repair.REPAIR_MAINTAIN_TYPE_NORMAL
 import com.jj.zds.data.dto.repair.RepairAction
 import com.jj.zds.data.dto.repair.RepairFileDto
 import com.jj.zds.data.dto.repair.RepairSnScanValidDto
@@ -61,6 +67,12 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
     private var repairResults = emptyList<DebugDictItemDto>()
     private var selectedNgReason: String = ""
     private var selectedRepairResult: String = ""
+    private var productRepairParts = emptyList<ProductRepairPartDto>()
+    private var productFaultSelection = ProductFaultSelection()
+    private var productRepairMode = PRODUCT_MODE_NORMAL
+    private var syncingFaultMaterialInput = false
+    private var syncingReplacementInput = false
+    private var replacementScanInProgress = false
     private var uploadingRepairPhoto = false
     private var pendingPhotoFile: File? = null
     private var repairPhotoUploadMode = PhotoUploadMode.default()
@@ -127,6 +139,32 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         binding.btnToggleRemark.setOnClickListener { toggleRepairRemark() }
         binding.tvNgReason.setOnClickListener { showNgReasonDialog() }
         binding.tvRepairResult.setOnClickListener { showRepairResultDialog() }
+        binding.groupRepairMode.setOnCheckedChangeListener { _, checkedId ->
+            productRepairMode = if (checkedId == binding.rbReplaceRepair.id) {
+                PRODUCT_MODE_REPLACE
+            } else {
+                PRODUCT_MODE_NORMAL
+            }
+            renderProductRepairContext()
+        }
+        binding.editFaultMaterialCode.doAfterTextChanged { editable ->
+            if (syncingFaultMaterialInput) return@doAfterTextChanged
+            val code = editable?.toString().orEmpty()
+            if (code != productFaultSelection.materialCode) {
+                productFaultSelection = productFaultSelection.enterMaterialCode(code)
+                renderKeyPartOptions()
+                renderProductRepairContext()
+            }
+        }
+        binding.inputReplacementSn.onTextChanged { text ->
+            if (syncingReplacementInput) return@onTextChanged
+            if (text.trim() != productFaultSelection.replacementSn) {
+                productFaultSelection = productFaultSelection.selectReplacement("")
+                binding.inputReplacementSn.clearState()
+            }
+        }
+        binding.inputReplacementSn.onInputDone { submitReplacementSn(it) }
+        binding.inputReplacementSn.onTextDebounce(delayMillis = 260L) { submitReplacementSn(it) }
         binding.btnTakePhoto.setOnClickListener { requestCameraAndTakePhoto() }
         binding.groupRepairPhotoUploadMode.setOnCheckedChangeListener { _, checkedId ->
             repairPhotoUploadMode = if (checkedId == binding.rbRepairPhotoOriginal.id) {
@@ -156,6 +194,19 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
             repairResults = items.filter { it.isShow }
             renderRepairResult()
         }
+        viewModel.productRepairParts.observe(this) { parts ->
+            productRepairParts = parts
+            renderProductRepairContext()
+        }
+        viewModel.newRepairPartSnScanValidResult.observe(this) { result ->
+            replacementScanInProgress = false
+            if (!isProductRepair()) return@observe
+            val sn = result.sn.orEmpty().ifBlank { binding.inputReplacementSn.text().trim() }
+            productFaultSelection = productFaultSelection.selectReplacement(sn)
+            setReplacementSnText(sn)
+            binding.inputReplacementSn.showSuccess("新关键部件校验通过")
+            renderProductRepairContext()
+        }
         viewModel.repairOperationDone.observe(this) {
             val action = submitAction
             val allowsRecheck = submitAllowsRecheck
@@ -163,7 +214,25 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
             submitAction = null
             submitAllowsRecheck = false
             submittedQrCode = ""
-            when {
+            handleRepairDone(action, allowsRecheck, handoffQrCode)
+        }
+        viewModel.repairPhotoUploadResult.observe(this) { fileId ->
+            val file = pendingPhotoFile
+            uploadingRepairPhoto = false
+            pendingPhotoFile = null
+            repairPhotos += RepairPhotoItem(fileId = fileId.toString(), localFile = file)
+            renderPhotos()
+            renderButtons()
+            JToast.show("维修照片已上传")
+        }
+    }
+
+    private fun handleRepairDone(
+        action: RepairAction?,
+        allowsRecheck: Boolean,
+        handoffQrCode: String,
+    ) {
+        when {
                 action == RepairAction.DRAFT -> {
                     JToast.show("维修记录已保存")
                     clearRepairPage()
@@ -177,22 +246,12 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
                     clearRepairPage()
                 }
                 else -> renderButtons()
-            }
-        }
-        viewModel.repairPhotoUploadResult.observe(this) { fileId ->
-            val file = pendingPhotoFile
-            uploadingRepairPhoto = false
-            pendingPhotoFile = null
-            repairPhotos += RepairPhotoItem(fileId = fileId.toString(), localFile = file)
-            renderPhotos()
-            renderButtons()
-            JToast.show("维修照片已上传")
         }
     }
 
     override fun toolbarTitle(): CharSequence = "不良维修"
 
-    override fun toolbarSubtitle(): CharSequence = "扫描 SN 处理未关闭不良"
+    override fun toolbarSubtitle(): CharSequence = "扫描 SN/PRO 码处理未关闭不良"
 
     override fun toolbarMenuItems(): List<JiangToolbarMenuItem> {
         return listOf(JiangToolbarMenuItem(MENU_SYNC, "刷新"))
@@ -252,7 +311,7 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
     private inline fun withCurrentReport(action: (RepairSnScanValidDto) -> Unit) {
         val report = currentState?.report
         if (report == null) {
-            JToast.show("请先扫描 SN")
+            JToast.show("请先扫描 SN 或 PRO 码")
         } else {
             action(report)
         }
@@ -261,6 +320,13 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
     override fun errorMode(): JiangErrorMode = JiangErrorMode.TOAST
 
     override fun onUiError(code: Int, message: String, throwable: Throwable?) {
+        if (replacementScanInProgress) {
+            replacementScanInProgress = false
+            binding.inputReplacementSn.showError(message).selectAll()
+            binding.inputReplacementSn.requestInputFocus(showKeyboard = false)
+            renderButtons()
+            return
+        }
         if (scanInProgress) {
             scanInProgress = false
             binding.inputSn.showError(message).selectAll()
@@ -311,6 +377,19 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         focusScanInput(selectAll = false)
     }
 
+    private fun setFaultMaterialText(text: String) {
+        syncingFaultMaterialInput = true
+        binding.editFaultMaterialCode.setText(text)
+        binding.editFaultMaterialCode.setSelection(binding.editFaultMaterialCode.text?.length ?: 0)
+        syncingFaultMaterialInput = false
+    }
+
+    private fun setReplacementSnText(text: String) {
+        syncingReplacementInput = true
+        binding.inputReplacementSn.setText(text)
+        syncingReplacementInput = false
+    }
+
     private fun resetRepairContent() {
         snCode = ""
         lastSubmitCode = ""
@@ -322,6 +401,13 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         currentState = null
         selectedNgReason = ""
         selectedRepairResult = ""
+        productFaultSelection = ProductFaultSelection()
+        productRepairMode = PRODUCT_MODE_NORMAL
+        productRepairParts = emptyList()
+        replacementScanInProgress = false
+        setFaultMaterialText("")
+        setReplacementSnText("")
+        binding.rbNormalRepair.isChecked = true
         uploadingRepairPhoto = false
         pendingPhotoFile = null
         repairPhotos.clear()
@@ -340,7 +426,7 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         binding.layoutSummaryPage.visibility = if (currentState == null) View.GONE else View.VISIBLE
         binding.tvEmpty.visibility = if (currentState == null) View.VISIBLE else View.GONE
         toolbar.setTitleText("不良维修")
-        toolbar.setSubtitleText("扫描 SN 处理未关闭不良")
+        toolbar.setSubtitleText("扫描 SN/PRO 码处理未关闭不良")
         toolbar.setMenuItemVisible(MENU_SYNC, true)
         moreActionView?.visibility = View.VISIBLE
         binding.scrollContent.post { binding.scrollContent.scrollTo(0, 0) }
@@ -351,7 +437,7 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
 
     private fun showRepairForm() {
         val state = currentState ?: run {
-            JToast.show("请先扫描 SN")
+            JToast.show("请先扫描 SN 或 PRO 码")
             return
         }
         if (!state.editable) {
@@ -410,8 +496,26 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         lastSubmitCode = code
         lastSubmitAt = now
         scanInProgress = true
-        binding.inputSn.verifying("SN 校验中...")
+        binding.inputSn.verifying("SN/PRO 码校验中...")
         viewModel.scanValidRepairSn(code)
+    }
+
+    private fun submitReplacementSn(rawCode: String) {
+        val code = rawCode.trim()
+        val categoryId = productFaultSelection.keyPartCategoryId.trim()
+        if (code.isBlank()) return
+        if (replacementScanInProgress) return
+        if (categoryId.isBlank()) {
+            JToast.show("请先选择要更换的关键部件")
+            return
+        }
+        if (code == productFaultSelection.keyPartSn.trim()) {
+            binding.inputReplacementSn.showError("新旧关键部件 SN 不能相同").selectAll()
+            return
+        }
+        replacementScanInProgress = true
+        binding.inputReplacementSn.verifying("新关键部件校验中...")
+        viewModel.scanValidNewRepairPartSn(categoryId, code)
     }
 
     private fun renderRepair(state: RepairUiState) {
@@ -419,6 +523,13 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         val report = state.report
         selectedNgReason = report.ngReason.orEmpty()
         selectedRepairResult = report.result.orEmpty()
+        productRepairParts = emptyList()
+        productFaultSelection = ProductFaultSelection()
+        productRepairMode = PRODUCT_MODE_NORMAL
+        replacementScanInProgress = false
+        setFaultMaterialText("")
+        setReplacementSnText("")
+        binding.rbNormalRepair.isChecked = true
         repairPhotos.clear()
         repairPhotos += report.fileList
             .take(MAX_PHOTO_COUNT)
@@ -438,6 +549,10 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
                 ?: JiangStorage.kv.getString(ZdsStorageKeys.USER_NAME, "").orEmpty(),
         )
         binding.editRepairDesc.setText(report.repairDesc.orEmpty())
+        if (ProductRepairRules.isFinishedProductSource(report.ngSource)) {
+            viewModel.loadProductRepairParts(state.submitId)
+        }
+        renderProductRepairContext()
         renderPhotos()
         setEditable(state.editable)
         showSummaryPage()
@@ -481,7 +596,78 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         binding.groupRepairPhotoUploadMode.isEnabled = editable
         binding.rbRepairPhotoCompressed.isEnabled = editable
         binding.rbRepairPhotoOriginal.isEnabled = editable
+        binding.rbNormalRepair.isEnabled = editable
+        binding.rbReplaceRepair.isEnabled = editable
+        binding.editFaultMaterialCode.isEnabled = editable
+        binding.inputReplacementSn.isEnabled = editable
         renderButtons()
+    }
+
+    private fun renderProductRepairContext() {
+        val report = currentState?.report
+        val isProduct = ProductRepairRules.isFinishedProductSource(report?.ngSource)
+        binding.layoutProductRepair.visibility = if (isProduct) View.VISIBLE else View.GONE
+        if (!isProduct) return
+        binding.rbReplaceRepair.visibility = View.VISIBLE
+        renderKeyPartOptions()
+        val showReplacementScan = productRepairMode == PRODUCT_MODE_REPLACE &&
+            productFaultSelection.keyPartSn.isNotBlank()
+        binding.inputReplacementSn.visibility = if (showReplacementScan) View.VISIBLE else View.GONE
+        if (!showReplacementScan) {
+            productFaultSelection = productFaultSelection.selectReplacement("")
+            setReplacementSnText("")
+            binding.inputReplacementSn.clearState()
+        }
+    }
+
+    private fun renderKeyPartOptions() {
+        val report = currentState?.report ?: return
+        if (!ProductRepairRules.isFinishedProductSource(report.ngSource)) return
+        val editable = currentState?.editable == true
+        binding.layoutKeyPartOptions.removeAllViews()
+        if (productRepairParts.isEmpty()) {
+            binding.layoutKeyPartOptions.addView(
+                TextView(this).apply {
+                    text = "暂无关键部件数据"
+                    textSize = 14f
+                    setTextColor(0xFF64748B.toInt())
+                    setPadding(dp(4), dp(4), dp(4), dp(4))
+                },
+            )
+            return
+        }
+        productRepairParts.forEach { part ->
+            val partSn = part.materialCode.orEmpty()
+            val selected = productFaultSelection.keyPartSn == partSn
+            val option = TextView(this).apply {
+                text = listOf(part.productName, part.categoryName, partSn)
+                    .filter { !it.isNullOrBlank() }
+                    .joinToString("\n")
+                    .ifBlank { partSn.ifBlank { "未命名关键部件" } }
+                textSize = 15f
+                setTextColor(if (selected) 0xFF1769E0.toInt() else 0xFF172033.toInt())
+                setPadding(dp(12), dp(8), dp(12), dp(8))
+                setBackgroundResource(com.jj.ui.R.drawable.j_bg_input)
+                isEnabled = editable && partSn.isNotBlank() && !part.categoryId.isNullOrBlank()
+                alpha = if (selected) 1f else 0.82f
+                setOnClickListener {
+                    productFaultSelection = productFaultSelection.selectKeyPart(
+                        sn = partSn,
+                        categoryId = part.categoryId.orEmpty(),
+                    )
+                    setFaultMaterialText("")
+                    setReplacementSnText("")
+                    binding.inputReplacementSn.clearState()
+                    renderProductRepairContext()
+                }
+            }
+            binding.layoutKeyPartOptions.addView(
+                option,
+                LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+                    bottomMargin = dp(4)
+                },
+            )
+        }
     }
 
     private fun renderButtons() {
@@ -555,7 +741,7 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
 
     private fun submitRepair(action: RepairAction) {
         val state = currentState ?: run {
-            JToast.show("请先扫描 SN")
+            JToast.show("请先扫描 SN 或 PRO 码")
             return
         }
         val result = selectedRepairResult.trim()
@@ -589,9 +775,20 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
                 return
             }
         }
+        if (requireCompleteInput && isProductRepair()) {
+            val productError = validateProductRepair()
+            if (productError != null) {
+                JToast.show(productError)
+                return
+            }
+        }
         val request = RepairSubmitRequest(
             action = action.value,
             id = state.submitId,
+            faultType = repairFaultType(),
+            maintainType = repairMaintainType(),
+            damagePartSn = repairDamagePartSn(),
+            newPartSn = repairNewPartSn(),
             result = result,
             ngReason = ngReason,
             repairBy = repairBy,
@@ -602,13 +799,62 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
                 .take(MAX_PHOTO_COUNT)
                 .map { RepairFileDto(fileId = it) },
         )
-        val allowsRecheck = action == RepairAction.SUBMIT &&
-            RepairSubmitSuccessRules.isRecheckAllowed(result, repairResults)
-        if (action == RepairAction.SUBMIT && !allowsRecheck) {
+        val outcome = ProductRepairRules.submitOutcome(state.report.ngSource, result, repairResults)
+        val allowsRecheck = action == RepairAction.SUBMIT && outcome == RepairSubmitOutcome.RECHECK
+        if (action == RepairAction.SUBMIT && outcome == RepairSubmitOutcome.FINAL_STATE) {
             showFinalStateSubmitDialog(request)
             return
         }
         dispatchRepair(request, action, allowsRecheck)
+    }
+
+    private fun isProductRepair(): Boolean {
+        return ProductRepairRules.isFinishedProductSource(currentState?.report?.ngSource)
+    }
+
+    private fun validateProductRepair(): String? {
+        val keyPartSn = productFaultSelection.keyPartSn.trim()
+        val materialCode = productFaultSelection.materialCode.trim()
+        if (keyPartSn.isBlank() && materialCode.isBlank()) {
+            return "请选择损坏关键部件或填写非关键部件物料号"
+        }
+        if (productRepairMode == PRODUCT_MODE_REPLACE) {
+            if (keyPartSn.isBlank()) return "更换关键部件必须选择要更换的关键部件"
+            if (productFaultSelection.keyPartCategoryId.isBlank()) return "所选关键部件缺少品类ID"
+            val replacementSn = productFaultSelection.replacementSn.trim()
+            if (replacementSn.isBlank()) return "请扫描新关键部件 SN 码"
+            if (replacementSn == keyPartSn) return "新旧关键部件 SN 不能相同"
+        }
+        return null
+    }
+
+    private fun repairFaultType(): String {
+        if (!isProductRepair()) return ""
+        return if (productFaultSelection.keyPartSn.isNotBlank()) {
+            REPAIR_FAULT_TYPE_KEY_PART
+        } else {
+            REPAIR_FAULT_TYPE_OTHER_PART
+        }
+    }
+
+    private fun repairMaintainType(): String {
+        return if (isProductRepair()) {
+            productRepairMode
+        } else {
+            REPAIR_MAINTAIN_TYPE_NORMAL
+        }
+    }
+
+    private fun repairDamagePartSn(): String {
+        if (!isProductRepair()) return ""
+        return productFaultSelection.keyPartSn.trim()
+            .ifBlank { productFaultSelection.materialCode.trim() }
+    }
+
+    private fun repairNewPartSn(): String {
+        if (!isProductRepair()) return ""
+        if (productRepairMode != PRODUCT_MODE_REPLACE) return ""
+        return productFaultSelection.replacementSn.trim()
     }
 
     private fun dispatchRepair(
@@ -860,6 +1106,8 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         const val SUBMIT_DEBOUNCE_WINDOW = 900L
         const val MAX_PHOTO_COUNT = 9
         const val COLLAPSED_REMARK_LINES = 3
+        const val PRODUCT_MODE_NORMAL = REPAIR_MAINTAIN_TYPE_NORMAL
+        const val PRODUCT_MODE_REPLACE = REPAIR_MAINTAIN_TYPE_CHANGE_PART
     }
 
     private data class RepairPhotoItem(

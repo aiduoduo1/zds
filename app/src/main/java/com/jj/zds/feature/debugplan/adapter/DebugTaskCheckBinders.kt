@@ -27,6 +27,7 @@ import com.jj.zds.databinding.ItemSingleDebugCheckTextBinding
 import com.jj.zds.databinding.ItemSingleDebugCheckValueBinding
 import com.jj.zds.feature.debugplan.data.DebugTaskCheckResult
 import com.jj.zds.feature.debugplan.data.DebugTaskPhotoRow
+import com.jj.zds.feature.debugplan.data.DebugTaskPhotoSource
 import com.jj.zds.feature.debugplan.data.DebugTaskSwitchRow
 import com.jj.zds.feature.debugplan.data.DebugTaskTextRow
 import com.jj.zds.feature.debugplan.data.DebugTaskValueRow
@@ -183,13 +184,15 @@ class DebugTaskPhotoBinder(
         val display = DebugTaskItemDisplayRules.build(item.dto.standardOption, item.description)
         binding.tvContent.bindDescription(display.content)
         binding.tvDescription.bindDescription(display.description)
+        val isOscilloscope = item.source == DebugTaskPhotoSource.OSCILLOSCOPE
         binding.tvPhotoState.text = if (item.photos.isNotEmpty()) {
             "${item.photos.size}张"
         } else {
-            "未拍"
+            if (isOscilloscope) "未获取" else "未拍"
         }
         binding.btnPhoto.text = when {
-            item.uploading -> "上传中"
+            item.uploading -> if (isOscilloscope) "获取中" else "上传中"
+            isOscilloscope -> "获取示波器图片"
             item.photos.isNotEmpty() -> "继续拍照"
             else -> "拍照"
         }
@@ -198,6 +201,7 @@ class DebugTaskPhotoBinder(
         binding.btnPhoto.applySmallActionButton(item.result == DebugTaskCheckResult.PASS)
         binding.btnPhoto.setOnClickListener { onPhotoClick(item.checkId) }
         binding.groupPhotoUploadMode.setOnCheckedChangeListener(null)
+        binding.groupPhotoUploadMode.visibility = if (isOscilloscope) View.GONE else View.VISIBLE
         binding.groupPhotoUploadMode.check(
             if (item.uploadMode == PhotoUploadMode.ORIGINAL) {
                 binding.rbPhotoOriginal.id
@@ -315,16 +319,15 @@ private fun TextView.bindDescription(description: String) {
 }
 
 private fun TextView.bindTitle(title: String) {
-    val shortTitle = DebugTaskItemDisplayRules.shortTitle(title)
-    text = shortTitle
-    val truncated = shortTitle != title.trim()
-    isClickable = truncated
+    val titleText = title.trim()
+    text = titleText
+    isClickable = titleText.length > 5
     setOnClickListener(
-        if (truncated) {
+        if (titleText.length > 5) {
             View.OnClickListener {
                 AlertDialog.Builder(context)
                     .setTitle("项目名称")
-                    .setMessage(title)
+                    .setMessage(titleText)
                     .setPositiveButton("知道了", null)
                     .show()
             }

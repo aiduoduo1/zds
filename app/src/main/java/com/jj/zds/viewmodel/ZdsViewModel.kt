@@ -41,6 +41,9 @@ import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailDto
 import com.jj.zds.data.dto.qrcode.QrCodeDto
 import com.jj.zds.data.dto.repair.RepairAction
 import com.jj.zds.data.dto.repair.RepairLogDto
+import com.jj.zds.data.dto.repair.NewRepairPartSnScanValidDto
+import com.jj.zds.data.dto.repair.ProductRepairPartDto
+import com.jj.zds.data.dto.repair.RepairOptionDto
 import com.jj.zds.data.dto.repair.RepairSnScanValidDto
 import com.jj.zds.data.dto.repair.RepairSubmitRequest
 import com.jj.zds.data.dto.update.ZdsVersionCheckResult
@@ -104,6 +107,9 @@ class ZdsViewModel : JiangViewModel() {
     private val _qrCodeDecodeResult = MutableLiveData<QrCodeDto>()
     val qrCodeDecodeResult: LiveData<QrCodeDto> = _qrCodeDecodeResult
 
+    private val _oscilloscopeScreenshotFileId = MutableLiveData<Long>()
+    val oscilloscopeScreenshotFileId: LiveData<Long> = _oscilloscopeScreenshotFileId
+
     private val _repairSnScanValidResult = MutableLiveData<RepairSnScanValidDto>()
     val repairSnScanValidResult: LiveData<RepairSnScanValidDto> = _repairSnScanValidResult
 
@@ -118,6 +124,18 @@ class ZdsViewModel : JiangViewModel() {
 
     private val _repairLogs = MutableLiveData<List<RepairLogDto>>()
     val repairLogs: LiveData<List<RepairLogDto>> = _repairLogs
+
+    private val _productRepairParts = MutableLiveData<List<ProductRepairPartDto>>()
+    val productRepairParts: LiveData<List<ProductRepairPartDto>> = _productRepairParts
+
+    private val _repairMaintainTypeOptions = MutableLiveData<List<RepairOptionDto>>()
+    val repairMaintainTypeOptions: LiveData<List<RepairOptionDto>> = _repairMaintainTypeOptions
+
+    private val _repairFaultTypeOptions = MutableLiveData<List<RepairOptionDto>>()
+    val repairFaultTypeOptions: LiveData<List<RepairOptionDto>> = _repairFaultTypeOptions
+
+    private val _newRepairPartSnScanValidResult = MutableLiveData<NewRepairPartSnScanValidDto>()
+    val newRepairPartSnScanValidResult: LiveData<NewRepairPartSnScanValidDto> = _newRepairPartSnScanValidResult
 
     private val _repairPhotoUploadResult = MutableLiveData<Long>()
     val repairPhotoUploadResult: LiveData<Long> = _repairPhotoUploadResult
@@ -367,6 +385,17 @@ class ZdsViewModel : JiangViewModel() {
         )
     }
 
+    fun captureOscilloscopeScreen() {
+        launchResult(
+            loadingMode = JiangLoadingMode.DIALOG,
+            loadingMessage = "正在获取示波器截图...",
+            block = { repository.captureOscilloscopeScreen() },
+            onSuccess = { fileId ->
+                _oscilloscopeScreenshotFileId.value = fileId
+            },
+        )
+    }
+
     fun scanValidRepairSn(qrCode: String) {
         val trimmedCode = qrCode.trim()
         if (trimmedCode.isBlank()) {
@@ -399,6 +428,65 @@ class ZdsViewModel : JiangViewModel() {
             block = { repository.getRepairResultItems() },
             onSuccess = { result ->
                 _repairResultItems.value = result
+            },
+        )
+    }
+
+    fun loadProductRepairParts(infoId: Long) {
+        if (infoId <= 0L) {
+            showToast("不良上报ID为空")
+            return
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = { repository.getProductRepairParts(infoId) },
+            onSuccess = { result ->
+                _productRepairParts.value = result
+            },
+        )
+    }
+
+    fun loadRepairMaintainTypeOptions() {
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = { repository.getRepairMaintainTypeOptions() },
+            onSuccess = { result ->
+                _repairMaintainTypeOptions.value = result
+            },
+        )
+    }
+
+    fun loadRepairFaultTypeOptions() {
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = { repository.getRepairFaultTypeOptions() },
+            onSuccess = { result ->
+                _repairFaultTypeOptions.value = result
+            },
+        )
+    }
+
+    fun scanValidNewRepairPartSn(damagePartCatId: String, qrCode: String) {
+        val trimmedCatId = damagePartCatId.trim()
+        val trimmedCode = qrCode.trim()
+        when {
+            trimmedCatId.isBlank() -> {
+                showToast("请先选择损坏关键部件")
+                return
+            }
+
+            trimmedCode.isBlank() -> {
+                showToast("请先扫描新关键部件 SN 码")
+                return
+            }
+        }
+
+        launchResult(
+            loadingMode = JiangLoadingMode.NONE,
+            block = { repository.scanValidNewRepairPartSn(trimmedCatId, trimmedCode) },
+            onSuccess = { result ->
+                _newRepairPartSnScanValidResult.value = result
             },
         )
     }
@@ -905,7 +993,7 @@ class ZdsViewModel : JiangViewModel() {
         }
         launchResult(
             loadingMode = JiangLoadingMode.DIALOG,
-            loadingMessage = "结束生产中...",
+            loadingMessage = "生产完成提交中...",
             block = { repository.finishProduction(trimmedPlanId, forceFinish) },
             onSuccess = { _productionFinishDone.value = Unit },
         )

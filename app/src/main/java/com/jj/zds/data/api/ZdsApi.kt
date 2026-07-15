@@ -9,10 +9,11 @@ import com.jj.zds.data.dto.common.CurUserDto
 import com.jj.zds.data.dto.common.UserSkillRequest
 import com.jj.zds.data.dto.common.ZdsBaseResult
 import com.jj.zds.data.dto.circulation.CirculationCombineRequest
+import com.jj.zds.data.dto.circulation.CirculationCombineFromCheckRequest
 import com.jj.zds.data.dto.circulation.CirculationDiscardRequest
 import com.jj.zds.data.dto.circulation.CirculationProductCheckDto
+import com.jj.zds.data.dto.circulation.CirculationProductCheckRequest
 import com.jj.zds.data.dto.circulation.CirculationProductOperationRequest
-import com.jj.zds.data.dto.circulation.CirculationProductQrCodeRequest
 import com.jj.zds.data.dto.circulation.CirculationQrCodeRequest
 import com.jj.zds.data.dto.circulation.CirculationReasonDto
 import com.jj.zds.data.dto.debugplan.DebugBoxBindRequest
@@ -75,6 +76,11 @@ import com.jj.zds.data.dto.recheck.RecheckScanValidRequest
 import com.jj.zds.data.dto.recheck.RecheckSubmitRequest
 import com.jj.zds.data.dto.repair.RepairLogDto
 import com.jj.zds.data.dto.repair.RepairLogListRequest
+import com.jj.zds.data.dto.repair.NewRepairPartSnScanValidDto
+import com.jj.zds.data.dto.repair.NewRepairPartSnScanValidRequest
+import com.jj.zds.data.dto.repair.ProductRepairPartDto
+import com.jj.zds.data.dto.repair.ProductRepairPartListRequest
+import com.jj.zds.data.dto.repair.RepairOptionDto
 import com.jj.zds.data.dto.repair.RepairSnScanValidDto
 import com.jj.zds.data.dto.repair.RepairSnScanValidRequest
 import com.jj.zds.data.dto.repair.RepairSubmitRequest
@@ -90,8 +96,7 @@ import retrofit2.http.Part
 interface ZdsApi {
 
     /**
-     * 登录，成功后返回 mes-up-token。
-     */
+     * 鐧诲綍锛屾垚鍔熷悗杩斿洖 mes-up-token銆?     */
     @Headers("No-Token: true")
     @POST("/ca/auth/login")
     suspend fun login(
@@ -99,8 +104,7 @@ interface ZdsApi {
     ): ZdsBaseResult<String>
 
     /**
-     * 获取当前登录用户信息。
-     */
+     * 鑾峰彇褰撳墠鐧诲綍鐢ㄦ埛淇℃伅銆?     */
     @POST("/s/sysUser/me")
     suspend fun initUser(): ZdsBaseResult<CurUserDto>
 
@@ -110,14 +114,12 @@ interface ZdsApi {
     ): ZdsBaseResult<CurUserDto>
 
     /**
-     * 获取当前用户菜单。
-     */
+     * 鑾峰彇褰撳墠鐢ㄦ埛鑿滃崟銆?     */
     @POST("/s/sysMenu/myList")
     suspend fun getMenu(@Body map: Map<String, Int>): ZdsBaseResult<List<ZdsMenuDto>>
 
     /**
-     * 检查客户端 APK 版本。
-     */
+     * 妫€鏌ュ鎴风 APK 鐗堟湰銆?     */
     @POST("/s/sysClientVersion/versionCheck")
     suspend fun versionCheck(
         @Body map: Map<String, String?>,
@@ -130,10 +132,12 @@ interface ZdsApi {
     ): ResponseBody
 
     /**
-     * 二维码解析。
-     */
+     * 浜岀淮鐮佽В鏋愩€?     */
     @POST("/s/sysQrCode/decode")
     suspend fun decodeQrCode(@Body code: String): ZdsBaseResult<QrCodeDto>
+
+    @POST("/s/micsig/screenAndGet")
+    suspend fun captureOscilloscopeScreenRaw(): ResponseBody
 
     @POST("/q/ngSnRepairInfo/snScanValid")
     suspend fun scanValidRepairSn(
@@ -141,16 +145,16 @@ interface ZdsApi {
     ): ZdsBaseResult<RepairSnScanValidDto>
 
     /**
-     * 未完成调试计划统计。
+     * Debug plan statistics raw response.
+     * New business APIs should prefer raw response and parse through ZdsRawApiCaller.
      */
     @POST("/m/iqcTask/statistics")
-    suspend fun getDebugPlanStatistics(
+    suspend fun getDebugPlanStatisticsRaw(
         @Body body: Map<String, @JvmSuppressWildcards Any> = emptyMap(),
-    ): ZdsBaseResult<DebugPlanStatisticsDto>
+    ): ResponseBody
 
     /**
-     * 调试计划列表。
-     */
+     * 璋冭瘯璁″垝鍒楄〃銆?     */
     @POST("/m/iqcTask/list")
     suspend fun getDebugPlanList(
         @Body request: DebugPlanListRequest,
@@ -266,7 +270,7 @@ interface ZdsApi {
 
     @POST("/pro/matCirculation/checkCombineFrom")
     suspend fun checkCirculationCombineFrom(
-        @Body request: CirculationQrCodeRequest,
+        @Body request: CirculationCombineFromCheckRequest,
     ): ZdsBaseResult<Any>
 
     @POST("/pro/matCirculation/combineReason")
@@ -284,8 +288,11 @@ interface ZdsApi {
 
     @POST("/pro/matCirculation/checkAddPro")
     suspend fun checkCirculationAddProduct(
-        @Body request: CirculationProductQrCodeRequest,
+        @Body request: CirculationProductCheckRequest,
     ): ZdsBaseResult<List<CirculationProductCheckDto>>
+
+    @POST("/pro/matCirculation/addReason")
+    suspend fun getCirculationAddReasons(): ZdsBaseResult<List<CirculationReasonDto>>
 
     @POST("/pro/matCirculation/addPro")
     suspend fun addCirculationProduct(
@@ -299,8 +306,11 @@ interface ZdsApi {
 
     @POST("/pro/matCirculation/checkRemovePro")
     suspend fun checkCirculationRemoveProduct(
-        @Body request: CirculationProductQrCodeRequest,
+        @Body request: CirculationProductCheckRequest,
     ): ZdsBaseResult<List<CirculationProductCheckDto>>
+
+    @POST("/pro/matCirculation/removeReason")
+    suspend fun getCirculationRemoveReasons(): ZdsBaseResult<List<CirculationReasonDto>>
 
     @POST("/pro/matCirculation/removePro")
     suspend fun removeCirculationProduct(
@@ -363,24 +373,21 @@ interface ZdsApi {
     ): ZdsBaseResult<Any>
 
     /**
-     * 调试计划明细，包含计划基础信息、批次列表和已绑定箱单。
-     */
+     * 璋冭瘯璁″垝鏄庣粏锛屽寘鍚鍒掑熀纭€淇℃伅銆佹壒娆″垪琛ㄥ拰宸茬粦瀹氱鍗曘€?     */
     @POST("/m/iqcTaskItem/info")
     suspend fun getDebugPlanDetail(
         @Body request: DebugPlanDetailRequest,
     ): ZdsBaseResult<DebugPlanDetailDto>
 
     /**
-     * 箱单扫描校验，绑定箱单前校验箱单二维码内容。
-     */
+     * 绠卞崟鎵弿鏍￠獙锛岀粦瀹氱鍗曞墠鏍￠獙绠卞崟浜岀淮鐮佸唴瀹广€?     */
     @POST("/m/iqcToBoxLabel/scanValid")
     suspend fun scanValidDebugBox(
         @Body request: DebugBoxScanValidRequest,
     ): ZdsBaseResult<DebugBoxScanValidDto>
 
     /**
-     * 箱单绑定提交，把校验通过的箱单二维码绑定到调试计划。
-     */
+     * 绠卞崟缁戝畾鎻愪氦锛屾妸鏍￠獙閫氳繃鐨勭鍗曚簩缁寸爜缁戝畾鍒拌皟璇曡鍒掋€?     */
     @POST("/m/iqcToBoxLabel/bind")
     suspend fun bindDebugBoxes(
         @Body request: DebugBoxBindRequest,
@@ -388,24 +395,21 @@ interface ZdsApi {
 
 
     /**
-     * SN 扫描校验，抽检前校验 SN 二维码并返回调试检查表。
-     */
+     * SN 鎵弿鏍￠獙锛屾娊妫€鍓嶆牎楠?SN 浜岀淮鐮佸苟杩斿洖璋冭瘯妫€鏌ヨ〃銆?     */
     @POST("/m/iqcToSn/scanValid")
     suspend fun scanValidDebugSn(
         @Body request: DebugSnScanValidRequest,
     ): ZdsBaseResult<DebugSnScanValidDto>
 
     /**
-     * 提交 SN 调试检查结果。
-     */
+     * 鎻愪氦 SN 璋冭瘯妫€鏌ョ粨鏋溿€?     */
     @POST("/m/iqcToSn/check")
     suspend fun submitDebugSnCheck(
         @Body request: DebugSnCheckRequest,
     ): ZdsBaseResult<Any>
 
     /**
-     * 保存调试计划操作日志。
-     */
+     * 淇濆瓨璋冭瘯璁″垝鎿嶄綔鏃ュ織銆?     */
     @POST("/m/iqcTaskOpLog/addLog")
     suspend fun saveDebugTaskLog(
         @Body request: DebugTaskLogRequest,
@@ -432,32 +436,28 @@ interface ZdsApi {
     ): ZdsBaseResult<Any>
 
     /**
-     * 获取调试批次信息。
-     */
+     * 鑾峰彇璋冭瘯鎵规淇℃伅銆?     */
     @POST("/m/iqcTaskItem/infoById")
     suspend fun getDebugTaskItemInfo(
         @Body request: DebugIdRequest,
     ): ZdsBaseResult<DebugTaskItemInfoDto>
 
     /**
-     * 调试批次完工。
-     */
+     * 璋冭瘯鎵规瀹屽伐銆?     */
     @POST("/m/iqcTaskItem/finish")
     suspend fun finishDebugTaskItem(
         @Body request: DebugIdRequest,
     ): ZdsBaseResult<Any>
 
     /**
-     * 调试计划完工，可携带拍照凭证资源 ID，必要时支持强制完工。
-     */
+     * 璋冭瘯璁″垝瀹屽伐锛屽彲鎼哄甫鎷嶇収鍑瘉璧勬簮 ID锛屽繀瑕佹椂鏀寔寮哄埗瀹屽伐銆?     */
     @POST("/m/iqcTask/finish")
     suspend fun finishDebugPlan(
         @Body request: DebugPlanFinishRequest,
     ): ResponseBody
 
     /**
-     * 根据字典编码获取字典项，调试计划里用于不良现象列表。
-     */
+     * 鏍规嵁瀛楀吀缂栫爜鑾峰彇瀛楀吀椤癸紝璋冭瘯璁″垝閲岀敤浜庝笉鑹幇璞″垪琛ㄣ€?     */
     @POST("/s/sysDictItem/getByCode")
     suspend fun getDebugDictItems(
         @Body request: DebugDictRequest,
@@ -467,6 +467,22 @@ interface ZdsApi {
     suspend fun getRepairDictItems(
         @Body request: DebugDictRequest,
     ): ZdsBaseResult<List<DebugDictItemDto>>
+
+    @POST("/q/ngProToMat/listByInfoId")
+    suspend fun getProductRepairParts(
+        @Body request: ProductRepairPartListRequest,
+    ): ZdsBaseResult<List<ProductRepairPartDto>>
+
+    @POST("/q/ngSnRepairInfo/maintainTypeOptions")
+    suspend fun getRepairMaintainTypeOptions(): ZdsBaseResult<List<RepairOptionDto>>
+
+    @POST("/q/ngSnRepairInfo/faultTypeOptions")
+    suspend fun getRepairFaultTypeOptions(): ZdsBaseResult<List<RepairOptionDto>>
+
+    @POST("/q/ngSnRepairInfo/newPartSnScanValid")
+    suspend fun scanValidNewRepairPartSn(
+        @Body request: NewRepairPartSnScanValidRequest,
+    ): ZdsBaseResult<NewRepairPartSnScanValidDto>
 
     @POST("/q/ngSnRepairInfo/repair")
     suspend fun submitRepair(
