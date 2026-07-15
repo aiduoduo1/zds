@@ -82,6 +82,7 @@ class AgingActivity : JiangToolbarStateVmActivity<ActivityAgingBinding, AgingVie
         viewModel.scanMergeResult.observe(this) { result ->
             scanInProgress = false
             activeOperation = AgingOperation.NONE
+            renderProducts(viewModel.pendingProducts.value.orEmpty())
             binding.inputAgingScan.clearText()
             val message = when {
                 result.addedCount > 0 && result.duplicateCount > 0 ->
