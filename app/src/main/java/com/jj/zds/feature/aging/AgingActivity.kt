@@ -1,6 +1,8 @@
 package com.jj.zds.feature.aging
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.RelativeSizeSpan
@@ -21,9 +23,18 @@ import com.jj.zds.data.dto.aging.AgingProductDto
 import com.jj.zds.data.dto.debugplan.DebugDictItemDto
 import com.jj.zds.databinding.ActivityAgingBinding
 import com.jj.zds.databinding.ItemAgingProductBinding
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 class AgingActivity : JiangToolbarStateVmActivity<ActivityAgingBinding, AgingViewModel>() {
 
+    private val durationHandler = Handler(Looper.getMainLooper())
+    private val durationTicker = object : Runnable {
+        override fun run() {
+            updateEndAgingDuration()
+            durationHandler.postDelayed(this, DURATION_TICK_INTERVAL_MS)
+        }
+    }
     private var scanInProgress = false
     private var submitInProgress = false
     private var currentMode = AgingMode.START
@@ -213,7 +224,10 @@ class AgingActivity : JiangToolbarStateVmActivity<ActivityAgingBinding, AgingVie
         binding.btnEndNg.alpha = if (binding.btnEndNg.isEnabled) 1f else 0.6f
         binding.inputEndAgingScan.setInputEnabled(!scanInProgress && !submitInProgress)
         if (!scanInProgress && !submitInProgress) binding.inputEndAgingScan.setScanOnly(true)
-        if (detail == null) return
+        if (detail == null) {
+            stopDurationTicker()
+            return
+        }
         binding.tvEndProductCode.text = detail.code.orDash()
         binding.tvEndProductName.text = listOfNotNull(
             detail.partName?.takeIf(String::isNotBlank),
@@ -221,6 +235,8 @@ class AgingActivity : JiangToolbarStateVmActivity<ActivityAgingBinding, AgingVie
         ).joinToString(" / ").ifBlank { "产品信息未知" }
         binding.tvEndPlan.text = "生产计划：${detail.planOrderNo.orDash()}"
         binding.tvEndStartTime.text = "开始时间：${detail.agingStartTime.orDash()}"
+        updateEndAgingDuration()
+        startDurationTicker()
         binding.tvEndProgress.text = "当前计划老化 OK：${detail.agingOkQty} / ${detail.agingQty} 台"
     }
 
@@ -299,6 +315,41 @@ class AgingActivity : JiangToolbarStateVmActivity<ActivityAgingBinding, AgingVie
         renderEndDetail(null)
     }
 
+    private fun startDurationTicker() {
+        durationHandler.removeCallbacks(durationTicker)
+        durationHandler.postDelayed(durationTicker, DURATION_TICK_INTERVAL_MS)
+    }
+
+    private fun stopDurationTicker() {
+        durationHandler.removeCallbacks(durationTicker)
+    }
+
+    private fun updateEndAgingDuration() {
+        val startTime = viewModel.endDetail.value?.agingStartTime
+        binding.tvEndAgingDuration.text = "当前老化时长：${formatAgingDuration(startTime)}"
+    }
+
+    private fun formatAgingDuration(startTime: String?): String {
+        val startMillis = parseAgingStartTime(startTime) ?: return "-"
+        val durationMinutes = ((System.currentTimeMillis() - startMillis) / MILLIS_PER_MINUTE).coerceAtLeast(0)
+        val days = durationMinutes / MINUTES_PER_DAY
+        val hours = durationMinutes % MINUTES_PER_DAY / MINUTES_PER_HOUR
+        val minutes = durationMinutes % MINUTES_PER_HOUR
+        return buildString {
+            if (days > 0) append(days).append("天")
+            append(hours).append("小时").append(minutes).append("分")
+        }
+    }
+
+    private fun parseAgingStartTime(startTime: String?): Long? {
+        val text = startTime?.trim()?.takeIf { it.isNotBlank() } ?: return null
+        return AGING_TIME_PATTERNS.firstNotNullOfOrNull { pattern ->
+            runCatching {
+                SimpleDateFormat(pattern, Locale.CHINA).parse(text)?.time
+            }.getOrNull()
+        }
+    }
+
     private fun buildButtonText(products: List<AgingProductDto>): CharSequence {
         val title = if (submitInProgress) "开始老化中..." else "开始老化"
         val summary = AgingPendingListRules.summary(products)
@@ -342,6 +393,11 @@ class AgingActivity : JiangToolbarStateVmActivity<ActivityAgingBinding, AgingVie
         if (currentMode == AgingMode.START) focusScanner() else focusEndScanner()
     }
 
+    override fun onDestroy() {
+        stopDurationTicker()
+        super.onDestroy()
+    }
+
     private fun String?.orDash(): String = this?.takeIf { it.isNotBlank() } ?: "-"
 
     private enum class AgingMode {
@@ -356,5 +412,19 @@ class AgingActivity : JiangToolbarStateVmActivity<ActivityAgingBinding, AgingVie
         END_SCAN,
         END_SUBMIT,
         LOAD_NG_PHENOMENA,
+    }
+
+    private companion object {
+        private const val DURATION_TICK_INTERVAL_MS = 60_000L
+        private const val MILLIS_PER_MINUTE = 60_000L
+        private const val MINUTES_PER_HOUR = 60L
+        private const val MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR
+        private val AGING_TIME_PATTERNS = listOf(
+            "yyyy-MM-dd HH:mm:ss",
+            "yyyy-MM-dd HH:mm",
+            "yyyy/MM/dd HH:mm:ss",
+            "yyyy/MM/dd HH:mm",
+            "yyyy-MM-dd'T'HH:mm:ss",
+        )
     }
 }

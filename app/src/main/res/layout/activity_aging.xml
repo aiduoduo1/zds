@@ -196,6 +196,15 @@
                     tools:text="开始时间：2026-07-06 19:03:52" />
 
                 <TextView
+                    android:id="@+id/tvEndAgingDuration"
+                    style="@style/JText.Body"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/j_space_6"
+                    android:textStyle="bold"
+                    tools:text="当前老化时长：8小时12分" />
+
+                <TextView
                     android:id="@+id/tvEndProgress"
                     style="@style/JText.Body"
                     android:layout_width="match_parent"
