@@ -9,116 +9,129 @@
     android:padding="@dimen/j_space_12"
     tools:theme="@style/Theme.Zds">
 
-    <com.google.android.material.card.MaterialCardView
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refreshLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:cardBackgroundColor="@color/j_color_bg_card"
-        app:cardCornerRadius="@dimen/j_radius_md"
-        app:cardElevation="3dp"
-        app:strokeColor="@color/j_color_line_light"
-        app:strokeWidth="1dp">
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="@dimen/j_space_12">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <LinearLayout
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+                app:cardBackgroundColor="@color/j_color_bg_card"
+                app:cardCornerRadius="@dimen/j_radius_md"
+                app:cardElevation="3dp"
+                app:strokeColor="@color/j_color_line_light"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
-                    android:layout_width="0dp"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:padding="@dimen/j_space_12">
 
-                    <TextView
-                        android:id="@+id/tvPlanNo"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:ellipsize="end"
-                        android:maxLines="1"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvPlanNo"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:textColor="@color/j_color_text_primary"
+                                android:textSize="17sp"
+                                android:textStyle="bold"
+                                tools:text="WO20260611001" />
+
+                            <TextView
+                                android:id="@+id/tvPlanMeta"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/j_space_4"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:textColor="@color/j_color_text_secondary"
+                                android:textSize="12sp"
+                                tools:text="产品号：020102-152-9" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvPercent"
+                            android:layout_width="56dp"
+                            android:layout_height="56dp"
+                            android:layout_marginStart="@dimen/j_space_12"
+                            android:background="@drawable/j_bg_status_info"
+                            android:gravity="center"
+                            android:textColor="@color/j_color_primary"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            tools:text="65%" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/tvSummary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/j_space_10"
                         android:textColor="@color/j_color_text_primary"
-                        android:textSize="17sp"
+                        android:textSize="13sp"
                         android:textStyle="bold"
-                        tools:text="WO20260611001" />
+                        tools:text="执行进度 65/100" />
 
-                    <TextView
-                        android:id="@+id/tvPlanMeta"
+                    <ProgressBar
+                        android:id="@+id/progressOverall"
+                        style="?android:attr/progressBarStyleHorizontal"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/j_space_4"
-                        android:ellipsize="end"
-                        android:maxLines="1"
-                        android:textColor="@color/j_color_text_secondary"
-                        android:textSize="12sp"
-                        tools:text="产品号：020102-152-9" />
+                        android:layout_height="8dp"
+                        android:layout_marginTop="@dimen/j_space_8"
+                        android:max="100"
+                        android:progress="0"
+                        android:progressBackgroundTint="@color/j_color_line_light"
+                        android:progressTint="@color/j_color_primary" />
                 </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
-                <TextView
-                    android:id="@+id/tvPercent"
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_marginStart="@dimen/j_space_12"
-                    android:background="@drawable/j_bg_status_info"
-                    android:gravity="center"
-                    android:textColor="@color/j_color_primary"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    tools:text="65%" />
-            </LinearLayout>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerProgress"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_marginTop="@dimen/j_space_10"
+                android:layout_weight="1"
+                android:clipToPadding="false"
+                android:overScrollMode="never"
+                android:paddingBottom="@dimen/j_space_4"
+                tools:itemCount="3"
+                tools:listitem="@layout/item_production_execute_progress" />
 
             <TextView
-                android:id="@+id/tvSummary"
+                android:id="@+id/tvEmpty"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 android:layout_marginTop="@dimen/j_space_10"
-                android:textColor="@color/j_color_text_primary"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                tools:text="执行进度 65/100" />
-
-            <ProgressBar
-                android:id="@+id/progressOverall"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:layout_marginTop="@dimen/j_space_8"
-                android:max="100"
-                android:progress="0"
-                android:progressBackgroundTint="@color/j_color_line_light"
-                android:progressTint="@color/j_color_primary" />
+                android:layout_weight="1"
+                android:background="@drawable/pda_bg_card"
+                android:gravity="center"
+                android:text="暂无生产执行进度"
+                android:textColor="@color/j_color_text_secondary"
+                android:textSize="@dimen/j_text_size_md"
+                android:visibility="gone" />
         </LinearLayout>
-    </com.google.android.material.card.MaterialCardView>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerProgress"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="@dimen/j_space_10"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:overScrollMode="never"
-        android:paddingBottom="@dimen/j_space_4"
-        tools:itemCount="3"
-        tools:listitem="@layout/item_production_execute_progress" />
-
-    <TextView
-        android:id="@+id/tvEmpty"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginTop="@dimen/j_space_10"
-        android:layout_weight="1"
-        android:background="@drawable/pda_bg_card"
-        android:gravity="center"
-        android:text="暂无生产执行进度"
-        android:textColor="@color/j_color_text_secondary"
-        android:textSize="@dimen/j_text_size_md"
-        android:visibility="gone" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <Button
         android:id="@+id/btnFinishProduction"

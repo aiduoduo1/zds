@@ -8,8 +8,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.jj.zds.feature.main.ui.MainActivity
 import com.jj.zds.R
+import com.jj.zds.feature.pda.PdaMainActivity
 
 class ZdsMessageNotificationHelper(private val context: Context) {
 
@@ -32,7 +32,7 @@ class ZdsMessageNotificationHelper(private val context: Context) {
         return PendingIntent.getActivity(
             context,
             REQUEST_MAIN,
-            Intent(context, MainActivity::class.java),
+            Intent(context, PdaMainActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
     }

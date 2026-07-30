@@ -15,7 +15,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
@@ -58,6 +57,7 @@ import com.jj.zds.feature.debugplan.data.DebugTaskPhotoSource
 import com.jj.zds.feature.debugplan.data.DebugTaskSwitchRow
 import com.jj.zds.feature.debugplan.data.DebugTaskTextRow
 import com.jj.zds.feature.debugplan.data.DebugTaskValueRow
+import com.jj.zds.feature.micsig.ui.OscilloscopeZoomImageView
 import com.jj.zds.feature.photo.PhotoUploadFileProcessor
 import com.jj.zds.feature.photo.PhotoUploadMode
 import com.jj.zds.feature.repair.data.buildRepairFileUrl
@@ -784,14 +784,13 @@ class DebugTaskExecuteActivity : JiangToolbarStateVmActivity<ActivityDebugTaskEx
             setBackgroundColor(0xF0000000.toInt())
             setPadding(dp(12), dp(32), dp(12), dp(24))
         }
-        val imageView = ImageView(this).apply {
+        val imageView = OscilloscopeZoomImageView(this).apply {
             layoutParams = FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 Gravity.CENTER,
             )
             adjustViewBounds = false
-            scaleType = ImageView.ScaleType.FIT_CENTER
             setOnClickListener { }
         }
         val closeView = TextView(this).apply {

@@ -64,12 +64,12 @@ class CirculationAdjustViewModel : JiangViewModel() {
             CirculationAdjustMode.ADD -> launchResult(
                 loadingMode = JiangLoadingMode.NONE,
                 block = { repository.checkCirculationAddProduct(primaryId, code) },
-                onSuccess = { _productChecked.value = it.firstOrNull() ?: return@launchResult },
+                onSuccess = { _productChecked.value = it },
             )
             CirculationAdjustMode.REMOVE -> launchResult(
                 loadingMode = JiangLoadingMode.NONE,
                 block = { repository.checkCirculationRemoveProduct(primaryId, code) },
-                onSuccess = { _productChecked.value = it.firstOrNull() ?: return@launchResult },
+                onSuccess = { _productChecked.value = it },
             )
         }
     }

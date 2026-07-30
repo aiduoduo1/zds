@@ -71,6 +71,15 @@ import com.jj.zds.data.dto.productionplan.ProductionStationProgressDetailDto
 import com.jj.zds.data.dto.productionplan.ProductionSwitchBeginRequest
 import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailDto
 import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailRequest
+import com.jj.zds.data.dto.productstockin.ProductStockInRecordDto
+import com.jj.zds.data.dto.productstockin.ProductStockInRequest
+import com.jj.zds.data.dto.productstockout.ProductStockOutChildTaskDto
+import com.jj.zds.data.dto.productstockout.ProductStockOutChildTaskRequest
+import com.jj.zds.data.dto.productstockout.ProductStockOutDetailDto
+import com.jj.zds.data.dto.productstockout.ProductStockOutDetailRequest
+import com.jj.zds.data.dto.productstockout.ProductStockOutIdRequest
+import com.jj.zds.data.dto.productstockout.ProductStockOutScanRequest
+import com.jj.zds.data.dto.productstockout.ProductStockOutTaskDto
 import com.jj.zds.data.dto.qrcode.QrCodeDto
 import com.jj.zds.data.dto.recheck.RecheckScanValidRequest
 import com.jj.zds.data.dto.recheck.RecheckSubmitRequest
@@ -190,6 +199,46 @@ interface ZdsApi {
         @Body request: AgingEndRequest,
     ): ZdsBaseResult<Any>
 
+    @POST("/fin/mat/pro/in-stock")
+    suspend fun productStockIn(
+        @Body request: ProductStockInRequest,
+    ): ZdsBaseResult<List<ProductStockInRecordDto>>
+
+    @POST("/fin/finDeliveryTask/pda/list")
+    suspend fun getProductStockOutTasks(
+        @Body request: Map<String, String> = emptyMap(),
+    ): ZdsBaseResult<List<ProductStockOutTaskDto>>
+
+    @POST("/fin/finDeliveryCatDtl/pda/list")
+    suspend fun getProductStockOutChildTasks(
+        @Body request: ProductStockOutChildTaskRequest,
+    ): ZdsBaseResult<ProductStockOutTaskDto>
+
+    @POST("/fin/finDeliveryRes/pda/list")
+    suspend fun getProductStockOutDetail(
+        @Body request: ProductStockOutDetailRequest,
+    ): ZdsBaseResult<ProductStockOutDetailDto>
+
+    @POST("/fin/finDeliveryRes/pda/save")
+    suspend fun submitProductStockOut(
+        @Body request: ProductStockOutScanRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/fin/finDeliveryRes/del")
+    suspend fun deleteProductStockOutRecord(
+        @Body request: ProductStockOutIdRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/fin/finDeliveryCatDtl/finish")
+    suspend fun finishProductStockOutChildTask(
+        @Body request: ProductStockOutDetailRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/fin/finDeliveryTask/finish")
+    suspend fun finishProductStockOutTask(
+        @Body request: ProductStockOutIdRequest,
+    ): ZdsBaseResult<Any>
+
     @POST("/pro/proPlaDtl/bindProgress")
     suspend fun getProductionBindProgress(
         @Body request: ProductionPlanExecuteRequest,
@@ -289,7 +338,7 @@ interface ZdsApi {
     @POST("/pro/matCirculation/checkAddPro")
     suspend fun checkCirculationAddProduct(
         @Body request: CirculationProductCheckRequest,
-    ): ZdsBaseResult<List<CirculationProductCheckDto>>
+    ): ZdsBaseResult<CirculationProductCheckDto>
 
     @POST("/pro/matCirculation/addReason")
     suspend fun getCirculationAddReasons(): ZdsBaseResult<List<CirculationReasonDto>>
@@ -307,7 +356,7 @@ interface ZdsApi {
     @POST("/pro/matCirculation/checkRemovePro")
     suspend fun checkCirculationRemoveProduct(
         @Body request: CirculationProductCheckRequest,
-    ): ZdsBaseResult<List<CirculationProductCheckDto>>
+    ): ZdsBaseResult<CirculationProductCheckDto>
 
     @POST("/pro/matCirculation/removeReason")
     suspend fun getCirculationRemoveReasons(): ZdsBaseResult<List<CirculationReasonDto>>

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.core.widget.doAfterTextChanged
 import com.jj.ui.base.JiangToolbarStateVmActivity
 import com.jj.ui.recycler.adapter.JBindingAdapter
@@ -25,6 +26,8 @@ class ProductionCirculationPrintActivity :
     private val planNo by lazy { intent.getStringExtra(EXTRA_PLAN_NO).orEmpty() }
     private var progress: ProductionCirculationProgressDto? = null
     private var printAction = PrintAction.NONE
+    private var correctingPrintQuantity = false
+    private var pendingPrintQuantity = 0
 
     private val adapter = JBindingAdapter(
         inflate = ItemProductionCirculationBinding::inflate,
@@ -36,23 +39,27 @@ class ProductionCirculationPrintActivity :
 
     override fun initView(savedInstanceState: Bundle?) {
         binding.recyclerCirculation.setupLinear(adapter)
-        binding.inputPrintQuantity.doAfterTextChanged { renderStatistics() }
+        binding.inputPrintQuantity.doAfterTextChanged {
+            limitPrintQuantityInput()
+            renderStatistics()
+        }
         binding.btnPrint.setOnClickListener { printStandard() }
         binding.btnTailPrint.setOnClickListener { confirmTailPrint() }
+        focusPrintQuantity()
     }
 
     override fun initPageObserver() {
         viewModel.productionCirculationProgress.observe(this) { result ->
             progress = result
-            if (binding.inputPrintQuantity.text.isNullOrBlank()) {
-                binding.inputPrintQuantity.setText(result.unitQuantity.coerceAtLeast(0).toString())
-            }
+            pendingPrintQuantity = result.pendingPrintQuantity()
+            binding.inputPrintQuantity.hint = result.defaultPrintQuantity().toString()
             binding.tvProduct.text = "产品名称：${result.partName.orDash()}    产品型号：${result.specification.orDash()}"
             binding.tvDefaultHint.text = "工艺默认数量 ${result.unitQuantity.coerceAtLeast(0)} 台，可现场修改"
             val items = result.circulationList.orEmpty().sortedByDescending { it.sort }
             adapter.setList(items)
             binding.tvEmpty.visibility = if (items.isEmpty()) View.VISIBLE else View.GONE
             binding.recyclerCirculation.visibility = if (items.isEmpty()) View.GONE else View.VISIBLE
+            limitPrintQuantityInput(showToast = false)
             renderStatistics()
             result.orderCode?.takeIf { it.isNotBlank() }?.let { toolbar.setSubtitleText(it) }
         }
@@ -89,13 +96,46 @@ class ProductionCirculationPrintActivity :
     }
 
     private fun renderStatistics() {
-        val pending = progress?.toPrintQuantity?.coerceAtLeast(0) ?: 0
-        val quantity = binding.inputPrintQuantity.text?.toString()?.toIntOrNull()?.coerceAtLeast(0) ?: 0
+        val pending = pendingPrintQuantity
+        val inputQuantity = binding.inputPrintQuantity.text?.toString()?.toIntOrNull()?.coerceAtLeast(0)
+        val quantity = inputQuantity ?: progress.defaultPrintQuantity()
         val printable = if (quantity > 0) pending / quantity else 0
-        val tail = if (quantity > 0) pending % quantity else pending
+        val tail = pending
         binding.tvPendingCount.text = "待打印数量\n$pending"
         binding.tvPrintableCount.text = "可打印张数\n$printable"
         binding.tvTailCount.text = "尾箱数量\n$tail"
+    }
+
+    private fun limitPrintQuantityInput(showToast: Boolean = true) {
+        if (correctingPrintQuantity) return
+        if (progress == null) return
+        val pending = pendingPrintQuantity
+        val inputText = binding.inputPrintQuantity.text?.toString().orEmpty()
+        val quantity = inputText.toIntOrNull() ?: return
+        if (quantity <= pending) return
+
+        correctingPrintQuantity = true
+        if (pending > 0) {
+            val limitedText = pending.toString()
+            binding.inputPrintQuantity.setText(limitedText)
+            binding.inputPrintQuantity.setSelection(limitedText.length)
+        } else {
+            binding.inputPrintQuantity.text?.clear()
+        }
+        correctingPrintQuantity = false
+
+        if (showToast) {
+            JToast.show("本次打印数量不能超过待打印数量")
+        }
+    }
+
+    private fun focusPrintQuantity() {
+        binding.inputPrintQuantity.post {
+            binding.inputPrintQuantity.requestFocus()
+            binding.inputPrintQuantity.setSelection(binding.inputPrintQuantity.text?.length ?: 0)
+            (getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager)
+                ?.showSoftInput(binding.inputPrintQuantity, InputMethodManager.SHOW_IMPLICIT)
+        }
     }
 
     private fun bindCirculation(
@@ -132,12 +172,12 @@ class ProductionCirculationPrintActivity :
     }
 
     private fun printStandard() {
-        val quantity = binding.inputPrintQuantity.text?.toString()?.toIntOrNull() ?: 0
+        val quantity = binding.inputPrintQuantity.text?.toString()?.toIntOrNull() ?: progress.defaultPrintQuantity()
         if (quantity <= 0) {
             JToast.show("请输入本次打印数量")
             return
         }
-        val remaining = progress?.toPrintQuantity?.coerceAtLeast(0) ?: 0
+        val remaining = pendingPrintQuantity
         if (quantity > remaining) {
             JToast.show("本次打印数量不能超过待打印数量")
             return
@@ -155,7 +195,7 @@ class ProductionCirculationPrintActivity :
     }
 
     private fun confirmTailPrint() {
-        val remaining = progress?.toPrintQuantity?.coerceAtLeast(0) ?: 0
+        val remaining = pendingPrintQuantity
         if (remaining <= 0) {
             JToast.show("暂无待打印产品")
             return
@@ -179,6 +219,14 @@ class ProductionCirculationPrintActivity :
     }
 
     private fun String?.orDash(): String = this?.takeIf { it.isNotBlank() } ?: "-"
+
+    private fun ProductionCirculationProgressDto?.pendingPrintQuantity(): Int {
+        return this?.toPrintQuantity?.let { kotlin.math.abs(it) } ?: 0
+    }
+
+    private fun ProductionCirculationProgressDto?.defaultPrintQuantity(): Int {
+        return this?.unitQuantity?.coerceAtLeast(0) ?: 0
+    }
 
     private enum class PrintAction {
         NONE,

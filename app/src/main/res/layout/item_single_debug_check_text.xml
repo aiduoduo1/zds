@@ -36,8 +36,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/j_space_2"
-            android:ellipsize="end"
-            android:maxLines="1"
             android:textColor="@color/j_color_primary"
             android:textStyle="bold" />
 
@@ -46,9 +44,7 @@
             style="@style/JText.Caption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/j_space_2"
-            android:ellipsize="end"
-            android:maxLines="1" />
+            android:layout_marginTop="@dimen/j_space_2" />
 
         <TextView
             android:id="@+id/btnRemark"

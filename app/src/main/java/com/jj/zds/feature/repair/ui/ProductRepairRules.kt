@@ -11,6 +11,7 @@ data class ProductFaultSelection(
     val keyPartCategoryId: String = "",
     val materialCode: String = "",
     val replacementSn: String = "",
+    val replacementQrCode: String = "",
 ) {
     fun selectKeyPart(sn: String, categoryId: String): ProductFaultSelection {
         return copy(
@@ -18,6 +19,7 @@ data class ProductFaultSelection(
             keyPartCategoryId = categoryId.trim(),
             materialCode = "",
             replacementSn = "",
+            replacementQrCode = "",
         )
     }
 
@@ -27,11 +29,15 @@ data class ProductFaultSelection(
             keyPartCategoryId = "",
             materialCode = code.trim(),
             replacementSn = "",
+            replacementQrCode = "",
         )
     }
 
-    fun selectReplacement(sn: String): ProductFaultSelection {
-        return copy(replacementSn = sn.trim())
+    fun selectReplacement(sn: String, qrCode: String = ""): ProductFaultSelection {
+        return copy(
+            replacementSn = sn.trim(),
+            replacementQrCode = qrCode.trim(),
+        )
     }
 }
 

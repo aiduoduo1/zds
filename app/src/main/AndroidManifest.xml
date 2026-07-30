@@ -51,9 +51,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".feature.main.ui.MainActivity"
-            android:exported="false" />
+
         <activity
             android:name=".feature.pda.PdaMainActivity"
             android:exported="false"
@@ -151,6 +149,18 @@
             android:name=".feature.productstockin.ProductStockInActivity"
             android:exported="false"
             android:windowSoftInputMode="stateAlwaysHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.productstockout.ProductStockOutTaskListActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateAlwaysHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.productstockout.ProductStockOutChildTaskListActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateAlwaysHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.productstockout.ProductStockOutExecuteActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
         <activity
             android:name=".feature.circulation.ui.CirculationManageActivity"
             android:exported="false"

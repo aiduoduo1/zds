@@ -22,7 +22,6 @@ import com.jj.ui.base.JiangToolbarStateVmActivity
 import com.jj.ui.dialog.JConfirmDialog
 import com.jj.ui.input.JInputLayout
 import com.jj.zds.R
-import com.jj.zds.feature.main.ui.MainActivity
 import com.jj.zds.databinding.ActivityLoginBinding
 import com.jj.zds.feature.message.ZdsMessageSseService
 import com.jj.zds.feature.pda.PdaMainActivity

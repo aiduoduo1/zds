@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    style="@style/JStyle.Page"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/j_space_12">
+
+    <TextView
+        android:id="@+id/tvTaskSummary"
+        style="@style/JText.Body"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="待执行出库任务 0 单"
+        android:textStyle="bold" />
+
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/refreshLayout"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/j_space_8"
+        android:layout_weight="1">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerTasks"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false" />
+
+            <com.jj.ui.widget.JEmptyView
+                android:id="@+id/emptyTasks"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:jDescription="当前没有可执行的成品出库任务"
+                app:jTitle="暂无出库任务" />
+        </FrameLayout>
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+</LinearLayout>

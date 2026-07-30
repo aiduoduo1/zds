@@ -331,13 +331,14 @@ class AgingActivity : JiangToolbarStateVmActivity<ActivityAgingBinding, AgingVie
 
     private fun formatAgingDuration(startTime: String?): String {
         val startMillis = parseAgingStartTime(startTime) ?: return "-"
-        val durationMinutes = ((System.currentTimeMillis() - startMillis) / MILLIS_PER_MINUTE).coerceAtLeast(0)
-        val days = durationMinutes / MINUTES_PER_DAY
-        val hours = durationMinutes % MINUTES_PER_DAY / MINUTES_PER_HOUR
-        val minutes = durationMinutes % MINUTES_PER_HOUR
+        val durationSeconds = ((System.currentTimeMillis() - startMillis) / MILLIS_PER_SECOND).coerceAtLeast(0)
+        val hours = durationSeconds / SECONDS_PER_HOUR
+        val minutes = durationSeconds % SECONDS_PER_HOUR / SECONDS_PER_MINUTE
+        val seconds = durationSeconds % SECONDS_PER_MINUTE
         return buildString {
-            if (days > 0) append(days).append("天")
-            append(hours).append("小时").append(minutes).append("分")
+            append(hours).append("小时")
+            append(minutes).append("分钟")
+            append(seconds).append("秒")
         }
     }
 
@@ -415,10 +416,10 @@ class AgingActivity : JiangToolbarStateVmActivity<ActivityAgingBinding, AgingVie
     }
 
     private companion object {
-        private const val DURATION_TICK_INTERVAL_MS = 60_000L
-        private const val MILLIS_PER_MINUTE = 60_000L
-        private const val MINUTES_PER_HOUR = 60L
-        private const val MINUTES_PER_DAY = 24 * MINUTES_PER_HOUR
+        private const val DURATION_TICK_INTERVAL_MS = 1_000L
+        private const val MILLIS_PER_SECOND = 1_000L
+        private const val SECONDS_PER_MINUTE = 60L
+        private const val SECONDS_PER_HOUR = 60 * SECONDS_PER_MINUTE
         private val AGING_TIME_PATTERNS = listOf(
             "yyyy-MM-dd HH:mm:ss",
             "yyyy-MM-dd HH:mm",

@@ -23,6 +23,7 @@ class ProductionExecuteProgressActivity :
     private val planId: String by lazy { intent.getStringExtra(EXTRA_PLAN_ID).orEmpty() }
     private val planNo: String by lazy { intent.getStringExtra(EXTRA_PLAN_NO).orEmpty() }
     private val partCode: String by lazy { intent.getStringExtra(EXTRA_PART_CODE).orEmpty() }
+    private var refreshOnResume = false
 
     private val adapter = JBindingAdapter(
         inflate = ItemProductionExecuteProgressBinding::inflate,
@@ -35,25 +36,37 @@ class ProductionExecuteProgressActivity :
 
     override fun initView(savedInstanceState: Bundle?) {
         binding.recyclerProgress.setupLinear(adapter)
+        binding.refreshLayout.setOnRefreshListener {
+            viewModel.loadProductionStationProgressList(planId)
+        }
         binding.btnFinishProduction.setOnClickListener {
             viewModel.finishProduction(planId)
         }
         adapter.setOnItemClickListener { item, _ ->
             when (item.operationType) {
-                OPERATION_BIND -> ProductionSnBindActivity.start(
-                    context = this,
-                    planId = planId,
-                    planNo = planNo,
-                )
-                OPERATION_TEST -> ProductionOverallTestActivity.start(
-                    context = this,
-                    planId = planId,
-                )
-                OPERATION_PRINT -> ProductionCirculationPrintActivity.start(
-                    context = this,
-                    planId = planId,
-                    planNo = planNo,
-                )
+                OPERATION_BIND -> {
+                    refreshOnResume = true
+                    ProductionSnBindActivity.start(
+                        context = this,
+                        planId = planId,
+                        planNo = planNo,
+                    )
+                }
+                OPERATION_TEST -> {
+                    refreshOnResume = true
+                    ProductionOverallTestActivity.start(
+                        context = this,
+                        planId = planId,
+                    )
+                }
+                OPERATION_PRINT -> {
+                    refreshOnResume = true
+                    ProductionCirculationPrintActivity.start(
+                        context = this,
+                        planId = planId,
+                        planNo = planNo,
+                    )
+                }
             }
         }
         binding.tvPlanNo.text = planNo.ifBlank { "生产计划" }
@@ -67,8 +80,10 @@ class ProductionExecuteProgressActivity :
 
     override fun initPageObserver() {
         viewModel.productionStationProgressList.observe(this) { progressList ->
+            binding.refreshLayout.isRefreshing = false
             renderHeader(progressList)
             adapter.setList(progressList)
+            binding.recyclerProgress.visibility = if (progressList.isEmpty()) View.GONE else View.VISIBLE
             binding.tvEmpty.visibility = if (progressList.isEmpty()) View.VISIBLE else View.GONE
         }
         viewModel.productionFinishDone.observe(this) {
@@ -87,6 +102,14 @@ class ProductionExecuteProgressActivity :
         viewModel.loadProductionStationProgressList(planId)
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (refreshOnResume) {
+            refreshOnResume = false
+            viewModel.loadProductionStationProgressList(planId)
+        }
+    }
+
     override fun onStateRetryClick() {
         viewModel.loadProductionStationProgressList(planId)
     }
@@ -102,6 +125,7 @@ class ProductionExecuteProgressActivity :
     override fun errorMode(): JiangErrorMode = JiangErrorMode.TOAST
 
     override fun onUiError(code: Int, message: String, throwable: Throwable?) {
+        binding.refreshLayout.isRefreshing = false
         if (code == CODE_FORCE_FINISH_REQUIRED) {
             dismissLoadingDialog()
             showContentPage()

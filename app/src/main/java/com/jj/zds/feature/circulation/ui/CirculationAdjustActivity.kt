@@ -114,7 +114,12 @@ class CirculationAdjustActivity :
     override fun onUiError(code: Int, message: String, throwable: Throwable?) {
         super.onUiError(code, message, throwable)
         busy = false
+        if (step == 2 && !secondComplete()) {
+            binding.cardTarget.visibility = View.GONE
+            updateConfirmButton()
+        }
         binding.inputCirculation.showError(message).selectAll()
+        focusScanner()
         JToast.show(message)
     }
 
@@ -132,6 +137,7 @@ class CirculationAdjustActivity :
                 binding.inputCirculation.showError("接口未返回主流转单ID")
                 return
             }
+            clearSecondTarget()
             viewModel.checkSecond(mode, primaryId, code)
         }
     }
@@ -148,7 +154,7 @@ class CirculationAdjustActivity :
         )
         binding.inputCirculation.setHint(if (mode == CirculationAdjustMode.COMBINE) "请扫描另一张流转单" else "请扫描成品码")
         binding.cardReason.visibility = View.VISIBLE
-        renderTargetWaiting()
+        binding.cardTarget.visibility = View.GONE
         binding.btnConfirmDiscard.visibility = View.VISIBLE
         updateConfirmButton()
         focusScanner()
@@ -186,6 +192,13 @@ class CirculationAdjustActivity :
         }
         binding.tvTargetCode.text = "-"
         binding.tvTargetQuantity.text = ""
+    }
+
+    private fun clearSecondTarget() {
+        secondaryInfo = null
+        productInfo = null
+        binding.cardTarget.visibility = View.GONE
+        updateConfirmButton()
     }
 
     private fun renderTargetComplete() {

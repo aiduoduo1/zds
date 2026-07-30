@@ -22,6 +22,7 @@ import com.jj.zds.databinding.FragmentPdaHomeBinding
 import com.jj.zds.feature.aging.AgingActivity
 import com.jj.zds.feature.circulation.ui.CirculationManageActivity
 import com.jj.zds.feature.productstockin.ProductStockInActivity
+import com.jj.zds.feature.productstockout.ProductStockOutTaskListActivity
 import com.jj.zds.feature.recheck.ui.RecheckActivity
 import com.jj.zds.feature.repair.ui.RepairActivity
 import com.jj.zds.feature.singledebug.ui.SingleDebugActivity
@@ -253,7 +254,9 @@ class PdaHomeFragment : JiangVmFragment<FragmentPdaHomeBinding, ZdsViewModel>() 
         binding.homeActions.btnProductIn.setOnClickListener {
             startActivity(Intent(requireContext(), ProductStockInActivity::class.java))
         }
-        binding.homeActions.btnProductOut.setOnClickListener { JToast.show("进入成品出库") }
+        binding.homeActions.btnProductOut.setOnClickListener {
+            startActivity(Intent(requireContext(), ProductStockOutTaskListActivity::class.java))
+        }
         binding.homeActions.btnBind.setOnClickListener { JToast.show("进入绑定") }
         binding.homeActions.btnUnbind.setOnClickListener { JToast.show("进入解绑") }
         binding.homeActions.btnMaterialDetail.setOnClickListener { JToast.show("进入材料详情") }

@@ -202,7 +202,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/j_space_6"
                     android:textStyle="bold"
-                    tools:text="当前老化时长：8小时12分" />
+                    tools:text="当前老化时长：8小时12分钟36秒" />
 
                 <TextView
                     android:id="@+id/tvEndProgress"

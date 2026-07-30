@@ -82,6 +82,15 @@ import com.jj.zds.data.dto.productionplan.ProductionStationProgressDto
 import com.jj.zds.data.dto.productionplan.ProductionSwitchBeginRequest
 import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailDto
 import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailRequest
+import com.jj.zds.data.dto.productstockin.ProductStockInRecordDto
+import com.jj.zds.data.dto.productstockout.ProductStockOutChildTaskDto
+import com.jj.zds.data.dto.productstockout.ProductStockOutChildTaskRequest
+import com.jj.zds.data.dto.productstockout.ProductStockOutDetailDto
+import com.jj.zds.data.dto.productstockout.ProductStockOutDetailRequest
+import com.jj.zds.data.dto.productstockout.ProductStockOutIdRequest
+import com.jj.zds.data.dto.productstockout.ProductStockOutScanRequest
+import com.jj.zds.data.dto.productstockout.ProductStockOutTaskDto
+import com.jj.zds.data.dto.productstockin.ProductStockInRequest
 import com.jj.zds.data.dto.qrcode.QrCodeDto
 import com.jj.zds.data.dto.recheck.RecheckScanValidRequest
 import com.jj.zds.data.dto.recheck.RecheckSubmitRequest
@@ -112,6 +121,49 @@ import org.json.JSONTokener
 class ZdsRepository(
     private val api: ZdsApi = JiangNetwork.createApi(ZdsApi::class.java),
 ) {
+
+    suspend fun productStockIn(qrCode: String): JiangResult<List<ProductStockInRecordDto>> {
+        return dataApiCall { api.productStockIn(ProductStockInRequest(qrCode = qrCode)) }
+    }
+
+    suspend fun getProductStockOutTasks(): JiangResult<List<ProductStockOutTaskDto>> {
+        return dataApiCall { api.getProductStockOutTasks() }
+    }
+
+    suspend fun getProductStockOutChildTasks(
+        taskId: String,
+    ): JiangResult<List<ProductStockOutChildTaskDto>> {
+        return when (
+            val result = dataApiCall {
+                api.getProductStockOutChildTasks(ProductStockOutChildTaskRequest(taskId = taskId))
+            }
+        ) {
+            is JiangResult.Success -> JiangResult.Success(result.data.dtlList.orEmpty())
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    suspend fun getProductStockOutDetail(taskDetailId: String): JiangResult<ProductStockOutDetailDto> {
+        return dataApiCall { api.getProductStockOutDetail(ProductStockOutDetailRequest(taskDetailId)) }
+    }
+
+    suspend fun submitProductStockOut(taskDetailId: String, qrCode: String): JiangResult<Unit> {
+        return unitApiCall { api.submitProductStockOut(ProductStockOutScanRequest(taskDetailId, qrCode)) }
+    }
+
+    suspend fun deleteProductStockOutRecord(recordId: String): JiangResult<Unit> {
+        return unitApiCall { api.deleteProductStockOutRecord(ProductStockOutIdRequest(recordId)) }
+    }
+
+    suspend fun finishProductStockOutChildTask(taskDetailId: String): JiangResult<Unit> {
+        return unitApiCall { api.finishProductStockOutChildTask(ProductStockOutDetailRequest(taskDetailId)) }
+    }
+
+    suspend fun finishProductStockOutTask(taskId: String): JiangResult<Unit> {
+        return unitApiCall { api.finishProductStockOutTask(ProductStockOutIdRequest(taskId)) }
+    }
 
     /**
      * 登录只负责换取 token；拿到 token 后立即落本地，后续接口会依赖它拼接鉴权信息。
@@ -572,14 +624,14 @@ class ZdsRepository(
     suspend fun checkCirculationAddProduct(
         circulationId: String,
         qrCode: String,
-    ): JiangResult<List<CirculationProductCheckDto>> {
+    ): JiangResult<CirculationProductCheckDto> {
         return dataApiCall { api.checkCirculationAddProduct(CirculationProductCheckRequest(circulationId, qrCode)) }
     }
 
     suspend fun checkCirculationRemoveProduct(
         circulationId: String,
         qrCode: String,
-    ): JiangResult<List<CirculationProductCheckDto>> {
+    ): JiangResult<CirculationProductCheckDto> {
         return dataApiCall { api.checkCirculationRemoveProduct(CirculationProductCheckRequest(circulationId, qrCode)) }
     }
 

@@ -36,6 +36,21 @@ class ProductRepairRulesTest {
     }
 
     @Test
+    fun replacementKeepsParsedSnAndOriginalQrCodeSeparately() {
+        val selection = ProductFaultSelection(keyPartSn = "OLD-SN", keyPartCategoryId = "CAT-001")
+            .selectReplacement(
+                sn = "NEW-SN",
+                qrCode = "NEW-SN||010201-482||260526001||260526001||001||1||2026-06-02||备注",
+            )
+
+        assertEquals("NEW-SN", selection.replacementSn)
+        assertEquals(
+            "NEW-SN||010201-482||260526001||260526001||001||1||2026-06-02||备注",
+            selection.replacementQrCode,
+        )
+    }
+
+    @Test
     fun okProductSourceCompletesWithoutPageHandoff() {
         assertEquals(
             RepairSubmitOutcome.COMPLETE,
