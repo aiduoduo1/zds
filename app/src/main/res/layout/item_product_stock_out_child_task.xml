@@ -11,6 +11,7 @@
         <TextView android:id="@+id/tvChildTaskName" style="@style/JText.SectionTitle" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_marginStart="@dimen/j_space_8" android:layout_weight="1" android:ellipsize="end" android:maxLines="1" />
         <TextView android:id="@+id/tvChildTaskStatus" style="@style/JText.Caption" android:layout_width="wrap_content" android:layout_height="wrap_content" android:background="@drawable/pda_bg_status_warning" android:paddingHorizontal="@dimen/j_space_6" android:paddingVertical="@dimen/j_space_2" android:textColor="@color/j_color_warning" />
     </LinearLayout>
+    <TextView android:id="@+id/tvChildTaskMaterialCode" style="@style/JText.Secondary" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/j_space_6" />
     <TextView android:id="@+id/tvChildTaskSeries" style="@style/JText.Secondary" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/j_space_6" />
     <TextView android:id="@+id/tvChildTaskWarehouse" style="@style/JText.Secondary" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/j_space_2" />
     <TextView android:id="@+id/tvChildTaskQuantity" style="@style/JText.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/j_space_6" android:textStyle="bold" />

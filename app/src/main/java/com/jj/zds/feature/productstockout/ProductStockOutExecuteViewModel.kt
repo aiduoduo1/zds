@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import com.jj.arch.state.JiangLoadingMode
 import com.jj.arch.vm.JiangViewModel
 import com.jj.zds.data.dto.productstockout.ProductStockOutDetailDto
+import com.jj.zds.data.dto.productstockout.ProductStockOutScanResult
 import com.jj.zds.data.repository.ZdsRepository
 
 class ProductStockOutExecuteViewModel : JiangViewModel() {
@@ -14,8 +15,8 @@ class ProductStockOutExecuteViewModel : JiangViewModel() {
     private val _detail = MutableLiveData<ProductStockOutDetailDto>()
     val detail: LiveData<ProductStockOutDetailDto> = _detail
 
-    private val _scanSubmitted = MutableLiveData<Unit>()
-    val scanSubmitted: LiveData<Unit> = _scanSubmitted
+    private val _scanResult = MutableLiveData<ProductStockOutScanResult>()
+    val scanResult: LiveData<ProductStockOutScanResult> = _scanResult
 
     private val _recordDeleted = MutableLiveData<Unit>()
     val recordDeleted: LiveData<Unit> = _recordDeleted
@@ -35,7 +36,7 @@ class ProductStockOutExecuteViewModel : JiangViewModel() {
         launchResult(
             loadingMode = JiangLoadingMode.NONE,
             block = { repository.submitProductStockOut(taskDetailId, qrCode) },
-            onSuccess = { _scanSubmitted.value = Unit },
+            onSuccess = { _scanResult.value = it },
         )
     }
 
@@ -47,10 +48,10 @@ class ProductStockOutExecuteViewModel : JiangViewModel() {
         )
     }
 
-    fun finishChildTask(taskDetailId: String) {
+    fun finishChildTask(taskDetailId: String, force: Boolean = false, remark: String? = null) {
         launchResult(
             loadingMode = JiangLoadingMode.DIALOG,
-            block = { repository.finishProductStockOutChildTask(taskDetailId) },
+            block = { repository.finishProductStockOutChildTask(taskDetailId, force, remark) },
             onSuccess = { _childTaskFinished.value = Unit },
         )
     }

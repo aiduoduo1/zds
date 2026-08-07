@@ -129,7 +129,7 @@ class ZdsApplication : Application() {
     companion object {
         val BASE_URL = if (BuildConfig.DEBUG) {
             "http://192.168.1.216:81/"
-             //"http://1.94.220.45/"
+           //  "http://1.94.220.45/"
         } else {
             "http://1.94.220.45/"
         }
@@ -140,6 +140,6 @@ class ZdsApplication : Application() {
 
         const val UNAUTHORIZED_REDIRECT_INTERVAL_MS = 1_500L
         const val OSCILLOSCOPE_SCREENSHOT_PATH = "/s/micsig/screenAndGet"
-        const val OSCILLOSCOPE_SCREENSHOT_TIMEOUT_SECONDS = 30
+        const val OSCILLOSCOPE_SCREENSHOT_TIMEOUT_SECONDS = 60
     }
 }

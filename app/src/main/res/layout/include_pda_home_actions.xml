@@ -174,7 +174,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:drawableTop="@drawable/pda_ic_action_link"
-                android:text="绑定" />
+                android:text="看板绑定" />
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView
@@ -218,7 +218,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:drawableTop="@drawable/pda_ic_action_material"
-                android:text="材料详情" />
+                android:text="物料追溯" />
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 
@@ -249,10 +249,28 @@
                 android:text="流转单管理" />
         </com.google.android.material.card.MaterialCardView>
 
-        <Space
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btnProductReturn"
             android:layout_width="0dp"
-            android:layout_height="1dp"
+            android:layout_height="76dp"
             android:layout_marginStart="@dimen/j_space_8"
-            android:layout_weight="2" />
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardBackgroundColor="@color/j_color_bg_card"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/j_color_line_light"
+            app:strokeWidth="1dp">
+
+            <TextView
+                style="@style/PdaHomeActionStyle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:drawableTop="@drawable/pda_ic_action_stock_in"
+                android:text="成品退库" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_marginStart="@dimen/j_space_8" android:layout_weight="1" />
     </LinearLayout>
 </LinearLayout>

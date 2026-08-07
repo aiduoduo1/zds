@@ -4,8 +4,16 @@ data class ProductStockInRequest(
     val qrCode: String,
 )
 
+data class ProductStockInResponse(
+    val 已出库: List<ProductStockInRecordDto> = emptyList(),
+    val 老化NG: List<ProductStockInRecordDto> = emptyList(),
+    val 已入库: List<ProductStockInRecordDto> = emptyList(),
+    val 未老化: List<ProductStockInRecordDto> = emptyList(),
+)
+
 /** 成品入库接口返回的本次入库明细。 */
 data class ProductStockInRecordDto(
+    val displayStatus: String = "",
     val id: String? = null,
     val planId: String? = null,
     val proMatId: String? = null,

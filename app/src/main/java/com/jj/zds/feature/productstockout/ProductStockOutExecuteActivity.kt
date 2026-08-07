@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.EditText
 import com.jj.ui.base.JiangToolbarStateVmActivity
 import com.jj.ui.dialog.JConfirmDialog
+import com.jj.ui.dialog.JInputDialog
 import com.jj.ui.recycler.adapter.JBindingAdapter
 import com.jj.ui.recycler.ext.addDefaultDivider
 import com.jj.ui.recycler.ext.setupLinear
@@ -28,6 +29,7 @@ class ProductStockOutExecuteActivity :
     )
     private val taskDetailId: String by lazy { intent.getStringExtra(EXTRA_DETAIL_ID).orEmpty() }
     private val productName: String by lazy { intent.getStringExtra(EXTRA_PRODUCT_NAME).orEmpty() }
+    private val productCode: String by lazy { intent.getStringExtra(EXTRA_PRODUCT_CODE).orEmpty() }
     private var scanInProgress = false
     private var activeOperation = Operation.NONE
 
@@ -45,13 +47,12 @@ class ProductStockOutExecuteActivity :
             if (text.isBlank() && !scanInProgress) binding.inputStockOutScan.clearState()
         }
         binding.btnFinishChildTask.setOnClickListener { confirmFinishChildTask() }
-        binding.tvExecuteProduct.text = productName.ifBlank { "产品出库" }
         focusScanner()
     }
 
     override fun initPageObserver() {
         viewModel.detail.observe(this, ::renderDetail)
-        viewModel.scanSubmitted.observe(this) {
+        viewModel.scanResult.observe(this) {
             scanInProgress = false
             activeOperation = Operation.LOAD_DETAIL
             binding.inputStockOutScan.clearText().clearState()
@@ -72,9 +73,9 @@ class ProductStockOutExecuteActivity :
         if (taskDetailId.isBlank()) finish() else viewModel.loadDetail(taskDetailId)
     }
 
-    override fun toolbarTitle(): CharSequence = "执行出库"
+    override fun toolbarTitle(): CharSequence = productName.ifBlank { "物料名称" }
 
-    override fun toolbarSubtitle(): CharSequence = "扫描 PRO码或流转单码"
+    override fun toolbarSubtitle(): CharSequence = productCode.ifBlank { "物料编码" }
 
     override fun enableStateLayout(): Boolean = false
 
@@ -92,6 +93,8 @@ class ProductStockOutExecuteActivity :
                 .setShowCancelButton(false)
                 .setOnDismiss(::focusScanner)
                 .show()
+        } else if (activeOperation == Operation.FINISH_CHILD && code == CODE_FORCE_FINISH_REQUIRED) {
+            showForceFinishDialog(message)
         } else if (message.isNotBlank()) {
             JToast.show(message)
         }
@@ -114,7 +117,6 @@ class ProductStockOutExecuteActivity :
         adapter.submitListWithDiff(records)
         binding.emptyRecords.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
         binding.tvExecuteSummary.text = "需求 ${detail?.reqQuantity ?: 0} 台 · 已出库 ${detail?.deliveryQuantity ?: 0} 台"
-        binding.tvExecuteStatus.text = detail?.statusLabel.orDash("出库中")
         val completed = detail?.status == STATUS_FINISHED || detail?.statusLabel == "已完成"
         binding.inputStockOutScan.visibility = if (completed) View.GONE else View.VISIBLE
         binding.btnFinishChildTask.visibility = if (completed) View.GONE else View.VISIBLE
@@ -159,7 +161,26 @@ class ProductStockOutExecuteActivity :
             .setConfirmText("确认结束")
             .setOnConfirm {
                 activeOperation = Operation.FINISH_CHILD
-                viewModel.finishChildTask(taskDetailId)
+                viewModel.finishChildTask(taskDetailId, force = false)
+            }
+            .show()
+    }
+
+    private fun showForceFinishDialog(message: String) {
+        JInputDialog(this, this)
+            .setTitle("强制结束任务")
+            .setInputTitle("结束备注")
+            .setHint("请输入强制结束原因（最多20字）")
+            .setOnConfirm { rawRemark ->
+                val remark = rawRemark.trim()
+                when {
+                    remark.isBlank() -> JToast.show("请输入强制结束原因")
+                    remark.length > FORCE_FINISH_REMARK_MAX_LENGTH -> JToast.show("备注最多输入 20 个字符")
+                    else -> {
+                        activeOperation = Operation.FORCE_FINISH_CHILD
+                        viewModel.finishChildTask(taskDetailId, force = true, remark = remark)
+                    }
+                }
             }
             .show()
     }
@@ -170,17 +191,26 @@ class ProductStockOutExecuteActivity :
 
     private fun String?.orDash(fallback: String = "-") = this?.takeIf { it.isNotBlank() } ?: fallback
 
-    private enum class Operation { NONE, LOAD_DETAIL, SCAN, DELETE, FINISH_CHILD }
+    private enum class Operation { NONE, LOAD_DETAIL, SCAN, DELETE, FINISH_CHILD, FORCE_FINISH_CHILD }
 
     companion object {
         private const val STATUS_FINISHED = 2
+        private const val CODE_FORCE_FINISH_REQUIRED = 10086
+        private const val FORCE_FINISH_REMARK_MAX_LENGTH = 20
         private const val EXTRA_DETAIL_ID = "extra_detail_id"
         private const val EXTRA_PRODUCT_NAME = "extra_product_name"
+        private const val EXTRA_PRODUCT_CODE = "extra_product_code"
 
-        fun intent(context: Context, taskDetailId: String, productName: String): Intent {
+        fun intent(
+            context: Context,
+            taskDetailId: String,
+            productName: String,
+            productCode: String,
+        ): Intent {
             return Intent(context, ProductStockOutExecuteActivity::class.java)
                 .putExtra(EXTRA_DETAIL_ID, taskDetailId)
                 .putExtra(EXTRA_PRODUCT_NAME, productName)
+                .putExtra(EXTRA_PRODUCT_CODE, productCode)
         }
     }
 }

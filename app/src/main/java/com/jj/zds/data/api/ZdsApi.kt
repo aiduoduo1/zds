@@ -38,6 +38,10 @@ import com.jj.zds.data.dto.debugplan.DebugTaskItemInfoDto
 import com.jj.zds.data.dto.debugplan.DebugTaskLogRequest
 import com.jj.zds.data.dto.login.LoginRequest
 import com.jj.zds.data.dto.menu.ZdsMenuDto
+import com.jj.zds.data.dto.materialtrace.MaterialTraceBindDto
+import com.jj.zds.data.dto.materialtrace.MaterialTraceInfoDto
+import com.jj.zds.data.dto.materialtrace.MaterialTraceNodeDto
+import com.jj.zds.data.dto.materialtrace.MaterialTraceQueryRequest
 import com.jj.zds.data.dto.productionplan.LineDto
 import com.jj.zds.data.dto.productionplan.PlanRequest
 import com.jj.zds.data.dto.productionplan.ProductionBindProgressDto
@@ -72,14 +76,23 @@ import com.jj.zds.data.dto.productionplan.ProductionSwitchBeginRequest
 import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailDto
 import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailRequest
 import com.jj.zds.data.dto.productstockin.ProductStockInRecordDto
+import com.jj.zds.data.dto.productstockin.ProductStockInResponse
 import com.jj.zds.data.dto.productstockin.ProductStockInRequest
 import com.jj.zds.data.dto.productstockout.ProductStockOutChildTaskDto
 import com.jj.zds.data.dto.productstockout.ProductStockOutChildTaskRequest
 import com.jj.zds.data.dto.productstockout.ProductStockOutDetailDto
 import com.jj.zds.data.dto.productstockout.ProductStockOutDetailRequest
+import com.jj.zds.data.dto.productstockout.ProductStockOutFinishRequest
 import com.jj.zds.data.dto.productstockout.ProductStockOutIdRequest
 import com.jj.zds.data.dto.productstockout.ProductStockOutScanRequest
 import com.jj.zds.data.dto.productstockout.ProductStockOutTaskDto
+import com.jj.zds.data.dto.productreturn.AirportDto
+import com.jj.zds.data.dto.productreturn.ProductReturnCreateRequest
+import com.jj.zds.data.dto.productreturn.ProductReturnFinishRequest
+import com.jj.zds.data.dto.productreturn.ProductReturnSaveRequest
+import com.jj.zds.data.dto.productreturn.ProductReturnScanRequest
+import com.jj.zds.data.dto.productreturn.ProductReturnScanResultDto
+import com.jj.zds.data.dto.productreturn.ProductReturnTaskDto
 import com.jj.zds.data.dto.qrcode.QrCodeDto
 import com.jj.zds.data.dto.recheck.RecheckScanValidRequest
 import com.jj.zds.data.dto.recheck.RecheckSubmitRequest
@@ -103,6 +116,21 @@ import retrofit2.http.POST
 import retrofit2.http.Part
 
 interface ZdsApi {
+
+    @POST("/m/trace/proInfo")
+    suspend fun getMaterialTraceInfo(
+        @Body request: MaterialTraceQueryRequest,
+    ): ZdsBaseResult<MaterialTraceInfoDto>
+
+    @POST("/m/trace/proBindInfo")
+    suspend fun getMaterialTraceBindings(
+        @Body request: MaterialTraceQueryRequest,
+    ): ZdsBaseResult<List<MaterialTraceBindDto>>
+
+    @POST("/m/trace/proNodeInfo")
+    suspend fun getMaterialTraceNodes(
+        @Body request: MaterialTraceQueryRequest,
+    ): ZdsBaseResult<List<MaterialTraceNodeDto>>
 
     /**
      * 鐧诲綍锛屾垚鍔熷悗杩斿洖 mes-up-token銆?     */
@@ -145,7 +173,7 @@ interface ZdsApi {
     @POST("/s/sysQrCode/decode")
     suspend fun decodeQrCode(@Body code: String): ZdsBaseResult<QrCodeDto>
 
-    @POST("/s/micsig/screenAndGet")
+    @POST("/device/micsig/screenAndGet")
     suspend fun captureOscilloscopeScreenRaw(): ResponseBody
 
     @POST("/q/ngSnRepairInfo/snScanValid")
@@ -202,7 +230,7 @@ interface ZdsApi {
     @POST("/fin/mat/pro/in-stock")
     suspend fun productStockIn(
         @Body request: ProductStockInRequest,
-    ): ZdsBaseResult<List<ProductStockInRecordDto>>
+    ): ZdsBaseResult<ProductStockInResponse>
 
     @POST("/fin/finDeliveryTask/pda/list")
     suspend fun getProductStockOutTasks(
@@ -222,7 +250,7 @@ interface ZdsApi {
     @POST("/fin/finDeliveryRes/pda/save")
     suspend fun submitProductStockOut(
         @Body request: ProductStockOutScanRequest,
-    ): ZdsBaseResult<Any>
+    ): ZdsBaseResult<Map<String, List<String>>>
 
     @POST("/fin/finDeliveryRes/del")
     suspend fun deleteProductStockOutRecord(
@@ -231,12 +259,42 @@ interface ZdsApi {
 
     @POST("/fin/finDeliveryCatDtl/finish")
     suspend fun finishProductStockOutChildTask(
-        @Body request: ProductStockOutDetailRequest,
+        @Body request: ProductStockOutFinishRequest,
     ): ZdsBaseResult<Any>
 
     @POST("/fin/finDeliveryTask/finish")
     suspend fun finishProductStockOutTask(
         @Body request: ProductStockOutIdRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/inf/air/list")
+    suspend fun getReturnAirports(
+        @Body request: Map<String, Boolean> = mapOf("isEnabled" to true),
+    ): ZdsBaseResult<List<AirportDto>>
+
+    @POST("/fin/finReturnTask/add")
+    suspend fun createProductReturnTask(
+        @Body request: ProductReturnCreateRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/fin/finReturnTask/pda/list")
+    suspend fun getProductReturnTasks(
+        @Body request: Map<String, String> = emptyMap(),
+    ): ZdsBaseResult<List<ProductReturnTaskDto>>
+
+    @POST("/fin/finReturnDetail/pda/scan")
+    suspend fun scanProductReturn(
+        @Body request: ProductReturnScanRequest,
+    ): ZdsBaseResult<ProductReturnScanResultDto>
+
+    @POST("/fin/finReturnDetail/pda/save")
+    suspend fun saveProductReturn(
+        @Body request: ProductReturnSaveRequest,
+    ): ZdsBaseResult<Any>
+
+    @POST("/fin/finReturnTask/finish")
+    suspend fun finishProductReturnTask(
+        @Body request: ProductReturnFinishRequest,
     ): ZdsBaseResult<Any>
 
     @POST("/pro/proPlaDtl/bindProgress")

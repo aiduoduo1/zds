@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/j_color_bg_page" android:orientation="vertical" android:padding="@dimen/j_space_12">
+    <LinearLayout style="@style/JStyle.Card" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="@dimen/j_space_8">
+        <com.jj.ui.input.JInputLayout android:id="@+id/inputReturnScan" android:layout_width="match_parent" android:layout_height="wrap_content" app:jInputClearEnabled="true" app:jInputCompact="true" app:jInputHint="请扫描已出库 PRO 码" app:jInputMode="scan" app:jInputScanOnly="true" app:jInputSelectAllOnFocus="true" app:jInputTitle="成品退库扫码" />
+    </LinearLayout>
+    <TextView android:id="@+id/tvReturnSummary" style="@style/JText.Body" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/j_space_10" android:text="本次待退库 0 台" android:textStyle="bold" />
+    <FrameLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_marginTop="@dimen/j_space_8" android:layout_weight="1">
+        <androidx.recyclerview.widget.RecyclerView android:id="@+id/recyclerProducts" android:layout_width="match_parent" android:layout_height="match_parent" android:clipToPadding="false" />
+        <com.jj.ui.widget.JEmptyView android:id="@+id/emptyProducts" android:layout_width="match_parent" android:layout_height="match_parent" app:jTitle="等待扫码" app:jDescription="扫码校验通过的成品会加入待退库集合" />
+    </FrameLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/j_space_8" android:orientation="horizontal">
+        <Button android:id="@+id/btnFinishTask" android:layout_width="0dp" android:layout_height="48dp" android:layout_marginEnd="@dimen/j_space_8" android:layout_weight="1" android:background="@drawable/j_bg_button_secondary" android:text="结束任务" android:textColor="@color/j_color_primary" android:textStyle="bold" />
+        <Button android:id="@+id/btnSubmitReturn" android:layout_width="0dp" android:layout_height="48dp" android:layout_weight="1" android:background="@drawable/pda_bg_button_primary" android:text="确认退库" android:textColor="@android:color/white" android:textStyle="bold" />
+    </LinearLayout>
+</LinearLayout>

@@ -38,6 +38,7 @@ class ProductStockOutChildTaskListActivity :
         binding.tvTaskCode.text = "出货任务：${taskCode.ifBlank { taskId }}"
         binding.btnFinishTask.setOnClickListener { confirmFinishTask() }
         binding.refreshLayout.setOnRefreshListener { viewModel.loadChildTasks(taskId) }
+        renderFinishTaskButton(emptyList())
     }
 
     override fun initPageObserver() {
@@ -46,6 +47,7 @@ class ProductStockOutChildTaskListActivity :
             adapter.submitListWithDiff(childTasks)
             binding.emptyChildTasks.visibility = if (childTasks.isEmpty()) View.VISIBLE else View.GONE
             binding.tvChildTaskSummary.text = "出库子任务 ${childTasks.size} 项"
+            renderFinishTaskButton(childTasks)
         }
         viewModel.taskFinished.observe(this) {
             setResult(RESULT_OK)
@@ -78,15 +80,23 @@ class ProductStockOutChildTaskListActivity :
         itemBinding.tvChildTaskIndex.text = (position + 1).toString()
         itemBinding.tvChildTaskName.text = item.productName.orDash(item.categoryName)
         itemBinding.tvChildTaskStatus.text = item.statusLabel.orDash("待出库")
+        itemBinding.tvChildTaskMaterialCode.text = "物料编码：${item.categoryName.orDash()}"
         itemBinding.tvChildTaskSeries.text = listOfNotNull(
             item.seriesName?.takeIf { it.isNotBlank() },
             item.specification?.takeIf { it.isNotBlank() },
         ).joinToString(" / ").ifBlank { "规格：-" }
         itemBinding.tvChildTaskWarehouse.text = "仓库：${item.warehouseName.orDash(item.warehouseCode)}"
-        itemBinding.tvChildTaskQuantity.text = "需求 ${item.reqQuantity ?: 0} 台 · 待出库 ${item.deliveryQuantity ?: 0} 台"
+        itemBinding.tvChildTaskQuantity.text = "需求 ${item.reqQuantity ?: 0} 台 · 已出库 ${item.deliveryQuantity ?: 0} 台"
         itemBinding.root.setOnClickListener {
             item.id?.takeIf { it.isNotBlank() }?.let { detailId ->
-                executeLauncher.launch(ProductStockOutExecuteActivity.intent(this, detailId, item.productName.orDash(item.categoryName)))
+                executeLauncher.launch(
+                    ProductStockOutExecuteActivity.intent(
+                        context = this,
+                        taskDetailId = detailId,
+                        productName = item.productName.orDash(item.categoryName),
+                        productCode = item.categoryName.orDash(),
+                    ),
+                )
             }
         }
     }
@@ -98,6 +108,12 @@ class ProductStockOutChildTaskListActivity :
             .setConfirmText("确认结束")
             .setOnConfirm { viewModel.finishTask(taskId) }
             .show()
+    }
+
+    private fun renderFinishTaskButton(childTasks: List<ProductStockOutChildTaskDto>) {
+        val enabled = ProductStockOutTaskFinishRules.canFinish(childTasks)
+        binding.btnFinishTask.isEnabled = enabled
+        binding.btnFinishTask.alpha = if (enabled) 1f else 0.5f
     }
 
     private fun String?.orDash(vararg fallback: String?): String {

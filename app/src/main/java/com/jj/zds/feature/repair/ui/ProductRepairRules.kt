@@ -69,4 +69,10 @@ object ProductRepairRules {
             else -> RepairSubmitOutcome.FINAL_STATE
         }
     }
+
+    fun isUnrepairableResult(label: String?, value: String?): Boolean {
+        val text = label?.trim()?.takeIf { it.isNotBlank() }
+            ?: value?.trim().orEmpty()
+        return text.contains("修不好") || text.contains("报废")
+    }
 }

@@ -150,6 +150,10 @@
             android:exported="false"
             android:windowSoftInputMode="stateAlwaysHidden|stateUnchanged" />
         <activity
+            android:name=".feature.materialtrace.MaterialTraceActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
+        <activity
             android:name=".feature.productstockout.ProductStockOutTaskListActivity"
             android:exported="false"
             android:windowSoftInputMode="stateAlwaysHidden|stateUnchanged" />
@@ -159,6 +163,14 @@
             android:windowSoftInputMode="stateAlwaysHidden|stateUnchanged" />
         <activity
             android:name=".feature.productstockout.ProductStockOutExecuteActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
+        <activity
+            android:name=".feature.productreturn.ProductReturnTaskListActivity"
+            android:exported="false"
+            android:windowSoftInputMode="stateAlwaysHidden|stateUnchanged" />
+        <activity
+            android:name=".feature.productreturn.ProductReturnExecuteActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize|stateAlwaysHidden" />
         <activity

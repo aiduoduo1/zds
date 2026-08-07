@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/j_color_bg_page"
+    android:fillViewport="true">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/j_space_12">
+        <LinearLayout
+            style="@style/JStyle.Card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/j_space_8">
+            <com.jj.ui.input.JInputLayout
+                android:id="@+id/inputTraceScan"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:jInputClearEnabled="true"
+                app:jInputCompact="true"
+                app:jInputHint="请扫描产品或物料二维码"
+                app:jInputMode="scan"
+                app:jInputScanOnly="true"
+                app:jInputSelectAllOnFocus="true"
+                app:jInputTitle="追溯扫码查询" />
+        </LinearLayout>
+        <com.jj.ui.widget.JEmptyView
+            android:id="@+id/emptyTrace"
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            app:jDescription="请使用扫码枪扫描二维码，快速核验当前状态、关联对象及关键履历"
+            app:jTitle="等待扫描追溯码" />
+        <LinearLayout
+            android:id="@+id/cardResult"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <LinearLayout
+                style="@style/JStyle.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_8"
+                android:orientation="vertical"
+                android:padding="@dimen/j_space_12">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+                    <LinearLayout android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:orientation="vertical">
+                        <TextView android:id="@+id/tvTraceType" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/j_color_primary" android:textSize="@dimen/j_text_size_sm" android:textStyle="bold" />
+                        <TextView android:id="@+id/tvTraceCode" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:textColor="@color/j_color_text_primary" android:textSize="@dimen/j_text_size_xl" android:textStyle="bold" />
+                    </LinearLayout>
+                    <TextView android:id="@+id/tvTraceStatus" android:layout_width="wrap_content" android:layout_height="wrap_content" android:paddingStart="10dp" android:paddingTop="5dp" android:paddingEnd="10dp" android:paddingBottom="5dp" android:textSize="@dimen/j_text_size_sm" android:textStyle="bold" />
+                </LinearLayout>
+                <TextView android:id="@+id/tvTraceName" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/j_space_8" android:textColor="@color/j_color_text_secondary" android:textSize="@dimen/j_text_size_md" />
+                <LinearLayout android:id="@+id/layoutTraceFields" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/j_space_12" android:orientation="vertical" />
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/cardTraceBindings"
+                style="@style/JStyle.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_8"
+                android:orientation="vertical"
+                android:padding="@dimen/j_space_12">
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="关联关键件" android:textColor="@color/j_color_text_primary" android:textSize="@dimen/j_text_size_lg" android:textStyle="bold" />
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="2dp" android:text="点击条目可继续追溯该关联对象" android:textColor="@color/j_color_text_secondary" android:textSize="@dimen/j_text_size_sm" />
+                <LinearLayout android:id="@+id/layoutTraceBindings" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/j_space_8" android:orientation="vertical" />
+            </LinearLayout>
+            <LinearLayout
+                style="@style/JStyle.Card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/j_space_8"
+                android:layout_marginBottom="@dimen/j_space_12"
+                android:orientation="vertical"
+                android:padding="@dimen/j_space_12">
+                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical" android:orientation="horizontal">
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="关键节点履历" android:textColor="@color/j_color_text_primary" android:textSize="@dimen/j_text_size_lg" android:textStyle="bold" />
+                    <TextView android:id="@+id/tvTraceNodeCount" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textColor="@color/j_color_text_secondary" android:textSize="@dimen/j_text_size_sm" />
+                </LinearLayout>
+                <LinearLayout android:id="@+id/layoutTraceNodes" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/j_space_8" android:orientation="vertical" />
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView>

@@ -8,45 +8,46 @@ import com.jj.network.call.JiangApiCaller
 import com.jj.storage.JiangStorage
 import com.jj.zds.data.api.ZdsApi
 import com.jj.zds.data.api.ZdsRawApiCaller
-import com.jj.zds.data.dto.aging.AgingProductDto
 import com.jj.zds.data.dto.aging.AgingEndDetailDto
 import com.jj.zds.data.dto.aging.AgingEndRequest
+import com.jj.zds.data.dto.aging.AgingProductDto
 import com.jj.zds.data.dto.aging.AgingScanValidRequest
 import com.jj.zds.data.dto.aging.AgingStartRequest
-import com.jj.zds.data.dto.common.CurUserDto
-import com.jj.zds.data.dto.common.UserSkillRequest
-import com.jj.zds.data.dto.common.ZdsBaseResult
-import com.jj.zds.data.dto.common.toJiangResult
-import com.jj.zds.data.dto.circulation.CirculationDiscardRequest
-import com.jj.zds.data.dto.circulation.CirculationCombineRequest
 import com.jj.zds.data.dto.circulation.CirculationCombineFromCheckRequest
+import com.jj.zds.data.dto.circulation.CirculationCombineRequest
+import com.jj.zds.data.dto.circulation.CirculationDiscardRequest
 import com.jj.zds.data.dto.circulation.CirculationProductCheckDto
 import com.jj.zds.data.dto.circulation.CirculationProductCheckRequest
 import com.jj.zds.data.dto.circulation.CirculationProductOperationRequest
 import com.jj.zds.data.dto.circulation.CirculationQrCodeRequest
 import com.jj.zds.data.dto.circulation.CirculationReasonDto
+import com.jj.zds.data.dto.common.CurUserDto
+import com.jj.zds.data.dto.common.UserSkillRequest
+import com.jj.zds.data.dto.common.ZdsBaseResult
+import com.jj.zds.data.dto.common.toJiangResult
 import com.jj.zds.data.dto.debugplan.DebugBoxBindRequest
-import com.jj.zds.data.dto.debugplan.DebugBoxQrCodeDto
 import com.jj.zds.data.dto.debugplan.DebugBoxQrCodeRequest
 import com.jj.zds.data.dto.debugplan.DebugBoxScanValidDto
 import com.jj.zds.data.dto.debugplan.DebugBoxScanValidRequest
 import com.jj.zds.data.dto.debugplan.DebugCheckGroupDto
 import com.jj.zds.data.dto.debugplan.DebugDictItemDto
 import com.jj.zds.data.dto.debugplan.DebugDictRequest
+import com.jj.zds.data.dto.debugplan.DebugIdRequest
 import com.jj.zds.data.dto.debugplan.DebugPlanDetailDto
 import com.jj.zds.data.dto.debugplan.DebugPlanDetailRequest
 import com.jj.zds.data.dto.debugplan.DebugPlanDto
-import com.jj.zds.data.dto.debugplan.DebugIdRequest
 import com.jj.zds.data.dto.debugplan.DebugPlanFinishRequest
 import com.jj.zds.data.dto.debugplan.DebugPlanListRequest
 import com.jj.zds.data.dto.debugplan.DebugPlanStatisticsDto
 import com.jj.zds.data.dto.debugplan.DebugSnCheckRequest
 import com.jj.zds.data.dto.debugplan.DebugSnScanValidDto
 import com.jj.zds.data.dto.debugplan.DebugSnScanValidRequest
-import com.jj.zds.data.dto.debugplan.SingleDebugCheckRequest
 import com.jj.zds.data.dto.debugplan.DebugTaskItemInfoDto
 import com.jj.zds.data.dto.debugplan.DebugTaskLogRequest
+import com.jj.zds.data.dto.debugplan.SingleDebugCheckRequest
 import com.jj.zds.data.dto.login.LoginRequest
+import com.jj.zds.data.dto.materialtrace.MaterialTraceDetailDto
+import com.jj.zds.data.dto.materialtrace.MaterialTraceQueryRequest
 import com.jj.zds.data.dto.menu.ZdsMenuDto
 import com.jj.zds.data.dto.productionplan.LineDto
 import com.jj.zds.data.dto.productionplan.PlanRequest
@@ -64,7 +65,6 @@ import com.jj.zds.data.dto.productionplan.ProductionEquipmentCheckRequest
 import com.jj.zds.data.dto.productionplan.ProductionFinishRequest
 import com.jj.zds.data.dto.productionplan.ProductionKeyPartBindRequest
 import com.jj.zds.data.dto.productionplan.ProductionKeyPartBindResultDto
-import com.jj.zds.data.dto.productionplan.ProductionPlanExecuteRequest
 import com.jj.zds.data.dto.productionplan.ProductionMaterialCheckRequest
 import com.jj.zds.data.dto.productionplan.ProductionOverallTestCheckRequest
 import com.jj.zds.data.dto.productionplan.ProductionOverallTestProgressDto
@@ -73,33 +73,43 @@ import com.jj.zds.data.dto.productionplan.ProductionOverallTestSnInfoDto
 import com.jj.zds.data.dto.productionplan.ProductionOverallTestSnInfoRequest
 import com.jj.zds.data.dto.productionplan.ProductionPersonCheckRequest
 import com.jj.zds.data.dto.productionplan.ProductionPlanDto
+import com.jj.zds.data.dto.productionplan.ProductionPlanExecuteRequest
 import com.jj.zds.data.dto.productionplan.ProductionPlanListRequest
 import com.jj.zds.data.dto.productionplan.ProductionPlanStatus
-import com.jj.zds.data.dto.productionplan.ProductionSoftCheckRequest
 import com.jj.zds.data.dto.productionplan.ProductionSnBindInfoDto
 import com.jj.zds.data.dto.productionplan.ProductionSnBindInfoRequest
+import com.jj.zds.data.dto.productionplan.ProductionSoftCheckRequest
 import com.jj.zds.data.dto.productionplan.ProductionStationProgressDto
 import com.jj.zds.data.dto.productionplan.ProductionSwitchBeginRequest
 import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailDto
 import com.jj.zds.data.dto.productionplan.ProductionSwitchDetailRequest
+import com.jj.zds.data.dto.productreturn.AirportDto
+import com.jj.zds.data.dto.productreturn.ProductReturnCreateRequest
+import com.jj.zds.data.dto.productreturn.ProductReturnFinishRequest
+import com.jj.zds.data.dto.productreturn.ProductReturnSaveRequest
+import com.jj.zds.data.dto.productreturn.ProductReturnScanRequest
+import com.jj.zds.data.dto.productreturn.ProductReturnScanResultDto
+import com.jj.zds.data.dto.productreturn.ProductReturnTaskDto
 import com.jj.zds.data.dto.productstockin.ProductStockInRecordDto
+import com.jj.zds.data.dto.productstockin.ProductStockInRequest
 import com.jj.zds.data.dto.productstockout.ProductStockOutChildTaskDto
 import com.jj.zds.data.dto.productstockout.ProductStockOutChildTaskRequest
 import com.jj.zds.data.dto.productstockout.ProductStockOutDetailDto
 import com.jj.zds.data.dto.productstockout.ProductStockOutDetailRequest
+import com.jj.zds.data.dto.productstockout.ProductStockOutFinishRequest
 import com.jj.zds.data.dto.productstockout.ProductStockOutIdRequest
 import com.jj.zds.data.dto.productstockout.ProductStockOutScanRequest
+import com.jj.zds.data.dto.productstockout.ProductStockOutScanResult
 import com.jj.zds.data.dto.productstockout.ProductStockOutTaskDto
-import com.jj.zds.data.dto.productstockin.ProductStockInRequest
 import com.jj.zds.data.dto.qrcode.QrCodeDto
 import com.jj.zds.data.dto.recheck.RecheckScanValidRequest
 import com.jj.zds.data.dto.recheck.RecheckSubmitRequest
-import com.jj.zds.data.dto.repair.REPAIR_DICT_MAINTAIN_RESULT
-import com.jj.zds.data.dto.repair.REPAIR_DICT_NG_REASON
 import com.jj.zds.data.dto.repair.NewRepairPartSnScanValidDto
 import com.jj.zds.data.dto.repair.NewRepairPartSnScanValidRequest
 import com.jj.zds.data.dto.repair.ProductRepairPartDto
 import com.jj.zds.data.dto.repair.ProductRepairPartListRequest
+import com.jj.zds.data.dto.repair.REPAIR_DICT_MAINTAIN_RESULT
+import com.jj.zds.data.dto.repair.REPAIR_DICT_NG_REASON
 import com.jj.zds.data.dto.repair.RepairLogDto
 import com.jj.zds.data.dto.repair.RepairLogListRequest
 import com.jj.zds.data.dto.repair.RepairOptionDto
@@ -108,7 +118,6 @@ import com.jj.zds.data.dto.repair.RepairSnScanValidRequest
 import com.jj.zds.data.dto.repair.RepairSubmitRequest
 import com.jj.zds.data.dto.update.ZdsVersionCheckResult
 import com.jj.zds.data.local.ZdsStorageKeys
-import java.io.File
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -117,13 +126,53 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import org.json.JSONTokener
+import java.io.File
 
 class ZdsRepository(
     private val api: ZdsApi = JiangNetwork.createApi(ZdsApi::class.java),
 ) {
 
+    suspend fun getMaterialTrace(qrCode: String): JiangResult<MaterialTraceDetailDto> {
+        val request = MaterialTraceQueryRequest(qrCode = qrCode)
+        val info = when (val result = dataApiCall { api.getMaterialTraceInfo(request) }) {
+            is JiangResult.Success -> result.data
+            is JiangResult.Error -> return result
+            JiangResult.Loading -> return JiangResult.Loading
+            JiangResult.Empty -> return JiangResult.Empty
+        }
+        val bindings = when (val result = dataApiCall { api.getMaterialTraceBindings(request) }) {
+            is JiangResult.Success -> result.data
+            is JiangResult.Error -> return result
+            JiangResult.Loading -> return JiangResult.Loading
+            JiangResult.Empty -> return JiangResult.Empty
+        }
+        val nodes = when (val result = dataApiCall { api.getMaterialTraceNodes(request) }) {
+            is JiangResult.Success -> result.data
+            is JiangResult.Error -> return result
+            JiangResult.Loading -> return JiangResult.Loading
+            JiangResult.Empty -> return JiangResult.Empty
+        }
+        return JiangResult.Success(MaterialTraceDetailDto(info, bindings, nodes))
+    }
+
     suspend fun productStockIn(qrCode: String): JiangResult<List<ProductStockInRecordDto>> {
-        return dataApiCall { api.productStockIn(ProductStockInRequest(qrCode = qrCode)) }
+        return when (val result =
+            dataApiCall { api.productStockIn(ProductStockInRequest(qrCode = qrCode)) }) {
+            is JiangResult.Success -> JiangResult.Success(
+                result.data.已入库.withStatus("已入库") +
+                        result.data.已出库.withStatus("已出库") +
+                        result.data.老化NG.withStatus("老化NG") +
+                        result.data.未老化.withStatus("未老化"),
+            )
+
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
+    }
+
+    private fun List<ProductStockInRecordDto>.withStatus(status: String): List<ProductStockInRecordDto> {
+        return map { it.copy(displayStatus = status) }
     }
 
     suspend fun getProductStockOutTasks(): JiangResult<List<ProductStockOutTaskDto>> {
@@ -149,21 +198,71 @@ class ZdsRepository(
         return dataApiCall { api.getProductStockOutDetail(ProductStockOutDetailRequest(taskDetailId)) }
     }
 
-    suspend fun submitProductStockOut(taskDetailId: String, qrCode: String): JiangResult<Unit> {
-        return unitApiCall { api.submitProductStockOut(ProductStockOutScanRequest(taskDetailId, qrCode)) }
+    suspend fun submitProductStockOut(
+        taskDetailId: String,
+        qrCode: String,
+    ): JiangResult<ProductStockOutScanResult> {
+        return when (
+            val result = dataApiCall {
+                api.submitProductStockOut(ProductStockOutScanRequest(taskDetailId, qrCode))
+            }
+        ) {
+            is JiangResult.Success -> JiangResult.Success(
+                ProductStockOutScanResult(
+                    groups = result.data.mapValues { (_, codes) -> codes.orEmpty() },
+                ),
+            )
+
+            is JiangResult.Error -> result
+            JiangResult.Loading -> JiangResult.Loading
+            JiangResult.Empty -> JiangResult.Empty
+        }
     }
 
     suspend fun deleteProductStockOutRecord(recordId: String): JiangResult<Unit> {
         return unitApiCall { api.deleteProductStockOutRecord(ProductStockOutIdRequest(recordId)) }
     }
 
-    suspend fun finishProductStockOutChildTask(taskDetailId: String): JiangResult<Unit> {
-        return unitApiCall { api.finishProductStockOutChildTask(ProductStockOutDetailRequest(taskDetailId)) }
+    suspend fun finishProductStockOutChildTask(
+        taskDetailId: String,
+        force: Boolean = false,
+        remark: String? = null,
+    ): JiangResult<Unit> {
+        return unitApiCall {
+            api.finishProductStockOutChildTask(
+                ProductStockOutFinishRequest(
+                    taskDetailId,
+                    force,
+                    remark
+                )
+            )
+        }
     }
 
     suspend fun finishProductStockOutTask(taskId: String): JiangResult<Unit> {
         return unitApiCall { api.finishProductStockOutTask(ProductStockOutIdRequest(taskId)) }
     }
+
+    suspend fun getReturnAirports(): JiangResult<List<AirportDto>> =
+        dataApiCall { api.getReturnAirports() }
+
+    suspend fun getProductReturnTasks(): JiangResult<List<ProductReturnTaskDto>> =
+        dataApiCall { api.getProductReturnTasks() }
+
+    suspend fun createProductReturnTask(airId: String, projectName: String): JiangResult<Unit> =
+        unitApiCall { api.createProductReturnTask(ProductReturnCreateRequest(airId, projectName)) }
+
+    suspend fun scanProductReturn(
+        taskId: String,
+        qrCode: String
+    ): JiangResult<ProductReturnScanResultDto> =
+        dataApiCall { api.scanProductReturn(ProductReturnScanRequest(taskId, qrCode)) }
+
+    suspend fun saveProductReturn(taskId: String, proIdList: List<String>): JiangResult<Unit> =
+        unitApiCall { api.saveProductReturn(ProductReturnSaveRequest(taskId, proIdList)) }
+
+    suspend fun finishProductReturnTask(taskId: String): JiangResult<Unit> =
+        unitApiCall { api.finishProductReturnTask(ProductReturnFinishRequest(taskId)) }
 
     /**
      * 登录只负责换取 token；拿到 token 后立即落本地，后续接口会依赖它拼接鉴权信息。
@@ -175,6 +274,7 @@ class ZdsRepository(
                     emptyMessage = "Login token is empty.",
                 ),
             )
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -238,7 +338,8 @@ class ZdsRepository(
     }
 
     suspend fun getMenu(menuType: Int = 2): JiangResult<List<ZdsMenuDto>> {
-        return when (val result = JiangApiCaller.safeApiCall { api.getMenu(mapOf("menuType" to menuType)) }) {
+        return when (val result =
+            JiangApiCaller.safeApiCall { api.getMenu(mapOf("menuType" to menuType)) }) {
             is JiangResult.Success -> result.data.toJiangResult(
                 emptyMessage = "Menu is empty.",
             )
@@ -418,6 +519,7 @@ class ZdsRepository(
             is JiangResult.Success -> result.data.toJiangResult(
                 emptyMessage = "Aging product list is empty.",
             )
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -446,6 +548,7 @@ class ZdsRepository(
             is JiangResult.Success -> result.data.toJiangResult(
                 emptyMessage = "Aging end detail is empty.",
             )
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -489,11 +592,13 @@ class ZdsRepository(
                     JiangResult.Error(
                         JiangException(
                             code = response.code,
-                            message = response.message ?: response.msg ?: "Production progress request failed.",
+                            message = response.message ?: response.msg
+                            ?: "Production progress request failed.",
                         ),
                     )
                 }
             }
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Success(emptyList())
@@ -513,6 +618,7 @@ class ZdsRepository(
             is JiangResult.Success -> result.data.toJiangResult(
                 emptyMessage = "Overall test progress is empty.",
             )
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -532,6 +638,7 @@ class ZdsRepository(
             is JiangResult.Success -> result.data.toJiangResult(
                 emptyMessage = "Circulation progress is empty.",
             )
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -549,6 +656,7 @@ class ZdsRepository(
             is JiangResult.Success -> result.data.toJiangResult(
                 emptyMessage = "Circulation information is empty.",
             )
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -566,6 +674,7 @@ class ZdsRepository(
             is JiangResult.Success -> result.data.toJiangResult(
                 emptyMessage = "Circulation information is empty.",
             )
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -586,10 +695,12 @@ class ZdsRepository(
     }
 
     suspend fun getCirculationDiscardReasons(): JiangResult<List<CirculationReasonDto>> {
-        return when (val result = JiangApiCaller.safeApiCall { api.getCirculationDiscardReasons() }) {
+        return when (val result =
+            JiangApiCaller.safeApiCall { api.getCirculationDiscardReasons() }) {
             is JiangResult.Success -> result.data.toJiangResult(
                 emptyMessage = "Circulation discard reason list is empty.",
             )
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -609,9 +720,15 @@ class ZdsRepository(
         api.checkCirculationCombineMain(CirculationQrCodeRequest(qrCode))
     }
 
-    suspend fun checkCirculationCombineFrom(qrCode: String, mainCirculationId: String) = unitApiCall {
-        api.checkCirculationCombineFrom(CirculationCombineFromCheckRequest(qrCode, mainCirculationId))
-    }
+    suspend fun checkCirculationCombineFrom(qrCode: String, mainCirculationId: String) =
+        unitApiCall {
+            api.checkCirculationCombineFrom(
+                CirculationCombineFromCheckRequest(
+                    qrCode,
+                    mainCirculationId
+                )
+            )
+        }
 
     suspend fun checkAddProductCirculation(qrCode: String) = unitApiCall {
         api.checkAddProductCirculation(CirculationQrCodeRequest(qrCode))
@@ -625,14 +742,28 @@ class ZdsRepository(
         circulationId: String,
         qrCode: String,
     ): JiangResult<CirculationProductCheckDto> {
-        return dataApiCall { api.checkCirculationAddProduct(CirculationProductCheckRequest(circulationId, qrCode)) }
+        return dataApiCall {
+            api.checkCirculationAddProduct(
+                CirculationProductCheckRequest(
+                    circulationId,
+                    qrCode
+                )
+            )
+        }
     }
 
     suspend fun checkCirculationRemoveProduct(
         circulationId: String,
         qrCode: String,
     ): JiangResult<CirculationProductCheckDto> {
-        return dataApiCall { api.checkCirculationRemoveProduct(CirculationProductCheckRequest(circulationId, qrCode)) }
+        return dataApiCall {
+            api.checkCirculationRemoveProduct(
+                CirculationProductCheckRequest(
+                    circulationId,
+                    qrCode
+                )
+            )
+        }
     }
 
     suspend fun getCirculationCombineReasons(): JiangResult<List<CirculationReasonDto>> {
@@ -655,9 +786,10 @@ class ZdsRepository(
         api.addCirculationProduct(request)
     }
 
-    suspend fun removeCirculationProduct(request: CirculationProductOperationRequest) = unitApiCall {
-        api.removeCirculationProduct(request)
-    }
+    suspend fun removeCirculationProduct(request: CirculationProductOperationRequest) =
+        unitApiCall {
+            api.removeCirculationProduct(request)
+        }
 
     suspend fun getProductionCirculationMaterials(
         circulationId: String,
@@ -672,6 +804,7 @@ class ZdsRepository(
             is JiangResult.Success -> result.data.toJiangResult(
                 emptyMessage = "Circulation material list is empty.",
             )
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -691,6 +824,7 @@ class ZdsRepository(
             is JiangResult.Success -> result.data.toJiangResult(
                 emptyMessage = "Circulation print log list is empty.",
             )
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -729,6 +863,7 @@ class ZdsRepository(
             is JiangResult.Success -> result.data.toJiangResult(
                 emptyMessage = "Overall test SN information is empty.",
             )
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -771,13 +906,17 @@ class ZdsRepository(
             is JiangResult.Success -> result.data.toJiangResult(
                 emptyMessage = "Production bind progress is empty.",
             )
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
         }
     }
 
-    suspend fun getProductionSnBindInfo(planId: String, sn: String): JiangResult<ProductionSnBindInfoDto> {
+    suspend fun getProductionSnBindInfo(
+        planId: String,
+        sn: String
+    ): JiangResult<ProductionSnBindInfoDto> {
         return when (
             val result = JiangApiCaller.safeApiCall {
                 api.getProductionSnBindInfo(
@@ -791,6 +930,7 @@ class ZdsRepository(
             is JiangResult.Success -> result.data.toJiangResult(
                 emptyMessage = "Production SN bind info is empty.",
             )
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -815,6 +955,7 @@ class ZdsRepository(
                     )
                 }
             }
+
             is JiangResult.Error -> result
             JiangResult.Loading -> JiangResult.Loading
             JiangResult.Empty -> JiangResult.Empty
@@ -1042,7 +1183,6 @@ class ZdsRepository(
             JiangResult.Empty -> JiangResult.Empty
         }
     }
-
 
 
     /**
@@ -1378,7 +1518,9 @@ class ZdsRepository(
             null, JSONObject.NULL -> ""
             is JSONObject -> {
                 listOf("message", "msg", "name", "label", "value", "reason")
-                    .firstNotNullOfOrNull { key -> optNullable(key).toDisplayText().takeIf { it.isNotBlank() } }
+                    .firstNotNullOfOrNull { key ->
+                        optNullable(key).toDisplayText().takeIf { it.isNotBlank() }
+                    }
                     ?: toString()
             }
 
@@ -1461,7 +1603,8 @@ class ZdsRepository(
     }
 
     suspend fun getRepairMaintainTypeOptions(): JiangResult<List<RepairOptionDto>> {
-        return when (val result = JiangApiCaller.safeApiCall { api.getRepairMaintainTypeOptions() }) {
+        return when (val result =
+            JiangApiCaller.safeApiCall { api.getRepairMaintainTypeOptions() }) {
             is JiangResult.Success -> result.data.toJiangResult(
                 emptyMessage = "Repair maintain type option list is empty.",
             )

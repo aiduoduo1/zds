@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import androidx.activity.result.contract.ActivityResultContracts
 import com.jj.ui.base.JiangToolbarStateVmActivity
 import com.jj.ui.recycler.adapter.JBindingAdapter
 import com.jj.ui.recycler.ext.addDefaultDivider
@@ -19,6 +20,9 @@ class ProductStockOutTaskListActivity :
         inflate = ItemProductStockOutTaskBinding::inflate,
         onBind = ::bindTask,
     )
+    private val childTaskLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == RESULT_OK) viewModel.loadTasks()
+    }
 
     override fun createViewBinding(inflater: LayoutInflater) =
         ActivityProductStockOutTaskListBinding.inflate(inflater)
@@ -66,7 +70,9 @@ class ProductStockOutTaskListActivity :
         itemBinding.root.setOnClickListener {
             val taskId = item.id.orEmpty()
             if (taskId.isNotBlank()) {
-                startActivity(ProductStockOutChildTaskListActivity.intent(this, taskId, item.code.orEmpty()))
+                childTaskLauncher.launch(
+                    ProductStockOutChildTaskListActivity.intent(this, taskId, item.code.orEmpty()),
+                )
             }
         }
     }

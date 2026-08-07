@@ -85,4 +85,11 @@ class ProductRepairRulesTest {
             ProductRepairRules.submitOutcome("生产计划", "SCRAP"),
         )
     }
+
+    @Test
+    fun unrepairableResultMatchesBadRepairLabels() {
+        assertTrue(ProductRepairRules.isUnrepairableResult("修不好，转报废", "SCRAP"))
+        assertTrue(ProductRepairRules.isUnrepairableResult("无法维修，报废", "NG"))
+        assertFalse(ProductRepairRules.isUnrepairableResult("已修好，允许复调", "OK"))
+    }
 }

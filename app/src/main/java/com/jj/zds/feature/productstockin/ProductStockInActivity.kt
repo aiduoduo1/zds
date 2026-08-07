@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.EditText
+import androidx.core.content.ContextCompat
 import com.jj.ui.base.JiangToolbarStateVmActivity
 import com.jj.ui.dialog.JConfirmDialog
 import com.jj.ui.recycler.adapter.JBindingAdapter
@@ -60,11 +61,12 @@ class ProductStockInActivity :
 
     override fun onUiError(code: Int, message: String, throwable: Throwable?) {
         scanInProgress = false
-        binding.inputStockInScan.showError(message).selectAll()
+        val formattedMessage = message.replace(',', '\n').replace('，', '\n')
+        binding.inputStockInScan.showError(formattedMessage).selectAll()
         renderRecords(viewModel.stockInRecords.value.orEmpty())
         JConfirmDialog(this, this)
             .setTitle("入库失败")
-            .setMessage(message)
+            .setMessage(formattedMessage)
             .setConfirmText("知道了")
             .setShowCancelButton(false)
             .setOnDismiss(::focusScanner)
@@ -82,7 +84,7 @@ class ProductStockInActivity :
     private fun renderRecords(records: List<ProductStockInRecordDto>) {
         adapter.submitListWithDiff(records)
         binding.emptyProducts.visibility = if (records.isEmpty()) View.VISIBLE else View.GONE
-        binding.tvProductSummary.text = "本次入库 ${records.size} 条"
+        binding.tvProductSummary.text = "本次处理 ${records.size} 条"
         binding.inputStockInScan.setInputEnabled(!scanInProgress)
         if (!scanInProgress) binding.inputStockInScan.setScanOnly(true)
     }
@@ -93,10 +95,21 @@ class ProductStockInActivity :
         position: Int,
     ) {
         itemBinding.tvProductIndex.text = (position + 1).toString()
-        itemBinding.tvProductCode.text = "物料码：${item.materialCode.orDash()}"
-        itemBinding.tvProductName.text = "物料名称：${item.partName.orDash()}"
-        itemBinding.tvPlanCode.text = "物料 ID：${item.proMatId.orDash()}"
-        itemBinding.tvProductSource.visibility = View.GONE
+        itemBinding.tvProductCode.text = "${item.materialCode.orDash()}"
+        itemBinding.tvProductName.text = "${item.partName.orDash()}"
+        itemBinding.tvPlanCode.text = "${item.proMatId.orDash()}"
+        itemBinding.tvProductSource.visibility = View.VISIBLE
+        itemBinding.tvProductSource.text = "处理结果：${item.displayStatus.orDash()}"
+        itemBinding.tvProductSource.setTextColor(
+            ContextCompat.getColor(
+                this,
+                if (item.displayStatus == "已入库") {
+                    com.jj.ui.R.color.j_color_success
+                } else {
+                    com.jj.ui.R.color.j_color_danger
+                },
+            ),
+        )
         itemBinding.btnRemoveProduct.visibility = View.GONE
     }
 

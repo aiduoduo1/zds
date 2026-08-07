@@ -26,6 +26,12 @@ data class ProductStockOutDetailRequest(
     val dtlId: String,
 )
 
+data class ProductStockOutFinishRequest(
+    val dtlId: String,
+    val forceFlag: Boolean = false,
+    val remark: String? = null,
+)
+
 data class ProductStockOutChildTaskDto(
     val id: String? = null,
     val taskId: String? = null,
@@ -49,6 +55,11 @@ data class ProductStockOutChildTaskDto(
 data class ProductStockOutScanRequest(
     val dtlId: String,
     val qrCode: String,
+)
+
+/** 一次扫码的处理结果，key 为“已出库”“未入库”“老化NG”等原因。 */
+data class ProductStockOutScanResult(
+    val groups: Map<String, List<String>>,
 )
 
 data class ProductStockOutIdRequest(

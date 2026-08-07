@@ -146,6 +146,7 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
             } else {
                 PRODUCT_MODE_NORMAL
             }
+            clearUnrepairableResultForReplace(showToast = true)
             renderProductRepairContext()
         }
         binding.editFaultMaterialCode.doAfterTextChanged { editable ->
@@ -194,6 +195,7 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         }
         viewModel.repairResultItems.observe(this) { items ->
             repairResults = items.filter { it.isShow }
+            clearUnrepairableResultForReplace(showToast = false)
             renderRepairResult()
         }
         viewModel.productRepairParts.observe(this) { parts ->
@@ -565,6 +567,7 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         binding.tvNgPhenomena.text = report.ngPhenomena.orDash()
         binding.tvFormSn.text = "${report.sn.orDash()} · ${report.ngPhenomena.orDash()}"
         renderRepairRemark(RepairRemarkDisplay.format(report.ngRemark).orDash())
+        clearUnrepairableResultForReplace(showToast = false)
         renderRepairResult()
         binding.tvNgReason.text = selectedNgReason.ifBlank { "请选择不良原因" }
         binding.editRepairBy.setText(
@@ -756,9 +759,14 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
             JToast.show("维修结果列表为空")
             return
         }
+        val availableResults = availableRepairResults()
+        if (availableResults.isEmpty()) {
+            JToast.show("换件维修没有可选维修结果")
+            return
+        }
         JSingleChoiceDialog<DebugDictItemDto>(this, this)
             .setTitle("选择维修结果")
-            .setItems(repairResults) { it.label ?: it.value ?: it.id.orDash() }
+            .setItems(availableResults) { it.label ?: it.value ?: it.id.orDash() }
             .setOnConfirm { selected ->
                 val value = selected?.value ?: selected?.label
                 if (value.isNullOrBlank()) {
@@ -775,6 +783,29 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
         binding.tvRepairResult.text = RepairResultDisplay
             .labelFor(selectedRepairResult, repairResults)
             .ifBlank { "请选择维修结果" }
+    }
+
+    private fun availableRepairResults(): List<DebugDictItemDto> {
+        if (!isProductReplaceRepair()) return repairResults
+        return repairResults.filterNot { ProductRepairRules.isUnrepairableResult(it.label, it.value) }
+    }
+
+    private fun clearUnrepairableResultForReplace(showToast: Boolean) {
+        if (!isProductReplaceRepair()) return
+        if (!isUnrepairableSelectedResult()) return
+        selectedRepairResult = ""
+        renderRepairResult()
+        if (showToast) {
+            JToast.show("换件维修不能选择修不好，请重新选择维修结果")
+        }
+    }
+
+    private fun selectedRepairResultItem(): DebugDictItemDto? {
+        val value = selectedRepairResult.trim()
+        if (value.isBlank()) return null
+        return repairResults.firstOrNull {
+            it.value?.trim() == value || it.label?.trim() == value
+        }
     }
 
     private fun submitRepair(action: RepairAction) {
@@ -798,6 +829,10 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
             }
             requireCompleteInput && result.isBlank() -> {
                 JToast.show("请选择维修结果")
+                return
+            }
+            requireCompleteInput && isProductReplaceRepair() && isUnrepairableSelectedResult() -> {
+                JToast.show("换件维修不能选择修不好，请重新选择维修结果")
                 return
             }
             requireCompleteInput && ngReason.isBlank() -> {
@@ -848,6 +883,19 @@ class RepairActivity : JiangToolbarStateVmActivity<ActivityRepairBinding, ZdsVie
 
     private fun isProductRepair(): Boolean {
         return ProductRepairRules.isFinishedProductSource(currentState?.report?.ngSource)
+    }
+
+    private fun isProductReplaceRepair(): Boolean {
+        return isProductRepair() && productRepairMode == PRODUCT_MODE_REPLACE
+    }
+
+    private fun isUnrepairableSelectedResult(): Boolean {
+        val selected = selectedRepairResultItem()
+        return if (selected != null) {
+            ProductRepairRules.isUnrepairableResult(selected.label, selected.value)
+        } else {
+            ProductRepairRules.isUnrepairableResult(selectedRepairResult, selectedRepairResult)
+        }
     }
 
     private fun validateProductRepair(): String? {

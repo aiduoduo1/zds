@@ -23,6 +23,8 @@ import com.jj.zds.feature.aging.AgingActivity
 import com.jj.zds.feature.circulation.ui.CirculationManageActivity
 import com.jj.zds.feature.productstockin.ProductStockInActivity
 import com.jj.zds.feature.productstockout.ProductStockOutTaskListActivity
+import com.jj.zds.feature.productreturn.ProductReturnTaskListActivity
+import com.jj.zds.feature.materialtrace.MaterialTraceActivity
 import com.jj.zds.feature.recheck.ui.RecheckActivity
 import com.jj.zds.feature.repair.ui.RepairActivity
 import com.jj.zds.feature.singledebug.ui.SingleDebugActivity
@@ -92,14 +94,14 @@ class PdaHomeFragment : JiangVmFragment<FragmentPdaHomeBinding, ZdsViewModel>() 
     private fun renderCurrentProduction(lineWorks: List<HomeLineWork>) {
         val hasCurrentPlan = lineWorks.isNotEmpty()
         binding.cardCurrentProduction.visibility = if (hasCurrentPlan) {
-            android.view.View.VISIBLE
+            View.VISIBLE
         } else {
-            android.view.View.GONE
+            View.GONE
         }
         binding.cardNoCurrentProduction.visibility = if (hasCurrentPlan) {
-            android.view.View.GONE
+            View.GONE
         } else {
-            android.view.View.VISIBLE
+            View.VISIBLE
         }
         binding.layoutCurrentLines.removeAllViews()
         lineWorks.forEachIndexed { index, work ->
@@ -122,7 +124,8 @@ class PdaHomeFragment : JiangVmFragment<FragmentPdaHomeBinding, ZdsViewModel>() 
             addView(
                 View(context).apply {
                     setBackgroundColor(ContextCompat.getColor(context, work.colorRes))
-                    layoutParams = LinearLayout.LayoutParams(dp(4), LinearLayout.LayoutParams.MATCH_PARENT)
+                    layoutParams =
+                        LinearLayout.LayoutParams(dp(4), LinearLayout.LayoutParams.MATCH_PARENT)
                 },
             )
 
@@ -132,8 +135,14 @@ class PdaHomeFragment : JiangVmFragment<FragmentPdaHomeBinding, ZdsViewModel>() 
                     gravity = Gravity.CENTER
                     textSize = 15f
                     typeface = Typeface.DEFAULT_BOLD
-                    setTextColor(ContextCompat.getColor(context, com.jj.ui.R.color.j_color_text_primary))
-                    layoutParams = LinearLayout.LayoutParams(dp(58), LinearLayout.LayoutParams.MATCH_PARENT)
+                    setTextColor(
+                        ContextCompat.getColor(
+                            context,
+                            com.jj.ui.R.color.j_color_text_primary
+                        )
+                    )
+                    layoutParams =
+                        LinearLayout.LayoutParams(dp(58), LinearLayout.LayoutParams.MATCH_PARENT)
                 },
             )
 
@@ -141,13 +150,19 @@ class PdaHomeFragment : JiangVmFragment<FragmentPdaHomeBinding, ZdsViewModel>() 
                 LinearLayout(context).apply {
                     orientation = LinearLayout.VERTICAL
                     gravity = Gravity.CENTER_VERTICAL
-                    layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
+                    layoutParams =
+                        LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f)
                     addView(
                         TextView(context).apply {
                             text = work.planNo
                             textSize = 14f
                             typeface = Typeface.DEFAULT_BOLD
-                            setTextColor(ContextCompat.getColor(context, com.jj.ui.R.color.j_color_text_primary))
+                            setTextColor(
+                                ContextCompat.getColor(
+                                    context,
+                                    com.jj.ui.R.color.j_color_text_primary
+                                )
+                            )
                             maxLines = 1
                         },
                     )
@@ -155,7 +170,12 @@ class PdaHomeFragment : JiangVmFragment<FragmentPdaHomeBinding, ZdsViewModel>() 
                         TextView(context).apply {
                             text = work.product
                             textSize = 12f
-                            setTextColor(ContextCompat.getColor(context, com.jj.ui.R.color.j_color_text_secondary))
+                            setTextColor(
+                                ContextCompat.getColor(
+                                    context,
+                                    com.jj.ui.R.color.j_color_text_secondary
+                                )
+                            )
                             maxLines = 1
                         },
                     )
@@ -217,9 +237,7 @@ class PdaHomeFragment : JiangVmFragment<FragmentPdaHomeBinding, ZdsViewModel>() 
             .distinct()
 
         return orderedKeys.mapNotNull { lineKey ->
-            val plan = plansByLine[lineKey]
-                ?.sortedBy { it.planStatus.homePriority() }
-                ?.firstOrNull()
+            val plan = plansByLine[lineKey]?.minByOrNull { it.planStatus.homePriority() }
                 ?: return@mapNotNull null
 
             HomeLineWork(
@@ -257,9 +275,15 @@ class PdaHomeFragment : JiangVmFragment<FragmentPdaHomeBinding, ZdsViewModel>() 
         binding.homeActions.btnProductOut.setOnClickListener {
             startActivity(Intent(requireContext(), ProductStockOutTaskListActivity::class.java))
         }
-        binding.homeActions.btnBind.setOnClickListener { JToast.show("进入绑定") }
+        binding.homeActions.btnProductReturn.setOnClickListener {
+            startActivity(Intent(requireContext(), ProductReturnTaskListActivity::class.java))
+        }
+        // 仅预留调光器看板绑定入口；页面与接口对接在后续阶段实现。
+        binding.homeActions.btnBind.setOnClickListener { JToast.show("看板绑定功能准备中") }
         binding.homeActions.btnUnbind.setOnClickListener { JToast.show("进入解绑") }
-        binding.homeActions.btnMaterialDetail.setOnClickListener { JToast.show("进入材料详情") }
+        binding.homeActions.btnMaterialDetail.setOnClickListener {
+            startActivity(Intent(requireContext(), MaterialTraceActivity::class.java))
+        }
     }
 
     interface Callback {
