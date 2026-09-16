@@ -24,6 +24,9 @@ import com.jj.zds.data.dto.circulation.CirculationReasonDto
 import com.jj.zds.data.dto.common.CurUserDto
 import com.jj.zds.data.dto.common.UserSkillRequest
 import com.jj.zds.data.dto.common.ZdsBaseResult
+import com.jj.zds.data.dto.dimmer.DimmerBindingContextDto
+import com.jj.zds.data.dto.dimmer.DimmerBindingRequest
+import com.jj.zds.data.dto.device.OscilloscopeOptionDto
 import com.jj.zds.data.dto.common.toJiangResult
 import com.jj.zds.data.dto.debugplan.DebugBoxBindRequest
 import com.jj.zds.data.dto.debugplan.DebugBoxQrCodeRequest
@@ -131,6 +134,9 @@ import java.io.File
 class ZdsRepository(
     private val api: ZdsApi = JiangNetwork.createApi(ZdsApi::class.java),
 ) {
+    suspend fun dimmerBindingContext(request: DimmerBindingRequest): JiangResult<DimmerBindingContextDto> = dataApiCall { api.dimmerBindingContext(request) }
+    suspend fun bindDimmer(request: DimmerBindingRequest): JiangResult<DimmerBindingContextDto> = dataApiCall { api.bindDimmer(request) }
+    suspend fun unbindDimmer(request: DimmerBindingRequest): JiangResult<Unit> = unitApiCall { api.unbindDimmer(request) }
 
     suspend fun getMaterialTrace(qrCode: String): JiangResult<MaterialTraceDetailDto> {
         val request = MaterialTraceQueryRequest(qrCode = qrCode)
@@ -405,11 +411,15 @@ class ZdsRepository(
         }
     }
 
-    suspend fun captureOscilloscopeScreen(): JiangResult<Long> {
+    suspend fun getOnlineOscilloscopes(): JiangResult<List<OscilloscopeOptionDto>> {
+        return dataApiCall { api.getOnlineOscilloscopes() }
+    }
+
+    suspend fun captureOscilloscopeScreen(deviceId: Long): JiangResult<Long> {
         return ZdsRawApiCaller.safeBaseCall(
             emptyMessage = "Oscilloscope screenshot file id is empty.",
         ) {
-            api.captureOscilloscopeScreenRaw()
+            api.captureOscilloscopeScreenRaw(deviceId)
         }
     }
 

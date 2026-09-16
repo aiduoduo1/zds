@@ -8,6 +8,9 @@ import com.jj.arch.vm.JiangViewModel
 import com.jj.common.result.JiangResult
 import com.jj.zds.data.dto.debugplan.DebugBoxQrCodeDto
 import com.jj.zds.data.dto.common.CurUserDto
+import com.jj.zds.data.dto.dimmer.DimmerBindingContextDto
+import com.jj.zds.data.dto.dimmer.DimmerBindingRequest
+import com.jj.zds.data.dto.device.OscilloscopeOptionDto
 import com.jj.zds.data.dto.debugplan.DebugBoxScanValidDto
 import com.jj.zds.data.dto.debugplan.DebugCheckGroupDto
 import com.jj.zds.data.dto.debugplan.DebugDictItemDto
@@ -85,6 +88,17 @@ data class ProductionRunStateChangeResult(
 class ZdsViewModel : JiangViewModel() {
 
     private val repository by lazy { ZdsRepository() }
+    private val _dimmerBindingContext = MutableLiveData<DimmerBindingContextDto>()
+    val dimmerBindingContext: LiveData<DimmerBindingContextDto> = _dimmerBindingContext
+    private val _dimmerBindingDone = MutableLiveData<Boolean>()
+    val dimmerBindingDone: LiveData<Boolean> = _dimmerBindingDone
+    private val _dimmerAirports = MutableLiveData<List<com.jj.zds.data.dto.productreturn.AirportDto>>()
+    val dimmerAirports: LiveData<List<com.jj.zds.data.dto.productreturn.AirportDto>> = _dimmerAirports
+
+    fun loadDimmerAirports() = launchResult(loadingMode = JiangLoadingMode.NONE, block = { repository.getReturnAirports() }, onSuccess = { _dimmerAirports.value = it })
+    fun loadDimmerBinding(stationQr: String, proQr: String? = null) = launchResult(loadingMode = JiangLoadingMode.DIALOG, block = { repository.dimmerBindingContext(DimmerBindingRequest(stationQr, proQr)) }, onSuccess = { _dimmerBindingContext.value = it })
+    fun bindDimmer(stationQr: String, proQr: String, airportName: String, projectName: String) = launchResult(loadingMode = JiangLoadingMode.DIALOG, block = { repository.bindDimmer(DimmerBindingRequest(stationQr, proQr, airportName, projectName)) }, onSuccess = { _dimmerBindingContext.value = it; _dimmerBindingDone.value = true })
+    fun unbindDimmer(stationQr: String, proQr: String) = launchResult(loadingMode = JiangLoadingMode.DIALOG, block = { repository.unbindDimmer(DimmerBindingRequest(stationQr, proQr)) }, onSuccess = { _dimmerBindingDone.value = false })
 
     private val _loginSuccess = MutableLiveData<CurUserDto>()
     val loginSuccess: LiveData<CurUserDto> = _loginSuccess
@@ -109,6 +123,8 @@ class ZdsViewModel : JiangViewModel() {
 
     private val _oscilloscopeScreenshotFileId = MutableLiveData<Long>()
     val oscilloscopeScreenshotFileId: LiveData<Long> = _oscilloscopeScreenshotFileId
+    private val _onlineOscilloscopes = MutableLiveData<List<OscilloscopeOptionDto>?>()
+    val onlineOscilloscopes: LiveData<List<OscilloscopeOptionDto>?> = _onlineOscilloscopes
 
     private val _repairSnScanValidResult = MutableLiveData<RepairSnScanValidDto>()
     val repairSnScanValidResult: LiveData<RepairSnScanValidDto> = _repairSnScanValidResult
@@ -388,12 +404,25 @@ class ZdsViewModel : JiangViewModel() {
     fun captureOscilloscopeScreen() {
         launchResult(
             loadingMode = JiangLoadingMode.DIALOG,
+            loadingMessage = "正在查询可用示波器...",
+            block = { repository.getOnlineOscilloscopes() },
+            onSuccess = { devices -> _onlineOscilloscopes.value = devices },
+        )
+    }
+
+    fun captureOscilloscopeScreen(deviceId: Long) {
+        launchResult(
+            loadingMode = JiangLoadingMode.DIALOG,
             loadingMessage = "正在获取示波器截图...",
-            block = { repository.captureOscilloscopeScreen() },
+            block = { repository.captureOscilloscopeScreen(deviceId) },
             onSuccess = { fileId ->
                 _oscilloscopeScreenshotFileId.value = fileId
             },
         )
+    }
+
+    fun consumeOscilloscopeChoices() {
+        _onlineOscilloscopes.value = null
     }
 
     fun scanValidRepairSn(qrCode: String) {

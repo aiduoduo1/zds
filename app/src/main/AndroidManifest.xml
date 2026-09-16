@@ -121,6 +121,7 @@
             android:name=".feature.singledebug.ui.SingleDebugActivity"
             android:exported="false"
             />
+        <activity android:name=".feature.dimmer.DimmerBindingActivity" android:exported="false" android:windowSoftInputMode="adjustResize|stateHidden" />
         <activity
             android:name=".feature.recheck.ui.RecheckActivity"
             android:exported="false"

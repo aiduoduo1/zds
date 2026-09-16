@@ -139,7 +139,7 @@ class ZdsApplication : Application() {
         }
 
         const val UNAUTHORIZED_REDIRECT_INTERVAL_MS = 1_500L
-        const val OSCILLOSCOPE_SCREENSHOT_PATH = "/s/micsig/screenAndGet"
+        const val OSCILLOSCOPE_SCREENSHOT_PATH = "/device/micsig/screenAndGet"
         const val OSCILLOSCOPE_SCREENSHOT_TIMEOUT_SECONDS = 60
     }
 }

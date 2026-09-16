@@ -1,6 +1,7 @@
 package com.jj.zds.feature.singledebug.ui
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Color
 import android.graphics.Rect
@@ -60,6 +61,7 @@ import com.jj.zds.feature.debugplan.ui.DebugTaskCollectType
 import com.jj.zds.feature.debugplan.ui.DebugTaskInputRules
 import com.jj.zds.feature.debugplan.ui.DebugTaskSubmitRules
 import com.jj.zds.feature.micsig.ui.OscilloscopeZoomImageView
+import com.jj.zds.feature.micsig.ui.observeOscilloscopePicker
 import com.jj.zds.feature.photo.PhotoUploadFileProcessor
 import com.jj.zds.feature.photo.PhotoUploadMode
 import com.jj.zds.feature.repair.data.buildRepairFileUrl
@@ -142,6 +144,7 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
         return ActivitySingleDebugBinding.inflate(inflater)
     }
 
+    @SuppressLint("RestrictedApi")
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
         if (
             DebugTaskNextActionRules.shouldHandlePageEnter(
@@ -181,6 +184,10 @@ class SingleDebugActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBindi
     }
 
     override fun initPageObserver() {
+        observeOscilloscopePicker(viewModel) {
+            pendingOscilloscopeCheckId?.let { updatePhotoUploading(it, uploading = false) }
+            pendingOscilloscopeCheckId = null
+        }
         viewModel.singleDebugSnScanValidResult.observe(this) { result ->
             scanInProgress = false
             renderSnScanResult(result)

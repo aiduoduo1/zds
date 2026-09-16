@@ -8,6 +8,9 @@ import com.jj.zds.data.dto.aging.AgingStartRequest
 import com.jj.zds.data.dto.common.CurUserDto
 import com.jj.zds.data.dto.common.UserSkillRequest
 import com.jj.zds.data.dto.common.ZdsBaseResult
+import com.jj.zds.data.dto.dimmer.DimmerBindingContextDto
+import com.jj.zds.data.dto.dimmer.DimmerBindingRequest
+import com.jj.zds.data.dto.device.OscilloscopeOptionDto
 import com.jj.zds.data.dto.circulation.CirculationCombineRequest
 import com.jj.zds.data.dto.circulation.CirculationCombineFromCheckRequest
 import com.jj.zds.data.dto.circulation.CirculationDiscardRequest
@@ -114,8 +117,12 @@ import retrofit2.http.Headers
 import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
+import retrofit2.http.Query
 
 interface ZdsApi {
+    @POST("/device/dimmer-can/pda/binding/context") suspend fun dimmerBindingContext(@Body request: DimmerBindingRequest): ZdsBaseResult<DimmerBindingContextDto>
+    @POST("/device/dimmer-can/pda/binding/bind") suspend fun bindDimmer(@Body request: DimmerBindingRequest): ZdsBaseResult<DimmerBindingContextDto>
+    @POST("/device/dimmer-can/pda/binding/unbind") suspend fun unbindDimmer(@Body request: DimmerBindingRequest): ZdsBaseResult<Any>
 
     @POST("/m/trace/proInfo")
     suspend fun getMaterialTraceInfo(
@@ -173,8 +180,11 @@ interface ZdsApi {
     @POST("/s/sysQrCode/decode")
     suspend fun decodeQrCode(@Body code: String): ZdsBaseResult<QrCodeDto>
 
+    @POST("/device/external-device/online-oscilloscopes")
+    suspend fun getOnlineOscilloscopes(): ZdsBaseResult<List<OscilloscopeOptionDto>>
+
     @POST("/device/micsig/screenAndGet")
-    suspend fun captureOscilloscopeScreenRaw(): ResponseBody
+    suspend fun captureOscilloscopeScreenRaw(@Query("deviceId") deviceId: Long): ResponseBody
 
     @POST("/q/ngSnRepairInfo/snScanValid")
     suspend fun scanValidRepairSn(

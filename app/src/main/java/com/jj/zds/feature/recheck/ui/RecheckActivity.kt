@@ -60,6 +60,7 @@ import com.jj.zds.feature.debugplan.ui.focusDebugCheck
 import com.jj.zds.feature.debugplan.ui.DebugTaskCollectType
 import com.jj.zds.feature.debugplan.ui.DebugTaskInputRules
 import com.jj.zds.feature.micsig.ui.OscilloscopeZoomImageView
+import com.jj.zds.feature.micsig.ui.observeOscilloscopePicker
 import com.jj.zds.feature.photo.PhotoUploadFileProcessor
 import com.jj.zds.feature.photo.PhotoUploadMode
 import com.jj.zds.feature.repair.data.buildRepairFileUrl
@@ -186,6 +187,10 @@ class RecheckActivity : JiangToolbarStateVmActivity<ActivitySingleDebugBinding, 
     }
 
     override fun initPageObserver() {
+        observeOscilloscopePicker(viewModel) {
+            pendingOscilloscopeCheckId?.let { updatePhotoUploading(it, uploading = false) }
+            pendingOscilloscopeCheckId = null
+        }
         viewModel.recheckSnScanValidResult.observe(this) { result ->
             scanInProgress = false
             renderSnScanResult(result)

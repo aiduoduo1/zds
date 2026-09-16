@@ -58,6 +58,7 @@ import com.jj.zds.feature.debugplan.data.DebugTaskSwitchRow
 import com.jj.zds.feature.debugplan.data.DebugTaskTextRow
 import com.jj.zds.feature.debugplan.data.DebugTaskValueRow
 import com.jj.zds.feature.micsig.ui.OscilloscopeZoomImageView
+import com.jj.zds.feature.micsig.ui.observeOscilloscopePicker
 import com.jj.zds.feature.photo.PhotoUploadFileProcessor
 import com.jj.zds.feature.photo.PhotoUploadMode
 import com.jj.zds.feature.repair.data.buildRepairFileUrl
@@ -198,6 +199,10 @@ class DebugTaskExecuteActivity : JiangToolbarStateVmActivity<ActivityDebugTaskEx
     }
 
     override fun initPageObserver() {
+        observeOscilloscopePicker(viewModel) {
+            pendingOscilloscopeCheckId?.let { updatePhotoUploading(it, uploading = false) }
+            pendingOscilloscopeCheckId = null
+        }
         viewModel.debugTaskItemInfo.observe(this) { info ->
             taskInfo = info
             currentPlanId = info.taskId.orEmpty()

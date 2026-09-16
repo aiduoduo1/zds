@@ -28,6 +28,7 @@ import com.jj.zds.feature.materialtrace.MaterialTraceActivity
 import com.jj.zds.feature.recheck.ui.RecheckActivity
 import com.jj.zds.feature.repair.ui.RepairActivity
 import com.jj.zds.feature.singledebug.ui.SingleDebugActivity
+import com.jj.zds.feature.dimmer.DimmerBindingActivity
 import com.jj.zds.viewmodel.ZdsViewModel
 
 class PdaHomeFragment : JiangVmFragment<FragmentPdaHomeBinding, ZdsViewModel>() {
@@ -278,9 +279,8 @@ class PdaHomeFragment : JiangVmFragment<FragmentPdaHomeBinding, ZdsViewModel>() 
         binding.homeActions.btnProductReturn.setOnClickListener {
             startActivity(Intent(requireContext(), ProductReturnTaskListActivity::class.java))
         }
-        // 仅预留调光器看板绑定入口；页面与接口对接在后续阶段实现。
-        binding.homeActions.btnBind.setOnClickListener { JToast.show("看板绑定功能准备中") }
-        binding.homeActions.btnUnbind.setOnClickListener { JToast.show("进入解绑") }
+        binding.homeActions.btnBind.setOnClickListener { startActivity(Intent(requireContext(), DimmerBindingActivity::class.java)) }
+        binding.homeActions.btnUnbind.visibility = View.GONE
         binding.homeActions.btnMaterialDetail.setOnClickListener {
             startActivity(Intent(requireContext(), MaterialTraceActivity::class.java))
         }

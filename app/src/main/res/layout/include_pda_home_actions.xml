@@ -174,7 +174,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:drawableTop="@drawable/pda_ic_action_link"
-                android:text="看板绑定" />
+                android:text="调光器工位绑定" />
         </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.card.MaterialCardView

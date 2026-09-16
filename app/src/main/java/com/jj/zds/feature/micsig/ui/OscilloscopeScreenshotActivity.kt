@@ -41,6 +41,9 @@ class OscilloscopeScreenshotActivity :
     }
 
     override fun initPageObserver() {
+        observeOscilloscopePicker(viewModel) {
+            binding.btnGetScreenshot.isEnabled = true
+        }
         viewModel.oscilloscopeScreenshotFileId.observe(this) { fileId ->
             currentFileId = fileId
             binding.btnGetScreenshot.isEnabled = true
