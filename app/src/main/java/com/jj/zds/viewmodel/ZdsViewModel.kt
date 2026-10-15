@@ -339,7 +339,7 @@ class ZdsViewModel : JiangViewModel() {
     fun checkVersion(versionName: String) {
         launchResult(
             loadingMode = JiangLoadingMode.DIALOG,
-            loadingMessage = "Checking version...",
+            loadingMessage = "正在检查更新…",
             block = { repository.versionCheck(versionName) },
             onSuccess = { result ->
                 _versionCheckResult.value = result

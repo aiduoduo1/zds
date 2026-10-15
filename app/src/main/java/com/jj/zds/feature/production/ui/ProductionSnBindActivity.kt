@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.view.Gravity
 import android.view.LayoutInflater
+import android.view.KeyEvent
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -136,7 +137,7 @@ class ProductionSnBindActivity :
     override fun toolbarSubtitle(): CharSequence = stepSubtitle()
 
     override fun toolbarMenuItems(): List<JiangToolbarMenuItem> {
-        return listOf(JiangToolbarMenuItem(MENU_RESET, "重置"))
+        return listOf(JiangToolbarMenuItem(MENU_RESET, "初始化"))
     }
 
     override fun onToolbarMenuClick(item: JiangToolbarMenuItem) {
@@ -144,6 +145,19 @@ class ProductionSnBindActivity :
             MENU_RESET -> resetCurrentProduct()
             else -> super.onToolbarMenuClick(item)
         }
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val isEnter = event.keyCode == KeyEvent.KEYCODE_ENTER || event.keyCode == KeyEvent.KEYCODE_NUMPAD_ENTER
+        val completed = currentInfo != null && rows.isNotEmpty() && rows.all { it.isFull() }
+        val displayedCode = binding.inputBind.text()
+        val showingLastScan = displayedCode.isNotBlank() &&
+            (displayedCode == lastSubmitCode || displayedCode == currentProSn)
+        if (isEnter && completed && showingLastScan && activeOperation == ActiveOperation.NONE) {
+            if (event.action == KeyEvent.ACTION_UP && event.repeatCount == 0) resetCurrentProduct()
+            return true
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     override fun showBackButton(): Boolean = true
@@ -314,7 +328,7 @@ class ProductionSnBindActivity :
             JToast.show("绑定处理中，请稍后重试")
             return
         }
-        clearCurrentProduct("已重置，请扫描PRO码")
+        clearCurrentProduct("已初始化，请扫描PRO码")
     }
 
     private fun updateScanInput() {

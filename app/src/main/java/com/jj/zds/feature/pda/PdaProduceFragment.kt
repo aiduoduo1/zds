@@ -267,22 +267,6 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
         } else {
             View.GONE
         }
-        itemBinding.btnPause.visibility = if (
-            status == ProductionPlanStatus.PRODUCT_ING ||
-            status == ProductionPlanStatus.PAUSE
-        ) {
-            View.VISIBLE
-        } else {
-            View.GONE
-        }
-        itemBinding.btnPause.text = if (status == ProductionPlanStatus.PAUSE) "重新开始" else "暂停"
-        itemBinding.btnPause.setBackgroundResource(
-            if (status == ProductionPlanStatus.PAUSE) {
-                R.drawable.pda_bg_button_primary
-            } else {
-                R.drawable.pda_bg_button_warning
-            },
-        )
         itemBinding.btnFinishPlan.visibility = if (
             status == ProductionPlanStatus.PRODUCT_ING ||
             status == ProductionPlanStatus.PAUSE
@@ -307,13 +291,6 @@ class PdaProduceFragment : JiangVmFragment<FragmentPdaProduceBinding, ZdsViewMod
                 )
             } else {
                 viewModel.beginProductionSwitch(planId)
-            }
-        }
-        itemBinding.btnPause.setOnClickListener {
-            if (status == ProductionPlanStatus.PAUSE) {
-                viewModel.restartProduction(planId)
-            } else {
-                viewModel.pauseProduction(planId)
             }
         }
         itemBinding.btnFinishPlan.setOnClickListener {

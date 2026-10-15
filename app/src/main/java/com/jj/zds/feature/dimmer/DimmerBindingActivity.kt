@@ -10,6 +10,7 @@ import com.jj.ui.state.JiangErrorMode
 import com.jj.ui.toast.JToast
 import com.jj.zds.data.dto.productreturn.AirportDto
 import com.jj.zds.databinding.ActivityDimmerBindingBinding
+import com.jj.zds.R
 import com.jj.zds.viewmodel.ZdsViewModel
 
 class DimmerBindingActivity : JiangToolbarStateVmActivity<ActivityDimmerBindingBinding, ZdsViewModel>() {
@@ -35,7 +36,7 @@ class DimmerBindingActivity : JiangToolbarStateVmActivity<ActivityDimmerBindingB
                 viewModel.unbindDimmer(stationQr, proQr)
             } else {
                 val airport = airports.getOrNull(binding.spinnerAirport.selectedItemPosition)?.name.orEmpty()
-                viewModel.bindDimmer(stationQr, proQr, airport, binding.inputProject.text.toString().trim())
+                viewModel.bindDimmer(stationQr, proQr, airport, binding.inputProject.text())
             }
         }
         viewModel.loadDimmerAirports()
@@ -45,7 +46,9 @@ class DimmerBindingActivity : JiangToolbarStateVmActivity<ActivityDimmerBindingB
     override fun initPageObserver() {
         viewModel.dimmerAirports.observe(this) {
             airports = it
-            binding.spinnerAirport.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, it.map { airport -> airport.name.orEmpty() })
+            binding.spinnerAirport.adapter = ArrayAdapter(this, R.layout.item_dimmer_airport, it.map { airport -> airport.name.orEmpty() }).apply {
+                setDropDownViewResource(R.layout.item_dimmer_airport)
+            }
         }
         viewModel.dimmerBindingContext.observe(this) { context ->
             scanInProgress = false
@@ -65,6 +68,7 @@ class DimmerBindingActivity : JiangToolbarStateVmActivity<ActivityDimmerBindingB
                 binding.inputProject.isVisible = !unbind
                 binding.btnConfirm.isVisible = true
                 binding.btnConfirm.text = if (unbind) "确认解绑" else "确认绑定"
+                binding.btnConfirm.setBackgroundResource(if (unbind) com.jj.ui.R.drawable.j_bg_button_danger else com.jj.ui.R.drawable.j_bg_button_primary)
             } ?: focusProInput()
         }
         viewModel.dimmerBindingDone.observe(this) { bound ->

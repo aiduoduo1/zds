@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/JText.Body"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/j_input_height"
+    android:gravity="center_vertical"
+    android:paddingStart="@dimen/j_space_12"
+    android:paddingEnd="@dimen/j_space_12"
+    android:singleLine="true" />

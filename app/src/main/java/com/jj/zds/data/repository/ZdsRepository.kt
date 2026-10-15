@@ -166,8 +166,10 @@ class ZdsRepository(
             dataApiCall { api.productStockIn(ProductStockInRequest(qrCode = qrCode)) }) {
             is JiangResult.Success -> JiangResult.Success(
                 result.data.已入库.withStatus("已入库") +
+                        result.data.在库.withStatus("在库") +
                         result.data.已出库.withStatus("已出库") +
                         result.data.老化NG.withStatus("老化NG") +
+                        result.data.批次未达标.withStatus("批次未达标") +
                         result.data.未老化.withStatus("未老化"),
             )
 
@@ -376,7 +378,7 @@ class ZdsRepository(
                     JiangResult.Error(
                         JiangException(
                             code = response.code,
-                            message = response.message ?: response.msg ?: "Version check failed.",
+                            message = response.message ?: response.msg ?: "检查更新失败",
                         ),
                     )
                 } else {
@@ -384,7 +386,7 @@ class ZdsRepository(
                     if (update == null) {
                         JiangResult.Success(
                             ZdsVersionCheckResult.NoUpdate(
-                                response.message ?: response.msg ?: "Already latest version.",
+                                response.message ?: response.msg ?: "当前已是最新版本",
                             ),
                         )
                     } else {
@@ -1725,7 +1727,7 @@ class ZdsRepository(
             JiangResult.Error(
                 JiangException(
                     code = JiangErrorCode.UNKNOWN,
-                    message = throwable.message ?: "APK download failed.",
+                    message = throwable.message ?: "更新包下载失败",
                     throwable = throwable,
                 ),
             )

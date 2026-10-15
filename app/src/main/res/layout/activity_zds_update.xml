@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     style="@style/JStyle.Page"
     android:layout_width="match_parent"
@@ -14,10 +15,55 @@
         android:padding="@dimen/j_space_16">
 
         <TextView
-            android:id="@+id/tvVersion"
-            style="@style/JText.Body"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:text="应用更新"
+            android:textColor="@color/j_color_text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_4"
+            android:text="检查并安装宗益 MES 最新版本"
+            android:textColor="@color/j_color_text_secondary"
+            android:textSize="13sp" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/j_space_16"
+            app:cardBackgroundColor="@color/j_color_bg_card"
+            app:cardCornerRadius="@dimen/j_radius_md"
+            app:cardElevation="2dp"
+            app:strokeColor="@color/j_color_line_light"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/j_space_16">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="当前安装版本"
+                    android:textColor="@color/j_color_text_secondary"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvVersion"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/j_space_8"
+                    android:textColor="@color/j_color_text_primary"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    tools:text="V1.2.3" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <Button
             android:id="@+id/btnCheckUpdate"
@@ -25,31 +71,68 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/j_space_16"
-            android:text="Check Update" />
+            android:minHeight="48dp"
+            android:text="检查更新" />
 
-        <ProgressBar
-            android:id="@+id/progressDownload"
-            style="?android:attr/progressBarStyleHorizontal"
+        <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/j_space_16"
-            android:max="100"
-            android:progress="0" />
+            app:cardBackgroundColor="@color/j_color_bg_card"
+            app:cardCornerRadius="@dimen/j_radius_md"
+            app:strokeColor="@color/j_color_line_light"
+            app:strokeWidth="1dp">
 
-        <TextView
-            android:id="@+id/tvStatus"
-            style="@style/JText.Secondary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/j_space_12"
-            android:lineSpacingExtra="4dp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/j_space_16">
 
-        <Button
-            android:id="@+id/btnInstall"
-            style="@style/JStyle.Button.Secondary"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/j_space_16"
-            android:text="Install downloaded APK" />
+                <TextView
+                    android:id="@+id/tvUpdateState"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/j_bg_status_info"
+                    android:paddingHorizontal="@dimen/j_space_8"
+                    android:paddingVertical="@dimen/j_space_4"
+                    android:text="等待检查"
+                    android:textColor="@color/j_color_primary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/j_space_12"
+                    android:lineSpacingExtra="4dp"
+                    android:text="点击“检查更新”获取最新版本信息"
+                    android:textColor="@color/j_color_text_primary"
+                    android:textSize="15sp" />
+
+                <ProgressBar
+                    android:id="@+id/progressDownload"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:layout_marginTop="@dimen/j_space_16"
+                    android:max="100"
+                    android:progress="0"
+                    android:progressBackgroundTint="@color/j_color_line_light"
+                    android:progressTint="@color/j_color_primary"
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/btnInstall"
+                    style="@style/JStyle.Button.Secondary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="@dimen/j_space_16"
+                    android:minHeight="48dp"
+                    android:text="安装已下载的更新"
+                    android:visibility="gone" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
     </LinearLayout>
 </ScrollView>

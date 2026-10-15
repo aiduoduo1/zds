@@ -342,7 +342,7 @@ class ProductionPersonCheckActivity :
             .setConfirmVisible(false)
             .onTextDebounce(delayMillis = 260L) { account -> submitPersonCode(row, account) }
             .setOnSubmit { account -> submitPersonCode(row, account) }
-            .selectAllInput()
+            .selectAllInput().setCancelText("关闭")
         scanBaseDialog = scanDialog?.show()
     }
 

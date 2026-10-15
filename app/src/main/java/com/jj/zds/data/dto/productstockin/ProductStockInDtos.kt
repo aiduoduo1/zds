@@ -5,9 +5,11 @@ data class ProductStockInRequest(
 )
 
 data class ProductStockInResponse(
+    val 在库: List<ProductStockInRecordDto> = emptyList(),
     val 已出库: List<ProductStockInRecordDto> = emptyList(),
     val 老化NG: List<ProductStockInRecordDto> = emptyList(),
     val 已入库: List<ProductStockInRecordDto> = emptyList(),
+    val 批次未达标: List<ProductStockInRecordDto> = emptyList(),
     val 未老化: List<ProductStockInRecordDto> = emptyList(),
 )
 
