@@ -128,8 +128,8 @@ class ZdsApplication : Application() {
 
     companion object {
         val BASE_URL = if (BuildConfig.DEBUG) {
-            "http://192.168.1.216:81/"
-           //  "http://1.94.220.45/"
+           // "http://192.168.1.216:81/"
+             "http://1.94.220.45/"
         } else {
             "http://1.94.220.45/"
         }

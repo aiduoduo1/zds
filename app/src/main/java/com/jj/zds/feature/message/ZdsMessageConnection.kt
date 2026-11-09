@@ -16,7 +16,6 @@ object ZdsMessageConnection {
                 Log.d(TAG, "message connection is alive, skip start")
                 return
             }
-
             Log.d(TAG, "message connection start")
             started = true
             sseClient = JiangNetwork.createSseClient(
@@ -25,11 +24,9 @@ object ZdsMessageConnection {
                     override fun onData(data: String) {
                         Log.d(TAG, "message data: $data")
                     }
-
                     override fun onError(error: Throwable) {
                         Log.e(TAG, "message connection error, keep alive and wait for reconnect", error)
                     }
-
                     override fun onClosed() {
                         Log.d(TAG, "message connection closed")
                     }
